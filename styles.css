@@ -85,3 +85,32 @@ input,select{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line
 .pd p{margin:4px 0 0;color:var(--mut);font-size:12px;line-height:1.5}
 .pd em{font-style:normal;color:var(--volt);font-size:11px;font-weight:800;margin-left:6px}
 button:disabled{opacity:.5}
+
+[hidden]{display:none!important}
+.nav button{font-size:7.5px;padding:10px 0 8px;letter-spacing:.2px}
+.nav svg{width:19px;height:19px}
+.bar.thin{height:4px;margin-top:-4px}
+.pill{cursor:pointer}
+.tile{display:block}
+.tile .per{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.row2{display:flex;align-items:center;gap:10px;margin-top:12px}
+.qty{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.qty button{width:38px;height:40px;background:transparent;color:var(--volt);font-size:20px;font-weight:900}
+.qty .q{width:52px;flex:none;text-align:center;padding:0;height:40px;border:0;border-radius:0;background:transparent;font-size:16px;font-weight:800;-moz-appearance:textfield}
+.qty .q::-webkit-outer-spin-button,.qty .q::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sum{flex:1;color:var(--txt);font-size:12px;font-weight:700}
+.ex .tip{display:block;margin-top:3px;font-size:11px;line-height:1.4}
+.ex>div:first-child{flex:1;min-width:0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:flex-start;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 20px;z-index:3000;overflow-y:auto}
+.modal-card{width:100%;max-width:440px;margin:0}
+.full select{width:100%;margin-top:6px;padding:11px 12px;font-size:15px}
+.kmline{color:var(--volt);font-size:13px;font-weight:700;line-height:1.5;margin:8px 0}
+.pe{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;color:var(--mut);font-size:12px;line-height:1.4}
+.launch.mini{padding:6px 10px;font-size:9px}
+.habit .row.gap{gap:10px;flex-wrap:wrap}
+.sos{background:var(--bg);border:1px solid var(--volt);border-radius:18px;padding:14px;margin-top:10px;text-align:center}
+.sos-t{font-size:44px;font-weight:900;color:var(--volt)}
+.sos p{margin:6px 0 0;font-size:14px}
+.tips{margin:0 0 6px;padding-left:18px;color:var(--mut);font-size:13px;line-height:1.55}
+.acc.plan-d{margin:12px 0 0;border-radius:18px}.acc.plan-d summary{padding:14px 16px;font-size:13px}
+#habitCustom{margin-bottom:10px;width:100%}
