@@ -1,6 +1,7 @@
 const SUPABASE_URL = "https://fgjtokbluxqnzotblnly.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnanRva2JsdXhxbnpvdGJsbmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ1NTEsImV4cCI6MjEwNjk4MDU1MX0.pDD_2szeVPLCj9e0e-aUUnOg_4zryKODeNgP3cj4AKM";
-const $ = id => document.getElementById(id);
+const ghost=()=>new Proxy({},{get:(_,k)=>k==='classList'?{toggle(){},add(){},remove(){},contains:()=>false}:(k==='style'||k==='dataset')?{}:k==='querySelectorAll'?()=>[]:()=>{},set:()=>true});
+const $ = id => document.getElementById(id)||ghost();
 const store = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)) };
 
 /* ---------- Tabs ---------- */
@@ -10,7 +11,7 @@ function showTab(t){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
   if(t==='habits')updHabits();
   if(t==='lung'){initMap();setTimeout(()=>map&&map.invalidateSize(),150)}
-  if(t!=='cam'&&camOn) stopCam();
+  if(t!=='catalog'&&camOn) stopCam();
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
@@ -148,7 +149,7 @@ function launch(name,mode,sets){
   const m=sets.match(/(\d+)\s*×\s*(\d+)/);
   exercise={name,mode,sets:m?+m[1]:3,target:m?+m[2]:12,set:1,unit:/s/.test(sets)?'s':'WDH'};
   reps=0;phase='up';holdStart=0;
-  $('camExercise').textContent=name;updCam();showTab('cam');
+  $('camExercise').textContent=name;updCam();showTab('catalog');$('camAcc').open=true;setTimeout(()=>$('camAcc').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 function updCam(){
   $('repCount').textContent=String(reps).padStart(3,'0');
