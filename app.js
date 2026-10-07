@@ -81,6 +81,13 @@ const FOOD = {
   "Beilagen & Carbs":[["Basmatireis 200 g gekocht",260,5],["Vollkornnudeln 250 g gekocht",350,13],["Süßkartoffel 200 g",180,3],["Pellkartoffeln 300 g",230,6],["Vollkornbrot-Scheibe",100,4,"Scheibe"],["Couscous 200 g gekocht",230,8],["Haferbrei 60 g Flocken",220,8],["Reiswaffel",35,1,"Stück"],["Gemüse-Pfanne",150,6]],
   "Obst & Gemüse":[["Banane",105,1,"Stück"],["Apfel",80,0.4,"Stück"],["Beerenmix 150 g",75,1],["Orange",65,1,"Stück"],["Brokkoli 200 g",70,6],["Gurke & Paprika-Snack",50,2],["Avocado",320,4,"Stück"],["Trauben 150 g",100,1],["Dattel",66,0.4,"Stück"]],
   "Protein-Snacks":[["Proteinriegel",210,20,"Stück"],["Hüttenkäse 200 g",180,22],["Beef Jerky 50 g",130,20],["Mandeln 30 g",175,6],["Magerquark 250 g",170,31],["Erdnussbutter (2 EL)",190,8],["Proteinpudding",160,20,"Stück"],["Walnüsse 30 g",195,5],["Thunfisch-Reiswaffel",150,14,"Stück"],["Cashews 30 g",165,5],["Edamame 100 g",120,11]],
+  "Chinesisch":[["Gebratener Reis mit Ei",520,14],["Chow Mein (Nudeln)",560,20],["Hühnchen süß-sauer",480,24],["Rindfleisch mit Brokkoli",380,30],["Kung Pao Chicken",450,32],["Mapo Tofu",340,19],["Gebratener Tofu mit Gemüse",320,20],["Wan-Tan-Suppe",260,14],["Dim Sum (Teigtasche)",45,2.5,"Stück"],["Frühlingsrolle",120,3,"Stück"],["Pekingente",400,28],["Gedämpfter Reis 200 g",260,5]],
+  "Japanisch & Koreanisch":[["Nigiri Lachs",55,3.5,"Stück"],["Maki-Röllchen",40,1.5,"Stück"],["Ramen mit Ei",550,24],["Miso-Suppe",60,4],["Teriyaki-Hähnchen mit Reis",560,38],["Gyoza",55,3,"Stück"],["Onigiri",180,4,"Stück"],["Udon-Suppe",400,16],["Katsu-Curry",700,30],["Bibimbap",560,24],["Bulgogi mit Reis",590,36],["Kimchi 100 g",15,1],["Tteokbokki",380,8]],
+  "Thai & Vietnamesisch":[["Pad Thai mit Hähnchen",600,28],["Grünes Curry mit Hähnchen",520,30],["Massaman Curry",620,28],["Tom Yum Suppe",170,16],["Tom Kha Gai",330,22],["Pho Bo",450,30],["Bun Cha",520,28],["Sommerrolle",80,4,"Stück"],["Papaya-Salat",120,3],["Reisnudel-Salat mit Garnelen",380,24],["Banh Mi",480,22],["Thai-Basilikum-Hähnchen mit Reis",560,34],["Mango Sticky Rice",380,5]],
+  "Indisch":[["Chicken Tikka Masala",480,34],["Butter Chicken",520,32],["Dal (Linsen-Curry)",300,16],["Palak Paneer",380,20],["Chana Masala",340,14],["Lamm Rogan Josh",480,32],["Aloo Gobi",260,6],["Hähnchen-Biryani",620,30],["Tandoori-Hähnchenkeule",250,30],["Naan",260,8,"Stück"],["Chapati / Roti",100,3,"Stück"],["Samosa",260,5,"Stück"],["Raita 100 g",60,3],["Masala Dosa",400,9],["Idli",40,1.5,"Stück"],["Mango Lassi",250,8,"Glas"]],
+  "Orientalisch & Türkisch":[["Falafel",57,2.5,"Stück"],["Hummus 50 g",85,3],["Shawarma-Teller",620,42],["Köfte-Spieß",190,15,"Stück"],["Adana Kebab",480,30],["Lahmacun",280,12,"Stück"],["Pide mit Hack",700,28],["Tabouleh",150,4],["Baba Ghanoush 100 g",120,3],["Linsensuppe",220,12],["Halloumi 50 g",160,11],["Menemen",280,14],["Shakshuka",300,16],["Ayran",70,4,"Glas"]],
+  "Italienisch":[["Spaghetti Bolognese",650,30],["Pasta Arrabbiata",520,16],["Lasagne",580,28],["Pizza Salami (¼)",300,13],["Pilz-Risotto",480,12],["Minestrone",180,8],["Bruschetta",90,2.5,"Stück"],["Gnocchi mit Tomatensauce",480,12],["Pasta mit Hähnchen und Pesto",620,38],["Hühnchen Parmigiana",600,46],["Tiramisu",450,7]],
+  "Mexikanisch":[["Chicken Burrito",700,38],["Taco mit Hähnchen",170,12,"Stück"],["Quesadilla",520,26],["Guacamole 50 g",90,1],["Chili con Carne",480,32],["Nachos mit Käse",520,12],["Huevos Rancheros",420,20],["Fajita-Pfanne",450,38],["Bohnensalat",250,12],["Enchiladas",560,30]],
   "Getränke":[["Whey-Shake mit Wasser",120,24],["Whey-Shake mit Milch",280,32],["Mass-Gainer-Shake",650,50],["Magermilch 500 ml",175,17],["Vollmilch 500 ml",320,17],["Kaffee schwarz",5,0,"Tasse"],["Kaffee mit Milch",45,2,"Tasse"],["Latte Macchiato",150,8,"Glas"],["Protein-Kaffee",160,20],["Smoothie Banane-Beere",220,4,"Glas"],["Orangensaft 250 ml",110,2,"Glas"],["Kokoswasser 330 ml",60,1,"Dose"],["Hafermilch 250 ml",120,3,"Glas"],["Kakao mit Milch",190,8,"Tasse"],["Proteinshake Schoko (RTD)",160,30,"Flasche"],["Isotonisches Getränk 500 ml",130,0,"Flasche"],["Cola Zero",1,0,"Dose"],["Energy Drink Zuckerfrei",10,0,"Dose"],["Grüner Tee",2,0,"Tasse"],["Wasser",0,0,"Glas"]]
 };
 let eaten=store.get('eaten',null);
@@ -133,10 +140,9 @@ function matchEx(name){
   const x=String(name).toLowerCase();
   return ALLEX.find(e=>e.name.toLowerCase()===x)||ALLEX.find(e=>{const n=e.name.toLowerCase();return x.includes(n)||n.includes(x)});
 }
-function renderCatalog(){
-  $('catalogList').innerHTML = Object.entries(CATALOG).map(([cat,c])=>`<h3>${cat.toUpperCase()}</h3>`+c.items.map(([n,s,t])=>
-    `<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><button class="launch" data-n="${n}" data-m="${c.mode}" data-s="${s}">CAM LAUNCH</button></div>`).join('')).join('');
-}
+const catItem=([n,s,t],m)=>`<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><button class="launch" data-n="${n}" data-m="${m}" data-s="${s}">CAM LAUNCH</button></div>`;
+const catHtml=()=>Object.entries(CATALOG).map(([cat,c],ci)=>`<details class="acc"${ci===0?' open':''}><summary><span>${cat}</span><em>${c.items.length}</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">${c.items.map(i=>catItem(i,c.mode)).join('')}</div></details>`).join('');
+function renderCatalog(){ $('catalogList').innerHTML=catHtml() }
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('.launch');
   if(b)launch(b.dataset.n,b.dataset.m,b.dataset.s);
