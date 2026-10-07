@@ -21,6 +21,7 @@
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></symbol>
     <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="13" r="1.4" fill="currentColor"/><circle cx="15" cy="13" r="1.4" fill="currentColor"/><path d="M12 7V4M9 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
     <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
@@ -31,7 +32,7 @@
 
 <header class="top">
   <div class="logo">LOCKED<span>IN</span></div>
-  <div class="pill">PRO ATHLETE</div>
+  <button class="pill" id="profileBtn">PROFIL</button>
 </header>
 
 <main>
@@ -39,8 +40,9 @@
   <section id="tab-food" class="tab active">
     <div class="card">
       <div class="row between"><span class="label">TAGESKALORIEN</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
-      <div class="big"><span id="kcalTotal">0</span><small> / 3.200 kcal</small></div>
+      <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
       <div class="bar"><i id="kcalBar"></i></div>
+      <div class="bar thin"><i id="protBar"></i></div>
       <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
     </div>
     <div id="foodList"></div>
@@ -82,7 +84,7 @@
     <div class="card">
       <span class="label">LAUF-PLANER</span>
       <div class="fields">
-        <select id="runGoal"><option value="fat">Cardio Fettverbrennung</option><option value="endurance">Ausdauer</option><option value="speed">Tempo / Intervalle</option></select>
+        <select id="runGoal"><option value="lose">Cardio Fettverbrennung</option><option value="endurance">Ausdauer</option><option value="gain">Muskelaufbau (leichtes Cardio)</option><option value="maintain">Fit bleiben</option></select>
         <input id="runWeight" type="number" inputmode="numeric" placeholder="Gewicht (kg)" value="75">
       </div>
       <button class="primary" id="runCalc">KILOMETER BERECHNEN</button>
@@ -116,8 +118,6 @@
         <label>Tage pro Woche<select id="pDays"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
         <label>Minuten pro Einheit<select id="pMin"><option>20</option><option>30</option><option selected>45</option><option>60</option><option>90</option></select></label>
         <label>Equipment<select id="pEquip"><option>Nur Körpergewicht</option><option>Kurzhanteln</option><option>Fitnessstudio</option></select></label>
-        <label>Alter<input id="pAge" type="number" inputmode="numeric" placeholder="z. B. 25"></label>
-        <label>Gewicht (kg)<input id="pWeight" type="number" inputmode="numeric" placeholder="z. B. 75"></label>
         <label>Erinnerung um<input id="pTime" type="time" value="18:00"></label>
       </div>
       <label class="full">Verletzungen / Wünsche<input id="pNotes" type="text" placeholder="z. B. Knie-Probleme, Fokus Brust"></label>
@@ -139,7 +139,40 @@
       </div>
     </div>
   </section>
+  <!-- HABITS -->
+  <section id="tab-habits" class="tab">
+    <div class="card">
+      <span class="label">NEUE GEWOHNHEIT ABLEGEN</span>
+      <div class="grid2">
+        <label>Was willst du loswerden?<select id="habitType"><option>Rauchen</option><option>Alkohol</option><option>Fluchen</option><option>Porno</option><option>Eigene</option></select></label>
+        <label>Kosten pro Tag (€)<input id="habitCost" type="text" inputmode="decimal" placeholder="optional"></label>
+      </div>
+      <input id="habitCustom" type="text" placeholder="Name der Gewohnheit" hidden>
+      <button class="primary" id="habitAdd">ZÄHLER STARTEN</button>
+      <p class="muted" id="habitMsg"></p>
+    </div>
+    <div id="habitList"></div>
+    <p class="muted small">Fällt es dir schwer? Hol dir Hilfe bei deinem Hausarzt oder einer Suchtberatung. Das ist Stärke, keine Schwäche.</p>
+  </section>
 </main>
+
+<div id="onb" class="modal" hidden><div class="card modal-card">
+  <span class="label">DEIN PROFIL</span>
+  <h2>Wer trainiert hier?</h2>
+  <p class="muted">Daraus berechne ich deinen Kalorienbedarf, dein Eiweißziel und deine Lauf-Kilometer.</p>
+  <div class="grid2">
+    <label>Geschlecht<select id="oSex"><option value="m">Männlich</option><option value="f">Weiblich</option></select></label>
+    <label>Alter<input id="oAge" type="number" inputmode="numeric" placeholder="z. B. 25"></label>
+    <label>Größe (cm)<input id="oH" type="number" inputmode="numeric" placeholder="z. B. 180"></label>
+    <label>Gewicht (kg)<input id="oW" type="number" inputmode="decimal" placeholder="z. B. 75"></label>
+    <label>Alltag<select id="oAct"><option value="1.2">Meist sitzend</option><option value="1.375">Leicht aktiv</option><option value="1.55" selected>Aktiv</option><option value="1.725">Sehr aktiv</option></select></label>
+    <label>Level<select id="oLevel"><option>Anfänger</option><option>Fortgeschritten</option><option>Profi</option></select></label>
+  </div>
+  <label class="full">Ziel<select id="oGoal"><option value="lose">Abnehmen</option><option value="maintain">Fit bleiben</option><option value="gain" selected>Muskelaufbau</option><option value="endurance">Ausdauer</option></select></label>
+  <p class="muted" id="oInfo"></p>
+  <button class="primary" id="oSave">PROFIL SPEICHERN</button>
+  <button class="ghost" id="oClose" hidden>Schließen</button>
+</div></div>
 
 <nav class="nav">
   <button data-tab="food" class="active"><svg><use href="#i-food"/></svg>FOOD</button>
@@ -147,6 +180,7 @@
   <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>CATALOG</button>
   <button data-tab="lung"><svg><use href="#i-pin"/></svg>LUNG/MAP</button>
   <button data-tab="coach"><svg><use href="#i-bot"/></svg>COACH</button>
+  <button data-tab="habits"><svg><use href="#i-shield"/></svg>HABITS</button>
 </nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
