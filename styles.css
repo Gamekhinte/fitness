@@ -118,3 +118,5 @@ button:disabled{opacity:.5}
 #errbar{position:fixed;top:0;left:0;right:0;z-index:5000;background:#FF4D4D;color:#fff;font-size:12px;font-weight:700;padding:8px 12px}
 #camAcc{border-color:var(--line)}#camAcc[open]{border-color:var(--volt)}
 #camAcc .acc-body .card{background:var(--bg)}
+
+.acc .ex{background:var(--bg)}
