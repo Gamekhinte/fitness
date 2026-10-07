@@ -114,3 +114,7 @@ button:disabled{opacity:.5}
 .tips{margin:0 0 6px;padding-left:18px;color:var(--mut);font-size:13px;line-height:1.55}
 .acc.plan-d{margin:12px 0 0;border-radius:18px}.acc.plan-d summary{padding:14px 16px;font-size:13px}
 #habitCustom{margin-bottom:10px;width:100%}
+
+#errbar{position:fixed;top:0;left:0;right:0;z-index:5000;background:#FF4D4D;color:#fff;font-size:12px;font-weight:700;padding:8px 12px}
+#camAcc{border-color:var(--line)}#camAcc[open]{border-color:var(--volt)}
+#camAcc .acc-body .card{background:var(--bg)}
