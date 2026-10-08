@@ -132,3 +132,24 @@ button:disabled{opacity:.5}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px}
 input[type=search]{-webkit-appearance:none;appearance:none}
 .leaflet-container{background:#15171E;font-family:inherit}
+
+#stepCard .big{margin-bottom:2px}
+
+/* Formularfelder: nichts mehr aus der Reihe */
+.grid2>*{min-width:0}
+.grid2 input,.grid2 select,.full input,.full select{height:46px;min-width:0;max-width:100%;display:block}
+input[type=time],input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;line-height:normal}
+input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
+/* Heute-Tabelle */
+.tbl{width:100%;border-collapse:collapse;margin-top:12px}
+.tbl th{color:var(--mut);font-size:10px;font-weight:800;letter-spacing:.5px;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px 4px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.tbl td b{display:block;font-size:13px}.tbl td span{color:var(--mut);font-size:11px}
+.tbl th:last-child,.tbl td:last-child{width:30px;text-align:right}
+.tbl tr.done td{color:var(--mut)}.tbl tr.info td b{font-weight:600}
+.chk{width:22px;height:22px;display:block;margin-left:auto}
+.week{display:flex;gap:6px;margin:12px 0 4px}
+.wd{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:8px 0;color:var(--mut);font-size:10px;font-weight:800}
+.wd .chk{width:18px;height:18px;margin:0}
+.wd.now{border-color:var(--volt);color:var(--volt)}.wd.ok{color:var(--txt)}.wd.rest{opacity:.5}.wd.miss{color:#FF4D4D}
+.toast{position:fixed;left:16px;right:16px;top:calc(12px + env(safe-area-inset-top,0px));z-index:6000;background:var(--card);border:1px solid var(--volt);border-radius:16px;padding:12px 14px;font-size:13px;font-weight:700}
