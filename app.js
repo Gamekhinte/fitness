@@ -171,6 +171,7 @@ function updFood(){
   $('proteinTotal').textContent=`${Math.round(eaten.protein)} / ${g.protein} g Eiweiß`;
   $('kcalBar').style.width=Math.min(100,eaten.kcal/g.kcal*100)+'%';
   $('protBar').style.width=Math.min(100,eaten.protein/g.protein*100)+'%';
+  try{renderToday()}catch(e){}
 }
 $('resetFood').onclick=()=>{eaten.kcal=0;eaten.protein=0;store.set('eaten',eaten);updFood()};
 
@@ -223,6 +224,11 @@ function angle(a,b,c){
 const LINKS=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
 let side=null,emaE=null,emaB=null,lastRep=0,minA=180,badSince=0,holdMs=0,lastT=0,facing='user';
 const ema=(p,v,k=0.35)=>p==null?v:p+(v-p)*k;
+function completeSet(){
+  say('Satz '+exercise.set+' geschafft',true);
+  taskDone(exercise.name);
+  exercise.set=Math.min(exercise.sets,exercise.set+1);reps=0;updCam();
+}
 function resetTrack(){phase='up';emaE=null;emaB=null;badSince=0;holdMs=0;lastT=0;side=null;minA=180}
 // 3D-Winkel aus Weltkoordinaten: unabhängig vom Kamerawinkel, deutlich genauer als 2D
 function ang3(a,b,c){
@@ -267,13 +273,13 @@ function onResults(res){
       phase='up';lastRep=Date.now();
       if(!backOk){say('Rücken gerade, zählt nicht')}
       else{reps++;updCam();say(String(reps),true);
-        if(reps>=exercise.target){say('Satz '+exercise.set+' geschafft',true);exercise.set=Math.min(exercise.sets,exercise.set+1);reps=0;updCam()}}
+        if(reps>=exercise.target)completeSet()}
     }
   }else{
     $('angleTxt').textContent=Math.round(emaB)+'°';
     if(backOk)holdMs+=dt;
     const s=Math.floor(holdMs/1000);
-    if(s!==reps){reps=s;updCam();if(s&&s%10===0)say(s+' Sekunden')}
+    if(s!==reps){reps=s;updCam();if(s&&s%10===0)say(s+' Sekunden');if(reps>=exercise.target){holdMs=0;completeSet()}}
   }
   if(!backOk){setForm('FORM CHECK: RÜCKEN GERADE HALTEN',true);say('Rücken gerade halten')}
   else if(plankLike)setForm(`FORM CHECK: <span style="color:#CCFF00">KÖRPERLINIE OK (${Math.round(emaB)}°)</span>`);
@@ -443,8 +449,12 @@ function addMsg(t,who){const d=document.createElement('div');d.className='msg '+
 async function ask(){
   const q=$('chatInput').value.trim();if(!q)return;
   $('chatInput').value='';addMsg(q,'me');
+  if(/plan/i.test(q)&&/(mach|erstell|bau|schreib|brauch|will|gib|generier)/i.test(q)){
+    addMsg('Ich baue dir jetzt einen Wochenplan mit deinen Profil-Daten. Er erscheint im Planbereich oben, dort tippst du auf PLAN ANNEHMEN.','ai');
+    $('planCard').scrollIntoView({behavior:'smooth'});await createPlan();return;
+  }
   const wait=addMsg('…','ai');
-  try{wait.textContent=(await api('chat',{message:q})).text||'Keine Antwort erhalten.'}
+  try{wait.textContent=(await api('chat',{message:profCtx()+q})).text||'Keine Antwort erhalten.'}
   catch(e){wait.textContent='Fehler: '+e.message}
 }
 $('chatSend').onclick=ask;
@@ -491,7 +501,7 @@ function buildReminders(plan,time){
   });
   return out;
 }
-$('planBtn').onclick=async()=>{
+async function createPlan(){
   const btn=$('planBtn');btn.disabled=true;btn.textContent='PLAN WIRD ERSTELLT…';$('planMsg').textContent='';$('planDraft').innerHTML='';
   const names=' | Nutze bevorzugt diese Übungsnamen: Klassische Liegestütze, Diamond Push-ups, Pike Push-ups, Klassische Squats, Ausfallschritte, Glute Bridges, Klassische Plank, Crunches, Mountain Climbers, Wall Sit';
   const inputs={goal:$('pGoal').value,level:$('pLevel').value,days:+$('pDays').value,minutes:+$('pMin').value,equipment:$('pEquip').value,age:profile?profile.age:'',weight:profile?profile.weight:'',notes:$('pNotes').value.slice(0,100)+names};
@@ -501,7 +511,8 @@ $('planBtn').onclick=async()=>{
     $('acceptPlan').onclick=acceptPlan;
   }catch(e){$('planMsg').textContent='Fehler: '+e.message}
   btn.disabled=false;btn.textContent='PLAN ERSTELLEN';
-};
+}
+$('planBtn').onclick=createPlan;
 async function acceptPlan(){
   const btn=$('acceptPlan');btn.disabled=true;
   try{
@@ -515,6 +526,7 @@ async function acceptPlan(){
 }
 function renderActive(){
   const a=store.get('activePlan',null);
+  try{renderToday()}catch(e){}
   $('activeCard').hidden=!a;
   if(a)$('activePlan').innerHTML=`<h2>${esc(a.plan.title)}</h2><p class="muted">Erinnerung täglich um ${esc(a.time)} Uhr an Trainingstagen.</p><p class="kmline">${esc(kmLine())}</p>${planHtml(a.plan)}`;
 }
@@ -531,7 +543,7 @@ function showKey(has){
 $('keySave').onclick=async()=>{
   const k=$('keyInput').value.trim();if(!k){$('keyMsg').textContent='Bitte Key eintragen.';return}
   $('keySave').disabled=true;$('keyMsg').textContent='Key wird geprüft…';
-  try{await api('set_key',{key:k});$('keyInput').value='';$('keyMsg').textContent='Key gespeichert.';showKey(true)}
+  try{const r=await api('set_key',{key:k});$('keyInput').value='';$('keyMsg').textContent=r.note||'Key gespeichert.';showKey(true)}
   catch(e){$('keyMsg').textContent='Fehler: '+e.message}
   $('keySave').disabled=false;
 };
@@ -540,6 +552,160 @@ $('keyDel').onclick=async()=>{
 };
 api('has_key').then(r=>showKey(r.has)).catch(()=>{});
 
+
+/* ---------- SCHRITTZÄHLER ---------- */
+let steps=store.get('steps',null);
+if(!steps||steps.day!==new Date().toDateString())steps={day:new Date().toDateString(),n:0};
+let stepOn=false,lastStep=0,grav=9.8,sd=0,prevSd=0,wake=null;
+const STEP_GOAL=10000;
+function updSteps(){
+  const h=profile?profile.height:175,w=profile?profile.weight:75;
+  const km=steps.n*(h*0.415/100)/1000,kcal=steps.n*0.04*(w/70);
+  $('stepCount').textContent=steps.n.toLocaleString('de-DE');
+  $('stepBar').style.width=Math.min(100,steps.n/STEP_GOAL*100)+'%';
+  $('stepInfo').textContent=`${km.toFixed(2).replace('.',',')} km • ${Math.round(kcal)} kcal • Ziel ${STEP_GOAL.toLocaleString('de-DE')}`;
+  try{renderToday()}catch(e){}
+}
+function onMotion(e){
+  const a=e.accelerationIncludingGravity;if(!a)return;
+  const m=Math.sqrt((a.x||0)**2+(a.y||0)**2+(a.z||0)**2);
+  grav=grav*0.98+m*0.02;                 // Schwerkraft herausfiltern
+  sd=sd*0.6+(m-grav)*0.4;                // Bewegung glätten
+  const now=Date.now();
+  if(sd>1.6&&prevSd<=1.6&&sd<14&&now-lastStep>300){
+    lastStep=now;steps.n++;updSteps();
+    if(steps.n%20===0)store.set('steps',steps);
+  }
+  prevSd=sd;
+}
+async function holdScreen(){try{if('wakeLock' in navigator)wake=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(stepOn&&document.visibilityState==='visible')holdScreen()});
+async function toggleSteps(){
+  if(stepOn){
+    window.removeEventListener('devicemotion',onMotion);stepOn=false;store.set('steps',steps);
+    if(wake){wake.release().catch(()=>{});wake=null}
+    $('stepBtn').textContent='ZÄHLER STARTEN';$('stepMsg').textContent='Zähler gestoppt.';return;
+  }
+  try{
+    if(typeof DeviceMotionEvent==='undefined')throw new Error('Bewegungssensor nicht verfügbar');
+    if(typeof DeviceMotionEvent.requestPermission==='function'&&await DeviceMotionEvent.requestPermission()!=='granted')throw new Error('Zugriff auf Bewegungssensor wurde nicht erlaubt');
+    window.addEventListener('devicemotion',onMotion);stepOn=true;await holdScreen();
+    $('stepBtn').textContent='ZÄHLER STOPPEN';$('stepMsg').textContent='Zähler läuft. Lass die App geöffnet und das Display an, sonst pausiert iOS die Sensoren.';
+  }catch(e){$('stepMsg').textContent='Fehler: '+e.message}
+}
+$('stepBtn').onclick=toggleSteps;
+$('stepReset').onclick=()=>{steps.n=0;store.set('steps',steps);updSteps()};
+
+/* ---------- HEUTE: Aufgaben, Lauf-Tracker, Benachrichtigungen ---------- */
+const dayKey=()=>new Date().toDateString();
+const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+let prog=store.get('prog',null);
+if(!prog||prog.day!==dayKey())prog={day:dayKey(),sets:{},km:0};
+const saveProg=()=>store.set('prog',prog);
+const GOAL_TXT={lose:'Abnehmen',maintain:'Fit bleiben',gain:'Muskelaufbau',endurance:'Ausdauer'};
+function profCtx(){return profile?`[Profil: ${profile.sex==='m'?'männlich':'weiblich'}, ${profile.age} Jahre, ${profile.height} cm, ${profile.weight} kg, Ziel ${GOAL_TXT[profile.goal]}, Level ${profile.level}] `:''}
+function todayTasks(){
+  const a=store.get('activePlan',null),dn=DAYS[(new Date().getDay()+6)%7];
+  const d=a&&a.plan.days.find(x=>x.day===dn),out=[];
+  if(d&&!d.rest)(d.exercises||[]).forEach(x=>out.push({id:'ex:'+x.name,type:'ex',name:x.name,goal:Math.max(1,+x.sets||1),detail:`${x.reps} Wdh.`}));
+  if(!(d&&d.rest))out.push({id:'run',type:'run',name:'Lauf',goal:kmAdvice(profile?profile.goal:'maintain',profile?profile.weight:75,profile?profile.level:'Anfänger').km});
+  out.push({id:'steps',type:'steps',name:'Schritte',goal:STEP_GOAL,info:true},{id:'kcal',type:'kcal',name:'Kalorien',goal:goals().kcal,info:true});
+  return out;
+}
+const standOf=t=>t.type==='ex'?(prog.sets[t.id]||0):t.type==='run'?prog.km:t.type==='steps'?steps.n:eaten.kcal;
+const isDone=t=>standOf(t)>=t.goal-(t.type==='run'?0.005:0);
+const nf=n=>Math.round(n).toLocaleString('de-DE');
+const goalTxt=t=>t.type==='ex'?`${t.goal} Sets`:t.type==='run'?`${t.goal.toFixed(1).replace('.',',')} km`:nf(t.goal);
+const standTxt=t=>t.type==='ex'?`${Math.min(standOf(t),t.goal)}/${t.goal}`:t.type==='run'?standOf(t).toFixed(2).replace('.',','):nf(standOf(t));
+function openText(list){return list.map(t=>t.type==='ex'?`${t.goal-standOf(t)} Sets ${t.name}`:`${Math.max(0,t.goal-standOf(t)).toFixed(1).replace('.',',')} km Lauf`).join(', ')}
+function renderToday(){
+  const tasks=todayTasks(),req=tasks.filter(t=>!t.info),open=req.filter(t=>!isDone(t)),all=req.length>0&&!open.length;
+  $('todayDate').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></td></tr>`}).join('');
+  $('todayHint').textContent=all?'Alles erledigt für heute. Stark!':open.length?`Noch offen: ${openText(open)}`:'';
+  const wl=store.get('weeklog',{});wl[isoDate(new Date())]=all;store.set('weeklog',wl);
+  renderWeek(wl);
+}
+function renderWeek(wl){
+  const a=store.get('activePlan',null),now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  $('weekStrip').innerHTML=DAYS.map((dn,i)=>{
+    const d=new Date(mon);d.setDate(mon.getDate()+i);const k=isoDate(d),today=k===isoDate(now);
+    const rest=a&&a.plan.days.some(x=>x.day===dn&&x.rest);
+    const st=wl[k]?'ok':rest?'rest':today?'today':d<now?'miss':'';
+    return `<div class="wd ${st}${today?' now':''}"><span>${dn.slice(0,2)}</span><svg class="chk"><use href="#${st==='ok'?'i-check':'i-circle'}"/></svg></div>`;
+  }).join('');
+}
+function toast(t){
+  if(!document.body)return;
+  const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),5000);
+}
+async function notify(title,body){
+  toast(title+'. '+body);
+  try{
+    if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&'serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.ready;
+      await reg.showNotification(title,{body,icon:'icon-192.png',badge:'icon-192.png',tag:'progress'});
+    }
+  }catch(e){}
+}
+function updNotifState(){
+  $('notifState').textContent=typeof Notification==='undefined'?'Benachrichtigungen gibt es nur in der installierten App (Teilen, dann "Zum Home-Bildschirm").':Notification.permission==='granted'?'Aktiv. Nach jeder erledigten Aufgabe sagt dir die App, was noch offen ist.':Notification.permission==='denied'?'Blockiert. Erlaube sie in den iPhone-Einstellungen unter Mitteilungen.':'Noch nicht erlaubt.';
+}
+async function ensureNotify(){
+  if(typeof Notification==='undefined')return false;
+  if(Notification.permission==='default')await Notification.requestPermission();
+  updNotifState();return Notification.permission==='granted';
+}
+$('notifBtn').onclick=async()=>{if(await ensureNotify())notify('Benachrichtigungen aktiv','Ich melde mich nach jeder erledigten Aufgabe.')};
+function afterProgress(t,was){
+  saveProg();renderToday();
+  if(!was&&t&&isDone(t)){
+    const open=todayTasks().filter(x=>!x.info&&!isDone(x));
+    notify(t.type==='run'?`${t.goal.toFixed(1).replace('.',',')} km geschafft`:`${t.name} erledigt`,open.length?`Noch offen: ${openText(open)}`:'Alles für heute geschafft. Stark!');
+  }
+}
+function taskDone(name){
+  const t=todayTasks().find(x=>x.type==='ex'&&(x.name===name||(matchEx(x.name)||{}).name===name));
+  if(!t){toast('Satz gespeichert, die Übung steht aber nicht in deinem heutigen Plan.');return}
+  const was=isDone(t);if(was){toast('Diese Übung ist heute schon erledigt.');return}
+  prog.sets[t.id]=(prog.sets[t.id]||0)+1;
+  if(!isDone(t))toast(`${t.name}: Satz ${prog.sets[t.id]}/${t.goal} erledigt`);
+  afterProgress(t,was);
+}
+// GPS-Lauf-Tracker
+let runOn=false,runWatch=null,runLast=null,runStart=0,runTimer=null,runMeters=0,runWake=null;
+function runPaint(){
+  const km=runMeters/1000,sec=Math.round((Date.now()-runStart)/1000),pace=km>0.05?sec/60/km:0;
+  $('runKm').textContent=km.toFixed(2).replace('.',',');
+  $('runInfo').textContent=`Zeit ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')} • Pace ${pace?Math.floor(pace)+':'+String(Math.round(pace%1*60)%60).padStart(2,'0')+' min/km':'–'}`;
+}
+function onPos(p){
+  const c=p.coords;if(c.accuracy>35)return;
+  const pt={lat:c.latitude,lng:c.longitude};
+  if(runLast){
+    const d=haversine(runLast,pt)*1000;
+    if(d<3||d>60)return;
+    runMeters+=d;
+    const t=todayTasks().find(x=>x.id==='run'),was=t?isDone(t):true;
+    prog.km+=d/1000;afterProgress(t,was);runPaint();
+  }
+  runLast=pt;
+}
+async function toggleRun(){
+  if(runOn){
+    navigator.geolocation.clearWatch(runWatch);clearInterval(runTimer);runOn=false;runLast=null;saveProg();
+    if(runWake){runWake.release().catch(()=>{});runWake=null}
+    $('runBtn').textContent='LAUF STARTEN';$('runMsg').textContent=`Lauf beendet: ${(runMeters/1000).toFixed(2).replace('.',',')} km.`;return;
+  }
+  if(!navigator.geolocation){$('runMsg').textContent='Standort nicht verfügbar.';return}
+  ensureNotify();
+  runMeters=0;runStart=Date.now();runLast=null;runOn=true;
+  try{if('wakeLock' in navigator)runWake=await navigator.wakeLock.request('screen')}catch(e){}
+  runWatch=navigator.geolocation.watchPosition(onPos,e=>{$('runMsg').textContent='Standort-Fehler: '+e.message},{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
+  runTimer=setInterval(runPaint,1000);
+  $('runBtn').textContent='LAUF BEENDEN';$('runMsg').textContent='Tracking läuft. Lass die App geöffnet und das Display an. Draußen mit freier Sicht ist GPS am genauesten.';
+}
+$('runBtn').onclick=toggleRun;
 
 /* ---------- HABITS ---------- */
 const MILES=[1,3,7,14,30,60,90,180,365];
@@ -605,5 +771,5 @@ $('habitList').addEventListener('click',async e=>{
 });
 $('habitType').onchange=()=>{$('habitCustom').hidden=$('habitType').value!=='Eigene'};
 
-[renderFood,renderCatalog,showQuote,updCam,renderActive,renderHabits,initProfile].forEach(f=>{try{f()}catch(e){console.error(f.name,e)}});
+[renderFood,renderCatalog,showQuote,updCam,renderActive,renderHabits,updSteps,renderToday,updNotifState,initProfile].forEach(f=>{try{f()}catch(e){console.error(f.name,e)}});
 addMsg('Was ist dein Ziel heute?','ai');
