@@ -156,3 +156,7 @@ input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and
 
 .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55)}
 .tbl .launch.mini{margin-top:8px;display:inline-block}
+
+.scan-img{display:block;width:100%;max-height:240px;object-fit:cover;border-radius:16px;margin-top:12px}
+.scan-name{font-size:17px;font-weight:800;margin:12px 0 0}
+#scanKeyRow{margin-top:10px}
