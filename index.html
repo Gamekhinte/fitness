@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -55,6 +55,7 @@
       <span class="label">LAUF-TRACKER (GPS)</span>
       <div class="big"><span id="runKm">0,00</span><small> km</small></div>
       <p class="muted" id="runInfo">Zeit 00:00 • Pace –</p>
+      <p class="kmline" id="paceTip"></p>
       <button class="primary" id="runBtn">LAUF STARTEN</button>
       <p class="muted small" id="runMsg"></p>
     </div>
@@ -72,6 +73,15 @@
       <div class="bar"><i id="kcalBar"></i></div>
       <div class="bar thin"><i id="protBar"></i></div>
       <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
+    </div>
+    <div class="card" id="scanCard">
+      <span class="label">KI-FOODSCAN</span>
+      <p class="muted">Foto von deinem Essen machen, die KI schätzt Kalorien und Eiweiß.</p>
+      <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
+      <button class="primary" id="scanBtn">ESSEN FOTOGRAFIEREN</button>
+      <img id="scanImg" class="scan-img" alt="" hidden>
+      <div id="scanKeyRow" class="fields" hidden><input id="scanKeyIn" type="password" placeholder="Gemini-Key (AIza…)" autocomplete="off" autocapitalize="off"><button class="ghost" id="scanKeySave" style="margin-top:0">Speichern</button></div>
+      <div id="scanOut"></div>
     </div>
     <div id="foodNav" class="chips"></div>
     <div id="foodList"></div>
@@ -113,7 +123,7 @@
       <div class="bar"><i id="stepBar"></i></div>
       <p class="muted" id="stepInfo"></p>
       <button class="primary" id="stepBtn">ZÄHLER STARTEN</button>
-      <p class="muted small" id="stepMsg">Nutzt den Bewegungssensor deines Handys. Zählt nur bei geöffneter App und eingeschaltetem Display. Die Apple-Health-Schritte kann eine Web-App nicht lesen.</p>
+      <p class="muted small" id="stepMsg">Nutzt den Bewegungssensor deines Handys. Zählt nur bei geöffneter App und eingeschaltetem Display (iOS erlaubt Web-Apps keinen Hintergrund-Zugriff auf die Sensoren). Für Zählen im Hintergrund: Apple-Health-Kurzbefehl, der diese App mit ?steps=ANZAHL öffnet.</p>
       <button class="ghost" id="stepReset"><svg><use href="#i-refresh"/></svg>Heute zurücksetzen</button>
     </div>
     <div class="card center">
@@ -130,6 +140,7 @@
       </div>
       <button class="primary" id="runCalc">KILOMETER BERECHNEN</button>
       <p id="runResult" class="muted"></p>
+      <p class="kmline" id="paceTip2"></p>
       <div class="fields"><input id="placeQ" type="search" placeholder="Ort oder Adresse suchen"><button class="send" id="placeGo" aria-label="Suchen"><svg><use href="#i-pin"/></svg></button></div>
       <div id="map"></div>
       <div class="btnrow"><button class="ghost" id="locBtn">Mein Standort</button><button class="ghost" id="loopBtn">Rundkurs vom Coach</button><button class="ghost" id="clearMarks">Leeren</button></div>
@@ -228,6 +239,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
