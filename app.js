@@ -61,7 +61,7 @@ $('oSave').onclick=()=>{
 $('oClose').onclick=()=>{$('onb').hidden=true};
 $('profileBtn').onclick=openProfile;
 function applyProfile(){
-  updFood();
+  updFood();try{updPace()}catch(e){}
   if(!profile)return;
   $('pGoal').value={lose:'Fett verlieren',gain:'Muskelaufbau',endurance:'Ausdauer',maintain:'Allround-Fitness'}[profile.goal];
   $('pLevel').value=profile.level;
@@ -324,7 +324,7 @@ bBtn.addEventListener('pointerdown',e=>{e.preventDefault();bStart=performance.no
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bBtn.addEventListener(ev,bStop));
 bBtn.addEventListener('contextmenu',e=>e.preventDefault());
 
-let pts=[],mk=[],routeLine=null;
+let pts=[],mk=[],routeLine=null,lastRoute=null;
 const TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 function initMap(){
   if(map||typeof L==='undefined'||!L.map)return;
@@ -336,7 +336,7 @@ function initMap(){
 const info=t=>{$('routeInfo').textContent=t};
 function clearRoute(all){
   if(routeLine){routeLine.remove();routeLine=null}
-  if(all){mk.forEach(m=>m.remove());mk=[];pts=[]}
+  if(all){mk.forEach(m=>m.remove());mk=[];pts=[];lastRoute=null}
 }
 function addMarker(p){if(map)mk.push(L.marker([p.lat,p.lng]).addTo(map))}
 function haversine(a,b){const R=6371,r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dn=r(b.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
@@ -354,10 +354,12 @@ async function routeVia(list){
   return {km:j.routes[0].distance/1000,coords:j.routes[0].geometry.coordinates.map(([x,y])=>[y,x])};
 }
 function drawRoute(res,note){
+  lastRoute=res;
   if(routeLine)routeLine.remove();
   routeLine=L.polyline(res.coords,{color:'#CCFF00',weight:5,opacity:.95}).addTo(map);
   map.fitBounds(routeLine.getBounds(),{padding:[24,24]});
-  info(`Route: ${res.km.toFixed(1)} km${note||' zu Fuß'}, ca. ${Math.round(res.km*6)} min bei 6 min/km.`);
+  const pc=paceAdvice().pace;
+  info(`Route: ${res.km.toFixed(1)} km${note||' zu Fuß'}, ca. ${Math.round(res.km*pc)} min bei deiner Ziel-Pace von ${fmtPace(pc)} min/km.`);
 }
 async function updateRoute(){
   if(pts.length<2){info('Setze einen zweiten Punkt, dann zeichne ich die Laufroute.');return}
@@ -407,14 +409,25 @@ async function searchPlace(){
   }catch(e){info('Fehler: '+e.message)}
 }
 const ll=p=>`${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
+function sampleRoute(n){
+  const c=(lastRoute&&lastRoute.coords.length>2)?lastRoute.coords:pts.map(p=>[p.lat,p.lng]);
+  if(c.length<=n+2)return c.slice(1,-1).map(([a,b])=>({lat:a,lng:b}));
+  const cum=[0];
+  for(let i=1;i<c.length;i++)cum.push(cum[i-1]+haversine({lat:c[i-1][0],lng:c[i-1][1]},{lat:c[i][0],lng:c[i][1]}));
+  const tot=cum[cum.length-1],out=[];let j=1;
+  for(let k=1;k<=n;k++){const t=tot*k/(n+1);while(j<c.length-1&&cum[j]<t)j++;out.push({lat:c[j][0],lng:c[j][1]})}
+  return out;
+}
 function openMaps(kind){
   if(pts.length<2){info('Erst eine Route anlegen (zwei Punkte oder Rundkurs).');return}
-  const o=pts[0],d=pts[pts.length-1],mid=pts.slice(1,-1);
-  const q=encodeURIComponent;
-  const url=kind==='g'
-    ?`https://www.google.com/maps/dir/?api=1&origin=${q(ll(o))}&destination=${q(ll(d))}${mid.length?'&waypoints='+q(mid.map(ll).join('|')):''}&travelmode=walking`
-    :`https://maps.apple.com/?saddr=${q(ll(o))}&daddr=${pts.slice(1).map(p=>q(ll(p))).join('+to:')}&dirflg=w`;
-  window.open(url,'_blank');
+  const o=pts[0],d=pts[pts.length-1],mid=sampleRoute(8),stops=[...mid,d].map(ll);
+  if(kind==='g'){
+    // Direkt die Google-Maps-App per URL-Scheme öffnen (statt Website). Zwischenpunkte entlang deiner Route erzwingen denselben Weg.
+    let left=false;const h=()=>{if(document.hidden)left=true};
+    document.addEventListener('visibilitychange',h);addEventListener('pagehide',h);
+    location.href=`comgooglemaps://?saddr=${ll(o)}&daddr=${stops.join('+to:')}&directionsmode=walking`;
+    setTimeout(()=>{document.removeEventListener('visibilitychange',h);if(!left)info('Google Maps hat sich nicht geöffnet. Ist die App installiert? Sonst nimm „In Apple Karten öffnen“.')},2500);
+  }else location.href=`https://maps.apple.com/?saddr=${ll(o)}&daddr=${stops.join('+to:')}&dirflg=w`;
 }
 $('placeGo').onclick=searchPlace;
 $('placeQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});
@@ -426,7 +439,7 @@ $('amapsBtn').onclick=()=>openMaps('a');
 $('runCalc').onclick=()=>{
   const w=Math.max(40,+$('runWeight').value||75);
   const a=kmAdvice($('runGoal').value,w,profile?profile.level:'Anfänger');
-  $('runResult').textContent=`Empfehlung: ${a.km} km pro Lauf – ${a.txt}.`;
+  $('runResult').textContent=`Empfehlung: ${a.km} km pro Lauf – ${a.txt}.`;updPace();
 };
 
 /* ---------- COACH ---------- */
@@ -518,9 +531,9 @@ async function acceptPlan(){
   const btn=$('acceptPlan');btn.disabled=true;
   try{
     await enablePush();
-    const reminders=buildReminders(draft.plan,draft.time);
+    const reminders=[...buildReminders(draft.plan,draft.time),...buildNags(draft.plan,true)];
     const r=await api('accept',{plan:draft.plan,inputs:draft.inputs,reminders});
-    store.set('activePlan',{plan:draft.plan,time:draft.time});
+    store.set('activePlan',{plan:draft.plan,time:draft.time,inputs:draft.inputs});
     $('planDraft').innerHTML='';$('planMsg').textContent=`Plan angenommen. ${r.reminders} Erinnerungen um ${draft.time} Uhr sind geplant.`;
     renderActive();
   }catch(e){$('planMsg').textContent='Fehler: '+e.message;btn.disabled=false}
@@ -596,6 +609,10 @@ async function toggleSteps(){
 }
 $('stepBtn').onclick=toggleSteps;
 $('stepReset').onclick=()=>{steps.n=0;store.set('steps',steps);updSteps()};
+// Import aus Apple Health: Kurzbefehl öffnet  index.html?steps=ANZAHL
+(function(){const n=parseInt(new URLSearchParams(location.search).get('steps'),10);
+  if(n>0){steps.n=Math.max(steps.n,n);store.set('steps',steps);history.replaceState(null,'',location.pathname);
+    setTimeout(()=>{updSteps();toast('Schritte aus Apple Health übernommen: '+n.toLocaleString('de-DE'))},400)}})();
 
 /* ---------- HEUTE: Aufgaben, Lauf-Tracker, Benachrichtigungen ---------- */
 const dayKey=()=>new Date().toDateString();
@@ -665,7 +682,7 @@ async function notify(title,body){
   }catch(e){}
 }
 function updNotifState(){
-  $('notifState').textContent=typeof Notification==='undefined'?'Benachrichtigungen gibt es nur in der installierten App (Teilen, dann "Zum Home-Bildschirm").':Notification.permission==='granted'?'Aktiv. Nach jeder erledigten Aufgabe sagt dir die App, was noch offen ist.':Notification.permission==='denied'?'Blockiert. Erlaube sie in den iPhone-Einstellungen unter Mitteilungen.':'Noch nicht erlaubt.';
+  $('notifState').textContent=typeof Notification==='undefined'?'Benachrichtigungen gibt es nur in der installierten App (Teilen, dann "Zum Home-Bildschirm").':Notification.permission==='granted'?'Aktiv. Ab 16 Uhr erinnert dich die App mehrmals, solange Aufgaben offen sind, und meldet sich nach jeder erledigten Aufgabe.':Notification.permission==='denied'?'Blockiert. Erlaube sie in den iPhone-Einstellungen unter Mitteilungen.':'Noch nicht erlaubt.';
 }
 async function ensureNotify(){
   if(typeof Notification==='undefined')return false;
@@ -675,6 +692,7 @@ async function ensureNotify(){
 $('notifBtn').onclick=async()=>{if(await ensureNotify())notify('Benachrichtigungen aktiv','Ich melde mich nach jeder erledigten Aufgabe.')};
 function afterProgress(t,was){
   saveProg();renderToday();
+  if(todayTasks().filter(x=>!x.info).every(isDone)){const ls=store.get('lastSync',{});if(ls.doneDay!==dayKey()){store.set('lastSync',{...ls,doneDay:dayKey()});syncReminders()}}
   if(!was&&t&&isDone(t)){
     const open=todayTasks().filter(x=>!x.info&&!isDone(x));
     notify(t.type==='run'?`${t.goal.toFixed(1).replace('.',',')} km geschafft`:`${t.name} erledigt`,open.length?`Noch offen: ${openText(open)}`:'Alles für heute geschafft. Stark!');
@@ -689,7 +707,28 @@ function taskDone(name){
   afterProgress(t,was);
 }
 // GPS-Lauf-Tracker
-let runOn=false,runWatch=null,runLast=null,runStart=0,runTimer=null,runMeters=0,runWake=null;
+const fmtPace=p=>{const s=Math.round(p*60);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function paceAdvice(){
+  const lv=profile?profile.level:'Anfänger',g=profile?profile.goal:'maintain';
+  const base=({'Anfänger':7.5,'Fortgeschritten':6.25,'Profi':5.25}[lv]||7)+((g==='lose'||g==='gain')?0.4:0);
+  const rec=store.get('runs',[]).filter(r=>r.km>=0.5&&r.pace>3&&r.pace<12).slice(-3);
+  if(!rec.length)return {pace:base,txt:`Pace-Empfehlung: ${fmtPace(base)} min/km. Lockeres Tempo, bei dem du dich noch unterhalten kannst. Nach deinem ersten getrackten Lauf passe ich das Ziel an dich an.`};
+  const avg=rec.reduce((s,r)=>s+r.pace,0)/rec.length,pace=Math.max(3.5,avg*((g==='endurance'||g==='maintain')?0.97:0.985));
+  return {pace,txt:`Dein Schnitt der letzten ${rec.length} Läufe: ${fmtPace(avg)} min/km. Ziel für den nächsten Lauf: ${fmtPace(pace)} min/km, also ${Math.round((avg-pace)*60)} Sekunden pro km schneller.`};
+}
+function updPace(){const t=paceAdvice().txt;$('paceTip').textContent=t;$('paceTip2').textContent=t}
+function finishRun(km,sec){
+  if(km<0.3)return 'Lauf zu kurz zum Auswerten (unter 300 m).';
+  const pace=sec/60/km,runs=store.get('runs',[]),prev=runs[runs.length-1];
+  const best=runs.filter(r=>r.km>=0.5).reduce((m,r)=>Math.min(m,r.pace),99);
+  runs.push({t:Date.now(),km:+km.toFixed(2),sec:Math.round(sec),pace});store.set('runs',runs.slice(-60));
+  let m=`Lauf beendet: ${km.toFixed(2).replace('.',',')} km, Pace ${fmtPace(pace)} min/km.`;
+  if(prev&&prev.km>=0.5){const d=Math.round((prev.pace-pace)*60);
+    m+=d>0?` Du warst ${d} Sekunden pro km schneller als beim letzten Lauf.`:d<0?` Du warst ${-d} Sekunden pro km langsamer als beim letzten Lauf.`:' Gleiches Tempo wie beim letzten Lauf.';
+    if(km>=0.5&&pace<best)m+=' Neuer Bestwert!'}
+  return m+' '+paceAdvice().txt;
+}
+let runOn=false,runWatch=null,runLast=null,runStart=0,runTimer=null,runMeters=0,runWake=null,runCue=0,runTarget=7;
 function runPaint(){
   const km=runMeters/1000,sec=Math.round((Date.now()-runStart)/1000),pace=km>0.05?sec/60/km:0;
   $('runKm').textContent=km.toFixed(2).replace('.',',');
@@ -702,6 +741,9 @@ function onPos(p){
     const d=haversine(runLast,pt)*1000;
     if(d<3||d>60)return;
     runMeters+=d;
+    const k5=Math.floor(runMeters/500);
+    if(k5>runCue){runCue=k5;const cur=(Date.now()-runStart)/60000/(runMeters/1000);
+      say(`${(runMeters/1000).toFixed(1).replace('.',',')} Kilometer, Pace ${fmtPace(cur)}. `+(cur>runTarget*1.05?'Etwas schneller.':cur<runTarget*0.93?'Etwas langsamer, spar Kraft.':'Genau im Ziel.'),true)}
     const t=todayTasks().find(x=>x.id==='run'),was=t?isDone(t):true;
     prog.km+=d/1000;afterProgress(t,was);runPaint();
   }
@@ -711,15 +753,18 @@ async function toggleRun(){
   if(runOn){
     navigator.geolocation.clearWatch(runWatch);clearInterval(runTimer);runOn=false;runLast=null;saveProg();
     if(runWake){runWake.release().catch(()=>{});runWake=null}
-    $('runBtn').textContent='LAUF STARTEN';$('runMsg').textContent=`Lauf beendet: ${(runMeters/1000).toFixed(2).replace('.',',')} km.`;return;
+    $('runBtn').textContent='LAUF STARTEN';
+    const msg=finishRun(runMeters/1000,(Date.now()-runStart)/1000);
+    $('runMsg').textContent=msg;addMsg(msg,'ai');say(msg.split('. ').slice(0,2).join('. '),true);updPace();return;
   }
   if(!navigator.geolocation){$('runMsg').textContent='Standort nicht verfügbar.';return}
   ensureNotify();
-  runMeters=0;runStart=Date.now();runLast=null;runOn=true;
+  runMeters=0;runStart=Date.now();runLast=null;runOn=true;runCue=0;runTarget=paceAdvice().pace;
+  say(`Lauf gestartet. Ziel-Pace ${fmtPace(runTarget)} Minuten pro Kilometer.`,true);
   try{if('wakeLock' in navigator)runWake=await navigator.wakeLock.request('screen')}catch(e){}
   runWatch=navigator.geolocation.watchPosition(onPos,e=>{$('runMsg').textContent='Standort-Fehler: '+e.message},{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
   runTimer=setInterval(runPaint,1000);
-  $('runBtn').textContent='LAUF BEENDEN';$('runMsg').textContent='Tracking läuft. Lass die App geöffnet und das Display an. Draußen mit freier Sicht ist GPS am genauesten.';
+  $('runBtn').textContent='LAUF BEENDEN';$('runMsg').textContent=`Tracking läuft. Ziel-Pace ${fmtPace(runTarget)} min/km. Lass die App geöffnet und das Display an.`;
 }
 $('runBtn').onclick=toggleRun;
 
@@ -787,5 +832,99 @@ $('habitList').addEventListener('click',async e=>{
 });
 $('habitType').onchange=()=>{$('habitCustom').hidden=$('habitType').value!=='Eigene'};
 
-[renderFood,renderCatalog,showQuote,updCam,renderActive,renderHabits,updSteps,renderToday,updNotifState,initProfile].forEach(f=>{try{f()}catch(e){console.error(f.name,e)}});
+[renderFood,renderCatalog,showQuote,updCam,renderActive,renderHabits,updSteps,renderToday,updNotifState,initProfile,updPace].forEach(f=>{try{f()}catch(e){console.error(f.name,e)}});
 addMsg('Was ist dein Ziel heute?','ai');
+
+addMsg(`${kmLine()} ${paceAdvice().txt}`,'ai');
+
+/* ---------- NAGS: Erinnerungen bis 16 Uhr ---------- */
+const NAG_TIMES=[[16,0],[17,30],[19,0],[20,30]];
+function buildNags(plan,generic){
+  const now=new Date(),out=[];
+  for(let o=0;o<3;o++){
+    const day=new Date(now);day.setDate(now.getDate()+o);
+    const dn=DAYS[(day.getDay()+6)%7],pd=plan&&plan.days.find(x=>x.day===dn);
+    if(pd&&pd.rest)continue;
+    let body;
+    if(o===0&&!generic){const open=todayTasks().filter(x=>!x.info&&!isDone(x));if(!open.length)continue;body='Offen: '+openText(open)+'. Mach es jetzt.'}
+    else body=pd?`Heute dran: ${pd.focus}. Hast du es schon erledigt?`:'Dein Tagesziel wartet: Training, Lauf, Schritte.';
+    NAG_TIMES.forEach(([h,m])=>{const t=new Date(day);t.setHours(h,m,0,0);if(t>now)out.push({remind_at:t.toISOString(),title:'Noch offen für heute',body})});
+  }
+  return out;
+}
+let syncing=false;
+async function syncReminders(){
+  const a=store.get('activePlan',null);
+  if(!a||syncing||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  syncing=true;
+  try{
+    await api('accept',{plan:a.plan,inputs:a.inputs||{},reminders:[...buildReminders(a.plan,a.time),...buildNags(a.plan)]});
+    store.set('lastSync',{...store.get('lastSync',{}),day:dayKey()});
+  }catch(e){console.warn('sync',e)}
+  syncing=false;
+}
+// lokal, solange die App offen ist
+let lastNag=store.get('lastNag',0);
+function nagCheck(){
+  const n=new Date(),h=n.getHours();if(h<16||h>=22)return;
+  const open=todayTasks().filter(x=>!x.info&&!isDone(x));if(!open.length)return;
+  if(Date.now()-lastNag<45*60e3)return;
+  lastNag=Date.now();store.set('lastNag',lastNag);
+  notify('Noch nicht fertig für heute',`Offen: ${openText(open)}. Es ist ${h}:${String(n.getMinutes()).padStart(2,'0')} Uhr, los jetzt!`);
+}
+setInterval(nagCheck,60e3);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){nagCheck();if(store.get('lastSync',{}).day!==dayKey())syncReminders()}});
+setTimeout(()=>{nagCheck();if(store.get('lastSync',{}).day!==dayKey())syncReminders()},2500);
+
+/* ---------- FOOD SCAN (KI) ---------- */
+let pendingB64=null;
+function shrink(file,max=1024){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);
+  im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.8).split(',')[1])};
+  im.onerror=()=>rej(new Error('Bild konnte nicht gelesen werden'));im.src=u})}
+const SCAN_PROMPT='Du bist Ernährungsexperte. Analysiere das Foto der Mahlzeit und schätze die GESAMTE sichtbare Portion. Antworte NUR mit JSON ohne Text drumherum: {"name":"kurzer deutscher Name","portion":"geschätzte Menge, z. B. ca. 350 g","kcal":Zahl,"protein":Zahl in g,"carbs":Zahl in g,"fat":Zahl in g}. Ist kein Essen zu sehen: {"name":"kein Essen erkannt","portion":"","kcal":0,"protein":0,"carbs":0,"fat":0}.';
+function parseScan(t){
+  const m=String(t).replace(/```json|```/g,'').match(/\{[\s\S]*\}/);if(!m)throw new Error('Antwort nicht lesbar');
+  const o=JSON.parse(m[0]),n=v=>Math.round((+v||0)*10)/10;
+  return {name:String(o.name||'Mahlzeit'),portion:String(o.portion||''),kcal:Math.round(+o.kcal||0),protein:n(o.protein),carbs:n(o.carbs),fat:n(o.fat)};
+}
+async function geminiScan(b64){
+  const key=localStorage.getItem('scanKey');if(!key)throw new Error('NOKEY');
+  let last='Unbekannter Fehler';
+  for(const m of ['gemini-2.5-flash','gemini-2.0-flash']){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',
+      headers:{'Content-Type':'application/json','x-goog-api-key':key},
+      body:JSON.stringify({contents:[{parts:[{text:SCAN_PROMPT},{inline_data:{mime_type:'image/jpeg',data:b64}}]}],generationConfig:{temperature:0.2,responseMimeType:'application/json'}})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok)return parseScan((j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join(''));
+    last=j.error?.message||('HTTP '+r.status);if(r.status!==404)break;
+  }
+  throw new Error(last);
+}
+async function scanFood(b64){
+  try{const r=await api('scan_food',{image:b64,mime:'image/jpeg'});const f=r.food||r;if(f&&f.kcal!=null)return parseScan(JSON.stringify(f))}catch(e){}
+  return geminiScan(b64);
+}
+function showScan(f){
+  $('scanOut').innerHTML=`<p class="scan-name">${esc(f.name)}</p><p class="muted">${esc(f.portion)}${f.portion?' • ':''}Kohlenhydrate ${f.carbs} g • Fett ${f.fat} g</p>
+  <div class="grid2"><label>Kalorien<input id="scK" type="number" inputmode="numeric" value="${f.kcal}"></label><label>Eiweiß (g)<input id="scP" type="number" inputmode="decimal" value="${f.protein}"></label></div>
+  <p class="muted small">Das ist eine KI-Schätzung. Passe die Werte an, wenn sie nicht stimmen.</p><button class="primary" id="scAdd">ZUM KALORIENZÄHLER HINZUFÜGEN</button>`;
+  $('scAdd').onclick=e=>{addEaten(Math.max(0,Math.round(+$('scK').value||0)),Math.max(0,+$('scP').value||0),e.currentTarget);toast(`${f.name} hinzugefügt`);$('scanOut').innerHTML='';$('scanImg').hidden=true};
+}
+async function runScan(){
+  if(!pendingB64)return;
+  $('scanKeyRow').hidden=true;$('scanOut').innerHTML='<p class="muted">KI analysiert dein Essen…</p>';
+  try{showScan(await scanFood(pendingB64))}
+  catch(e){
+    if(e.message==='NOKEY'){$('scanOut').innerHTML='<p class="muted">Für den Foto-Scan brauche ich einen Gemini-Key. Er bleibt nur auf diesem Gerät.</p>';$('scanKeyRow').hidden=false}
+    else $('scanOut').innerHTML=`<p class="muted">Fehler: ${esc(e.message)}</p>`;
+  }
+}
+$('scanBtn').onclick=()=>$('scanFile').click();
+$('scanFile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  $('scanImg').src=URL.createObjectURL(f);$('scanImg').hidden=false;
+  try{pendingB64=await shrink(f)}catch(err){$('scanOut').innerHTML=`<p class="muted">Fehler: ${esc(err.message)}</p>`;return}
+  runScan();
+};
+$('scanKeySave').onclick=()=>{const k=$('scanKeyIn').value.trim();if(!k)return;localStorage.setItem('scanKey',k);$('scanKeyIn').value='';runScan()};
