@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -46,6 +46,7 @@
     <div class="card">
       <div class="row between"><span class="label">HEUTE</span><span class="label" id="todayDate"></span></div>
       <div class="week" id="weekStrip"></div>
+      <p class="kmline" id="todayFocus"></p>
       <table class="tbl"><thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead><tbody id="todayRows"></tbody></table>
       <p class="kmline" id="todayHint"></p>
       <p class="muted small">Sätze hakt die AI Cam automatisch ab, Kilometer der GPS-Tracker. Schritte und Kalorien kommen aus den anderen Tabs. Neue Aufgaben entstehen, wenn du im Coach-Tab einen Plan annimmst.</p>
@@ -227,6 +228,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
