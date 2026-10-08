@@ -120,3 +120,15 @@ button:disabled{opacity:.5}
 #camAcc .acc-body .card{background:var(--bg)}
 
 .acc .ex{background:var(--bg)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;margin:4px -16px 12px;padding:2px 16px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;background:var(--card);border:1px solid var(--line);color:var(--mut);font-size:12px;font-weight:800;padding:10px 14px;border-radius:99px;white-space:nowrap}
+.chip.on{background:var(--volt);border-color:var(--volt);color:var(--bg)}
+.tile select.side{display:block;width:100%;margin-top:10px;padding:10px 12px;font-size:14px;border-radius:14px}
+.qty .q{width:56px}
+#bSum{margin:12px 0 0;font-size:14px;font-weight:800;color:var(--volt)}
+#map{height:360px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+input[type=search]{-webkit-appearance:none;appearance:none}
+.leaflet-container{background:#15171E;font-family:inherit}
