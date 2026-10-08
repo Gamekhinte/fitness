@@ -11,6 +11,64 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
 <link rel="stylesheet" href="styles.css?v=12">
+<style>
+.tick,.pchk{background:transparent;padding:8px;margin:-8px -8px -8px auto;display:block;color:var(--mut)}
+.pchk{margin:0 8px 0 -6px;flex:none}
+.pchk .chk{width:22px;height:22px}
+.tbl tr.done .chk,.pe.ok .chk{color:var(--volt)}
+.go{cursor:pointer}
+.tbl td.go b::after,.pe .go::after{content:' ›';color:var(--volt);font-weight:900}
+.pe{justify-content:flex-start;align-items:center}
+.pe span{flex:1}
+.pe.ok span{opacity:.55;text-decoration:line-through}
+</style>
+<style id="anim">
+:root{--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+/* Tab-Wechsel: Seite gleitet in Richtung des Tabs, Karten blenden gestaffelt ein */
+@keyframes tabIn{from{opacity:0;transform:translateX(var(--dx,26px))}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.tab.active{animation:tabIn .38s var(--ease) backwards}
+body[data-dir="l"]{--dx:-26px}
+.tab.active>*{animation:rise .5s var(--ease) backwards}
+.tab.active>*:nth-child(2){animation-delay:.04s}
+.tab.active>*:nth-child(3){animation-delay:.08s}
+.tab.active>*:nth-child(4){animation-delay:.12s}
+.tab.active>*:nth-child(5){animation-delay:.16s}
+.tab.active>*:nth-child(n+6){animation-delay:.2s}
+/* Navigation: gleitender Indikator + federnde Icons */
+.nav button{position:relative;z-index:1;transition:color .25s ease,transform .15s ease}
+.nav button.active{background:transparent;border-color:transparent}
+.nav button:active{transform:scale(.92)}
+.nav-ind{position:absolute;left:0;top:0;width:0;height:0;border-radius:20px;background:var(--card);border:1px solid var(--volt);pointer-events:none;opacity:0;z-index:0;transition:opacity .3s ease}
+.nav-ind.ready{opacity:1;transition:opacity .3s ease,transform .5s cubic-bezier(.34,1.25,.5,1),width .5s cubic-bezier(.34,1.25,.5,1),height .3s ease}
+.nav button svg{transition:transform .35s var(--spring)}
+@keyframes iconPop{0%{transform:scale(.65) translateY(3px)}60%{transform:scale(1.28) translateY(-3px)}100%{transform:scale(1.15) translateY(-1px)}}
+.nav button.active svg{transform:scale(1.15) translateY(-1px);animation:iconPop .5s var(--spring)}
+/* Buttons, Chips, Karten */
+button,.chip,.tile,.ex{transition:transform .18s var(--ease),background-color .25s ease,color .25s ease,border-color .25s ease,opacity .25s ease,box-shadow .25s ease}
+button:active:not(:disabled){transform:scale(.96)}
+.nav button:active{transform:scale(.92)}
+.chip.on{box-shadow:0 0 0 3px rgba(204,255,0,.12)}
+.tick:active .chk,.pchk:active .chk{transform:scale(.75)}
+.chk{transition:transform .25s var(--spring),color .25s ease}
+.bar i{transition:width .7s var(--ease)}
+/* Akkordeon */
+@keyframes accIn{from{opacity:0;transform:translateY(-8px)}}
+details[open]>.acc-body{animation:accIn .32s var(--ease)}
+.acc{transition:border-color .3s ease}
+.acc .chev{transition:transform .35s var(--spring),color .25s ease}
+/* Chat, Toast, Modal */
+@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.97)}}
+.msg{animation:msgIn .3s var(--ease)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-18px) scale(.97)}}
+.toast{animation:toastIn .4s var(--spring)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.96)}}
+.modal{animation:fade .25s ease}.modal-card{animation:pop .4s var(--spring)}
+.breath{transition:background-color .25s ease,color .25s ease,box-shadow .35s ease,transform .2s ease}
+.breath.on{transform:scale(1.04)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -36,7 +94,7 @@
 </svg>
 
 <header class="top">
-  <div class="logo">LOCKED<span>IN</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v13</small></div>
+  <div class="logo">LOCKED<span>IN</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v15</small></div>
   <button class="pill" id="profileBtn">PROFIL</button>
 </header>
 
@@ -228,7 +286,7 @@
   <button class="ghost" id="oClose" hidden>Schließen</button>
 </div></div>
 
-<nav class="nav">
+<nav class="nav"><span class="nav-ind"></span>
   <button data-tab="today" class="active"><svg><use href="#i-list"/></svg>HEUTE</button>
   <button data-tab="food"><svg><use href="#i-food"/></svg>FOOD</button>
   <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>CATALOG</button>
@@ -248,13 +306,18 @@ const store = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}ca
 
 /* ---------- Tabs ---------- */
 let map = null;
+const TABORDER=['today','food','catalog','lung','coach','habits'];
+let curTab='today';
 function showTab(t){
+  if(t!==curTab)document.body.dataset.dir=TABORDER.indexOf(t)<TABORDER.indexOf(curTab)?'l':'r';
+  curTab=t;
   document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+t));
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
   if(t==='habits')updHabits();
   if(t==='lung'){initMap();setTimeout(()=>map&&map.invalidateSize(),150)}
   if(t!=='catalog'&&camOn) stopCam();
   window.scrollTo(0,0);
+  try{moveInd()}catch(e){}
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
@@ -801,7 +864,15 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
 let draft=null;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const planHtml=p=>p.days.map(d=>`<div class="pd${d.rest?' rest':''}"><b>${esc(d.day)}</b><em>${d.rest?'RUHETAG':esc(d.focus)}</em>${d.rest?'':`<div class="pex">`+(d.exercises||[]).map(x=>{const m=matchEx(x.name),sets=/^\d+$/.test(String(x.reps))?`${x.sets} × ${x.reps}`:(m?m.sets:`${x.sets} × 12`);return `<div class="pe"><span>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span>${m?`<button class="launch mini" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}">CAM</button>`:''}</div>`}).join('')+`</div>`}</div>`).join('');
+const todayName=()=>DAYS[(new Date().getDay()+6)%7];
+function weekDate(dn){const now=new Date(),mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));const d=new Date(mon);d.setDate(mon.getDate()+Math.max(0,DAYS.indexOf(dn)));return isoDate(d)}
+let pdone=store.get('pdone',{});
+(function(){const lim=Date.now()-30*864e5;Object.keys(pdone).forEach(k=>{if(new Date(k.split('|')[0]).getTime()<lim)delete pdone[k]})})();
+const exKey=(dn,name)=>weekDate(dn)+'|'+name;
+const exDone=(dn,x)=>!!pdone[exKey(dn,x.name)]||(dn===todayName()&&(prog.sets['ex:'+x.name]||0)>=Math.max(1,+x.sets||1));
+const planHtml=(p,act)=>p.days.map(d=>`<div class="pd${d.rest?' rest':''}"><b>${esc(d.day)}</b><em>${d.rest?'RUHETAG':esc(d.focus)}</em>${d.rest?'':`<div class="pex">`+(d.exercises||[]).map(x=>{
+  const m=matchEx(x.name),sets=/^\d+$/.test(String(x.reps))?`${x.sets} × ${x.reps}`:(m?m.sets:`${x.sets} × 12`),ok=act&&exDone(d.day,x);
+  return `<div class="pe${ok?' ok':''}">${act?`<button class="pchk" data-day="${esc(d.day)}" data-ex="${esc(x.name)}" aria-label="Abhaken"><svg class="chk"><use href="#${ok?'i-check':'i-circle'}"/></svg></button>`:''}<span${m?` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}"`:''}>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span></div>`}).join('')+`</div>`}</div>`).join('');
 function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
 async function enablePush(){
   if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Push ist hier nicht verfügbar. Auf dem iPhone: in Safari Teilen, dann "Zum Home-Bildschirm", und die App von dort öffnen.');
@@ -853,7 +924,7 @@ function renderActive(){
   const a=store.get('activePlan',null);
   try{renderToday()}catch(e){}
   $('activeCard').hidden=!a;
-  if(a)$('activePlan').innerHTML=`<h2>${esc(a.plan.title)}</h2><p class="muted">Erinnerung täglich um ${esc(a.time)} Uhr an Trainingstagen.</p><p class="kmline">${esc(kmLine())}</p>${planHtml(a.plan)}`;
+  if(a)$('activePlan').innerHTML=`<h2>${esc(a.plan.title)}</h2><p class="muted">Erinnerung täglich um ${esc(a.time)} Uhr an Trainingstagen.</p><p class="kmline">${esc(kmLine())}</p>${planHtml(a.plan,true)}`;
 }
 $('cancelPlan').onclick=async()=>{
   try{await api('cancel');localStorage.removeItem('activePlan');renderActive();$('planMsg').textContent='Plan beendet, Erinnerungen gelöscht.'}
@@ -959,15 +1030,45 @@ function todayTasks(){
   return out;
 }
 const standOf=t=>t.type==='ex'?(prog.sets[t.id]||0):t.type==='run'?prog.km:t.type==='steps'?steps.n:eaten.kcal;
-const isDone=t=>standOf(t)>=t.goal-(t.type==='run'?0.005:0);
+const taskKey=t=>t.type==='ex'?exKey(todayName(),t.name):isoDate(new Date())+'|__'+t.type;
+const manDone=t=>!!pdone[taskKey(t)];
+const isDone=t=>manDone(t)||standOf(t)>=t.goal-(t.type==='run'?0.005:0);
 const nf=n=>Math.round(n).toLocaleString('de-DE');
 const goalTxt=t=>t.type==='ex'?`${t.goal} Sets`:t.type==='run'?`${t.goal.toFixed(1).replace('.',',')} km`:nf(t.goal);
-const standTxt=t=>t.type==='ex'?`${Math.min(standOf(t),t.goal)}/${t.goal}`:t.type==='run'?standOf(t).toFixed(2).replace('.',','):nf(standOf(t));
+const standTxt=t=>t.type==='ex'?`${manDone(t)?t.goal:Math.min(standOf(t),t.goal)}/${t.goal}`:t.type==='run'?(manDone(t)?t.goal:standOf(t)).toFixed(2).replace('.',','):nf(standOf(t));
 function openText(list){return list.map(t=>t.type==='ex'?`${t.goal-standOf(t)} Sets ${t.name}`:`${Math.max(0,t.goal-standOf(t)).toFixed(1).replace('.',',')} km Lauf`).join(', ')}
+function goAttrs(t){
+  if(t.type==='run')return ' class="go" data-tab="lung"';
+  if(t.type!=='ex')return '';
+  const m=matchEx(t.name);if(!m)return '';
+  const s=/^\d+$/.test(t.reps)?`${t.goal} × ${t.reps}`:m.sets;
+  return ` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(s)}"`;
+}
+function togglePlanEx(dn,name){
+  const k=exKey(dn,name),t=dn===todayName()?todayTasks().find(x=>x.type==='ex'&&x.name===name):null,was=t?isDone(t):false;
+  if(pdone[k]){delete pdone[k];if(t){prog.sets[t.id]=0}}else pdone[k]=1;
+  store.set('pdone',pdone);renderActive();
+  if(t)afterProgress(t,was);else renderToday();
+}
+function tickToday(id){
+  const t=todayTasks().find(x=>x.id===id);if(!t||t.info)return;
+  const was=isDone(t),k=taskKey(t);
+  if(pdone[k]){delete pdone[k];if(t.type==='ex')prog.sets[t.id]=0}
+  else if(was){if(t.type==='ex')prog.sets[t.id]=0;else toast('Der Lauf ist durch GPS-Tracking erledigt.')}
+  else pdone[k]=1;
+  store.set('pdone',pdone);renderActive();afterProgress(t,was);
+}
+document.addEventListener('click',e=>{
+  const q=s=>e.target.closest&&e.target.closest(s);
+  let c;
+  if(c=q('.pchk')){togglePlanEx(c.dataset.day,c.dataset.ex);return}
+  if(c=q('.tick')){tickToday(c.dataset.id);return}
+  if(c=q('.go')){if(c.dataset.tab)showTab(c.dataset.tab);else if(c.dataset.n)launch(c.dataset.n,c.dataset.m,c.dataset.s)}
+});
 function renderToday(){
   const tasks=todayTasks(),req=tasks.filter(t=>!t.info),open=req.filter(t=>!isDone(t)),all=req.length>0&&!open.length;
   $('todayDate').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}${camBtn(t)}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></td></tr>`}).join('');
+  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td${goAttrs(t)}><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td>${t.info?`<svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg>`:`<button class="tick" data-id="${esc(t.id)}" aria-label="Abhaken"><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></button>`}</td></tr>`}).join('');
   $('todayFocus').textContent=todayFocus();
   $('todayHint').textContent=all?'Alles erledigt für heute. Stark!':open.length?`Noch offen: ${openText(open)}`:'';
   const wl=store.get('weeklog',{});wl[isoDate(new Date())]=all;store.set('weeklog',wl);
@@ -1226,6 +1327,17 @@ $('scanFile').onchange=async e=>{
   runScan();
 };
 
+
+/* ---------- NAV-INDIKATOR ---------- */
+function moveInd(){
+  const b=document.querySelector('.nav button.active'),i=document.querySelector('.nav-ind');
+  if(!b||!i)return;
+  i.style.width=b.offsetWidth+'px';i.style.height=b.offsetHeight+'px';
+  i.style.transform=`translate(${b.offsetLeft}px,${b.offsetTop}px)`;
+  if(!i.classList.contains('ready'))requestAnimationFrame(()=>requestAnimationFrame(()=>i.classList.add('ready')));
+}
+moveInd();addEventListener('resize',moveInd);addEventListener('orientationchange',moveInd);
+setTimeout(moveInd,300);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(moveInd);
 
 </script>
 </body>
