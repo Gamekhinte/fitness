@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -24,6 +24,9 @@
     <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="13" r="1.4" fill="currentColor"/><circle cx="15" cy="13" r="1.4" fill="currentColor"/><path d="M12 7V4M9 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#CCFF00"/><path d="M8 12.5l3 3 5-6" fill="none" stroke="#121318" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#94A3B8" stroke-width="2"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
     <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
@@ -39,7 +42,29 @@
 
 <main>
   <!-- FOOD -->
-  <section id="tab-food" class="tab active">
+  <section id="tab-today" class="tab active">
+    <div class="card">
+      <div class="row between"><span class="label">HEUTE</span><span class="label" id="todayDate"></span></div>
+      <div class="week" id="weekStrip"></div>
+      <table class="tbl"><thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead><tbody id="todayRows"></tbody></table>
+      <p class="kmline" id="todayHint"></p>
+      <p class="muted small">Sätze hakt die AI Cam automatisch ab, Kilometer der GPS-Tracker. Schritte und Kalorien kommen aus den anderen Tabs. Neue Aufgaben entstehen, wenn du im Coach-Tab einen Plan annimmst.</p>
+    </div>
+    <div class="card">
+      <span class="label">LAUF-TRACKER (GPS)</span>
+      <div class="big"><span id="runKm">0,00</span><small> km</small></div>
+      <p class="muted" id="runInfo">Zeit 00:00 • Pace –</p>
+      <button class="primary" id="runBtn">LAUF STARTEN</button>
+      <p class="muted small" id="runMsg"></p>
+    </div>
+    <div class="card">
+      <span class="label">BENACHRICHTIGUNGEN</span>
+      <p class="muted" id="notifState"></p>
+      <button class="ghost" id="notifBtn">Aktivieren</button>
+    </div>
+  </section>
+
+  <section id="tab-food" class="tab">
     <div class="card">
       <div class="row between"><span class="label">TAGESKALORIEN</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
       <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
@@ -81,6 +106,15 @@
 
   <!-- LUNG / MAP -->
   <section id="tab-lung" class="tab">
+    <div class="card" id="stepCard">
+      <span class="label">SCHRITTZÄHLER</span>
+      <div class="big"><span id="stepCount">0</span><small> Schritte heute</small></div>
+      <div class="bar"><i id="stepBar"></i></div>
+      <p class="muted" id="stepInfo"></p>
+      <button class="primary" id="stepBtn">ZÄHLER STARTEN</button>
+      <p class="muted small" id="stepMsg">Nutzt den Bewegungssensor deines Handys. Zählt nur bei geöffneter App und eingeschaltetem Display. Die Apple-Health-Schritte kann eine Web-App nicht lesen.</p>
+      <button class="ghost" id="stepReset"><svg><use href="#i-refresh"/></svg>Heute zurücksetzen</button>
+    </div>
     <div class="card center">
       <span class="label">STAMINA HOLD-BREATH TEST</span>
       <button id="breathBtn" class="breath"><svg><use href="#i-wind"/></svg><span>HOLD BREATH</span></button>
@@ -99,7 +133,7 @@
       <div id="map"></div>
       <div class="btnrow"><button class="ghost" id="locBtn">Mein Standort</button><button class="ghost" id="loopBtn">Rundkurs vom Coach</button><button class="ghost" id="clearMarks">Leeren</button></div>
       <p id="routeInfo" class="muted">Tippe auf die Karte für Punkte oder starte einen Rundkurs mit deiner Coach-Distanz.</p>
-      <div class="btnrow"><button class="ghost" id="gmapsBtn">In Google Maps öffnen</button><button class="ghost" id="amapsBtn">In Apple Karten öffnen</button></div>
+      <div class="btnrow"><button class="primary" id="gmapsBtn">ROUTE IN GOOGLE MAPS STARTEN</button><button class="ghost" id="amapsBtn">In Apple Karten öffnen</button></div>
     </div>
   </section>
 
@@ -183,7 +217,8 @@
 </div></div>
 
 <nav class="nav">
-  <button data-tab="food" class="active"><svg><use href="#i-food"/></svg>FOOD</button>
+  <button data-tab="today" class="active"><svg><use href="#i-list"/></svg>HEUTE</button>
+  <button data-tab="food"><svg><use href="#i-food"/></svg>FOOD</button>
   <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>CATALOG</button>
   <button data-tab="lung"><svg><use href="#i-pin"/></svg>LUNG/MAP</button>
   <button data-tab="coach"><svg><use href="#i-bot"/></svg>COACH</button>
@@ -192,6 +227,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
