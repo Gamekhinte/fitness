@@ -289,7 +289,7 @@ function setForm(t,bad){const f=$('formBanner');f.innerHTML=t;f.classList.toggle
 async function startCam(){
   try{
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:640,height:480},audio:false});
-    const v=$('video');v.srcObject=stream;await v.play();
+    $('camPrev').hidden=false;const v=$('video');v.srcObject=stream;await v.play();
     if(!pose){
       pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
       pose.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.6,minTrackingConfidence:.6});
@@ -300,7 +300,7 @@ async function startCam(){
     (async function loop(){if(!camOn)return;try{await pose.send({image:v})}catch(e){}requestAnimationFrame(loop)})();
   }catch(e){setForm('KAMERA-ZUGRIFF VERWEIGERT',true)}
 }
-function stopCam(){camOn=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('camBtn').textContent='KAMERA STARTEN';setForm('FORM CHECK: KAMERA GESTOPPT')}
+function stopCam(){camOn=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('camPrev').hidden=true;$('camBtn').textContent='KAMERA STARTEN';setForm('FORM CHECK: KAMERA GESTOPPT')}
 $('camBtn').onclick=()=>camOn?stopCam():startCam();
 $('resetReps').onclick=()=>{reps=0;resetTrack();exercise.set=1;updCam()};
 $('camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';if(camOn){stopCam();startCam()}};
@@ -460,22 +460,63 @@ const showQuote=()=>$('quote').textContent=QUOTES[qi];
 $('nextQuote').onclick=()=>{qi=(qi+1)%QUOTES.length;showQuote()};
 
 function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('chatLog').appendChild(d);$('chatLog').scrollTop=1e6;return d}
-async function ask(){
-  const q=$('chatInput').value.trim();if(!q)return;
+const COACH_SYS='Du bist der LockedIn Coach, ein direkter, motivierender Fitness-Coach. Antworte auf Deutsch, kurz (maximal 120 Wörter), konkret und ohne Markdown-Sternchen. Keine Diagnosen; bei Beschwerden zum Arzt raten.';
+let chatHist=[];
+async function coachAI(msg){
+  const t=await gemini([{text:msg}],{system:COACH_SYS,history:chatHist.slice(-8)});
+  chatHist.push({role:'user',parts:[{text:msg}]},{role:'model',parts:[{text:t}]});return t;
+}
+const aiErr=e=>e.message==='NOKEY'?'Trag zuerst oben deinen Gemini-Key ein und tippe auf Speichern.':e.message;
+async function ask(pre){
+  const q=(typeof pre==='string'?pre:$('chatInput').value).trim();if(!q)return;
   $('chatInput').value='';addMsg(q,'me');
   if(/plan/i.test(q)&&/(mach|erstell|bau|schreib|brauch|will|gib|generier)/i.test(q)){
     addMsg('Ich baue dir jetzt einen Wochenplan mit deinen Profil-Daten. Er erscheint im Planbereich oben, dort tippst du auf PLAN ANNEHMEN.','ai');
     $('planCard').scrollIntoView({behavior:'smooth'});await createPlan();return;
   }
   const wait=addMsg('…','ai');
-  try{wait.textContent=(await api('chat',{message:profCtx()+q})).text||'Keine Antwort erhalten.'}
-  catch(e){wait.textContent='Fehler: '+e.message}
+  try{wait.textContent=await coachAI(profCtx()+q)}
+  catch(e){wait.textContent='Fehler: '+aiErr(e)}
 }
+const CHIPQ=['Was soll ich heute essen?','Wie werde ich schneller beim Laufen?','Was hilft gegen Muskelkater?','Wie viel Eiweiß brauche ich?','Motivier mich jetzt','Wie bleibe ich diszipliniert?','Mach mir einen Wochenplan'];
+$('chatChips').innerHTML=CHIPQ.map(q=>`<button class="chip">${q}</button>`).join('');
+$('chatChips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b)ask(b.textContent)});
 $('chatSend').onclick=ask;
 $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
 
 
-/* ---------- SUPABASE API ---------- */
+/* ---------- GEMINI DIREKT (Key nur auf diesem Gerät) ---------- */
+const getKey=()=>localStorage.getItem('gkey')||localStorage.getItem('scanKey')||'';
+async function gemini(parts,{system,json,history}={}){
+  const key=getKey();if(!key)throw new Error('NOKEY');
+  const contents=[...(history||[]),{role:'user',parts}];
+  const body=th=>JSON.stringify({contents,...(system?{systemInstruction:{parts:[{text:system}]}}:{}),generationConfig:{temperature:0.7,...(json?{responseMimeType:'application/json'}:{}),...(th?{thinkingConfig:{thinkingBudget:0}}:{})}});
+  let err='Unbekannter Fehler';
+  for(const [m,th] of [['gemini-2.5-flash',true],['gemini-2.0-flash',false]]){
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),30000);
+    try{
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:body(th)});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok){const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();if(t)return t;err='Leere Antwort';continue}
+      err=j.error?.message||('HTTP '+r.status);
+      if(/api key/i.test(err)||r.status===403||r.status===429)break;
+    }catch(e){err=e.name==='AbortError'?'Zeitüberschreitung':e.message}
+    finally{clearTimeout(to)}
+  }
+  throw new Error(err);
+}
+async function genPlan(i){
+  const t=await gemini([{text:`Erstelle einen Wochentrainingsplan als JSON. Daten: Ziel ${i.goal}, Level ${i.level}, ${i.days} Trainingstage, ${i.minutes} Min pro Einheit, Equipment ${i.equipment}, Alter ${i.age||'?'}, Gewicht ${i.weight||'?'} kg, Hinweise: ${i.notes}.
+Format exakt: {"title":"...","summary":"1-2 Sätze","days":[{"day":"Montag","focus":"z. B. Brust & Trizeps","rest":false,"exercises":[{"name":"Klassische Liegestütze","sets":4,"reps":"12"}]}]}
+Regeln: genau 7 Einträge von Montag bis Sonntag; genau ${i.days} Trainingstage, die übrigen rest:true mit leerer exercises-Liste; 4 bis 6 Übungen pro Trainingstag; sets ist eine Zahl; reps ist eine Zahl als String oder bei Haltezeiten z. B. "30 s"; Ruhetage sinnvoll verteilen; Deutsch.`}],{json:true,system:'Du bist ein erfahrener Personal Trainer. Antworte nur mit gültigem JSON.'});
+  const m=t.replace(/```json|```/g,'').match(/\{[\s\S]*\}/);if(!m)throw new Error('Plan nicht lesbar');
+  const p=JSON.parse(m[0]);if(!Array.isArray(p.days)||!p.days.length)throw new Error('Plan unvollständig');
+  p.days.forEach((d,ix)=>{d.day=DAYS.find(x=>String(d.day).toLowerCase().startsWith(x.slice(0,2).toLowerCase()))||DAYS[ix]||d.day;
+    d.exercises=(d.exercises||[]).map(x=>({name:String(x.name),sets:Math.max(1,+x.sets||3),reps:String(x.reps||'12')}));d.rest=!!d.rest||!d.exercises.length;d.focus=d.focus||'Training'});
+  p.title=p.title||'Wochenplan';p.summary=p.summary||'';return p;
+}
+
+/* ---------- SUPABASE API (nur noch Push) ---------- */
 const deviceId=(()=>{let d=localStorage.getItem('deviceId');if(!d){d=crypto.randomUUID();localStorage.setItem('deviceId',d)}return d})();
 async function api(action,data={}){
   const r=await fetch(SUPABASE_URL+'/functions/v1/api',{method:'POST',
@@ -520,10 +561,10 @@ async function createPlan(){
   const names=' | Nutze bevorzugt diese Übungsnamen: Klassische Liegestütze, Diamond Push-ups, Pike Push-ups, Klassische Squats, Ausfallschritte, Glute Bridges, Klassische Plank, Crunches, Mountain Climbers, Wall Sit';
   const inputs={goal:$('pGoal').value,level:$('pLevel').value,days:+$('pDays').value,minutes:+$('pMin').value,equipment:$('pEquip').value,age:profile?profile.age:'',weight:profile?profile.weight:'',notes:$('pNotes').value.slice(0,100)+names};
   try{
-    const {plan}=await api('plan',{inputs});draft={plan,inputs,time:$('pTime').value||'18:00'};
+    const plan=await genPlan(inputs);draft={plan,inputs,time:$('pTime').value||'18:00'};
     $('planDraft').innerHTML=`<h2>${esc(plan.title)}</h2><p class="muted">${esc(plan.summary)}</p><p class="kmline">${esc(kmLine())}</p>${planHtml(plan)}<button class="primary" id="acceptPlan">PLAN ANNEHMEN</button>`;
     $('acceptPlan').onclick=acceptPlan;
-  }catch(e){$('planMsg').textContent='Fehler: '+e.message}
+  }catch(e){$('planMsg').textContent='Fehler: '+aiErr(e)}
   btn.disabled=false;btn.textContent='PLAN ERSTELLEN';
 }
 $('planBtn').onclick=createPlan;
@@ -551,20 +592,16 @@ $('cancelPlan').onclick=async()=>{
 
 /* ---------- EIGENER GEMINI-KEY ---------- */
 function showKey(has){
-  $('keyState').textContent=has?'Key ist sicher bei Supabase gespeichert. Er liegt nicht im Browser.':'Kein Key hinterlegt. Hol dir kostenlos einen auf aistudio.google.com/apikey und trag ihn hier ein.';
+  $('keyState').textContent=has?'Key ist auf diesem Gerät gespeichert und wird direkt an Google gesendet. Das ist schnell und ohne Umweg.':'Kein Key hinterlegt. Hol dir kostenlos einen auf aistudio.google.com/apikey und trag ihn hier ein.';
   $('keyDel').hidden=!has;$('keySave').textContent=has?'KEY ERSETZEN':'KEY SPEICHERN';
 }
-$('keySave').onclick=async()=>{
+$('keySave').onclick=()=>{
   const k=$('keyInput').value.trim();if(!k){$('keyMsg').textContent='Bitte Key eintragen.';return}
-  $('keySave').disabled=true;$('keyMsg').textContent='Key wird geprüft…';
-  try{const r=await api('set_key',{key:k});$('keyInput').value='';$('keyMsg').textContent=r.note||'Key gespeichert.';showKey(true)}
-  catch(e){$('keyMsg').textContent='Fehler: '+e.message}
-  $('keySave').disabled=false;
+  localStorage.setItem('gkey',k);localStorage.removeItem('scanKey');$('keyInput').value='';
+  $('keyMsg').textContent='Key gespeichert. Du kannst loslegen.';showKey(true);
 };
-$('keyDel').onclick=async()=>{
-  try{await api('delete_key');$('keyMsg').textContent='Key gelöscht.';showKey(false)}catch(e){$('keyMsg').textContent='Fehler: '+e.message}
-};
-api('has_key').then(r=>showKey(r.has)).catch(()=>{});
+$('keyDel').onclick=()=>{localStorage.removeItem('gkey');localStorage.removeItem('scanKey');$('keyMsg').textContent='Key gelöscht.';showKey(false)};
+showKey(!!getKey());
 
 
 /* ---------- SCHRITTZÄHLER ---------- */
@@ -624,6 +661,7 @@ const GOAL_TXT={lose:'Abnehmen',maintain:'Fit bleiben',gain:'Muskelaufbau',endur
 function profCtx(){return profile?`[Profil: ${profile.sex==='m'?'männlich':'weiblich'}, ${profile.age} Jahre, ${profile.height} cm, ${profile.weight} kg, Ziel ${GOAL_TXT[profile.goal]}, Level ${profile.level}] `:''}
 const repTxt=r=>/^\d+$/.test(String(r))?`${r} Wdh.`:String(r);
 function camBtn(t){
+  return '';
   if(t.type!=='ex')return '';
   const m=matchEx(t.name);if(!m)return '';
   const s=/^\d+$/.test(t.reps)?`${t.goal} × ${t.reps}`:m.sets;
@@ -826,8 +864,8 @@ $('habitList').addEventListener('click',async e=>{
   else if(e.target.closest('.del')){if(confirm('Gewohnheit wirklich entfernen?')){habits=habits.filter(x=>x!==h);saveH();renderHabits()}}
   else if(e.target.closest('.aiPlan')){
     const out=c.querySelector('.aiOut');out.textContent='Coach schreibt deinen Plan…';
-    try{out.textContent=(await api('chat',{message:`Ich will mit "${h.name}" aufhören. Aktuell ${Math.floor(days(h))} Tage clean, ${h.relapses} Rückfälle. Gib mir einen kurzen, harten aber motivierenden 7-Tage-Plan mit konkreten Tagesaufgaben und Trigger-Strategien. Maximal 900 Zeichen.`})).text}
-    catch(err){out.textContent='Fehler: '+err.message}
+    try{out.textContent=(await gemini([{text:`Ich will mit "${h.name}" aufhören. Aktuell ${Math.floor(days(h))} Tage clean, ${h.relapses} Rückfälle. Gib mir einen kurzen, harten aber motivierenden 7-Tage-Plan mit konkreten Tagesaufgaben und Trigger-Strategien. Maximal 900 Zeichen.`}],{system:COACH_SYS}))}
+    catch(err){out.textContent='Fehler: '+aiErr(err)}
   }
 });
 $('habitType').onchange=()=>{$('habitCustom').hidden=$('habitType').value!=='Eigene'};
@@ -888,23 +926,7 @@ function parseScan(t){
   const o=JSON.parse(m[0]),n=v=>Math.round((+v||0)*10)/10;
   return {name:String(o.name||'Mahlzeit'),portion:String(o.portion||''),kcal:Math.round(+o.kcal||0),protein:n(o.protein),carbs:n(o.carbs),fat:n(o.fat)};
 }
-async function geminiScan(b64){
-  const key=localStorage.getItem('scanKey');if(!key)throw new Error('NOKEY');
-  let last='Unbekannter Fehler';
-  for(const m of ['gemini-2.5-flash','gemini-2.0-flash']){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',
-      headers:{'Content-Type':'application/json','x-goog-api-key':key},
-      body:JSON.stringify({contents:[{parts:[{text:SCAN_PROMPT},{inline_data:{mime_type:'image/jpeg',data:b64}}]}],generationConfig:{temperature:0.2,responseMimeType:'application/json'}})});
-    const j=await r.json().catch(()=>({}));
-    if(r.ok)return parseScan((j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join(''));
-    last=j.error?.message||('HTTP '+r.status);if(r.status!==404)break;
-  }
-  throw new Error(last);
-}
-async function scanFood(b64){
-  try{const r=await api('scan_food',{image:b64,mime:'image/jpeg'});const f=r.food||r;if(f&&f.kcal!=null)return parseScan(JSON.stringify(f))}catch(e){}
-  return geminiScan(b64);
-}
+const scanFood=b64=>gemini([{text:SCAN_PROMPT},{inline_data:{mime_type:'image/jpeg',data:b64}}],{json:true}).then(parseScan);
 function showScan(f){
   $('scanOut').innerHTML=`<p class="scan-name">${esc(f.name)}</p><p class="muted">${esc(f.portion)}${f.portion?' • ':''}Kohlenhydrate ${f.carbs} g • Fett ${f.fat} g</p>
   <div class="grid2"><label>Kalorien<input id="scK" type="number" inputmode="numeric" value="${f.kcal}"></label><label>Eiweiß (g)<input id="scP" type="number" inputmode="decimal" value="${f.protein}"></label></div>
@@ -913,10 +935,10 @@ function showScan(f){
 }
 async function runScan(){
   if(!pendingB64)return;
-  $('scanKeyRow').hidden=true;$('scanOut').innerHTML='<p class="muted">KI analysiert dein Essen…</p>';
+  $('scanOut').innerHTML='<p class="muted">KI analysiert dein Essen…</p>';
   try{showScan(await scanFood(pendingB64))}
   catch(e){
-    if(e.message==='NOKEY'){$('scanOut').innerHTML='<p class="muted">Für den Foto-Scan brauche ich einen Gemini-Key. Er bleibt nur auf diesem Gerät.</p>';$('scanKeyRow').hidden=false}
+    if(e.message==='NOKEY'){$('scanOut').innerHTML='<p class="muted">Für den Foto-Scan brauche ich deinen Gemini-Key. Trag ihn im Coach-Tab ein.</p>'}
     else $('scanOut').innerHTML=`<p class="muted">Fehler: ${esc(e.message)}</p>`;
   }
 }
@@ -927,4 +949,3 @@ $('scanFile').onchange=async e=>{
   try{pendingB64=await shrink(f)}catch(err){$('scanOut').innerHTML=`<p class="muted">Fehler: ${esc(err.message)}</p>`;return}
   runScan();
 };
-$('scanKeySave').onclick=()=>{const k=$('scanKeyIn').value.trim();if(!k)return;localStorage.setItem('scanKey',k);$('scanKeyIn').value='';runScan()};
