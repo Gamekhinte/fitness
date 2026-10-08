@@ -69,6 +69,22 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 .breath.on{transform:scale(1.04)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
+<style id="exstyle">
+.exbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.explain,.exinfo{background:transparent;border:1px solid var(--line);color:var(--mut);font-size:10px;font-weight:900;letter-spacing:1px;padding:9px 12px;border-radius:14px;white-space:nowrap}
+.exinfo{padding:5px 9px;font-size:9px;margin:6px 0 0;display:inline-block;vertical-align:middle}
+.pe .exinfo{margin:0 0 0 8px;flex:none}
+.tbl td .exinfo{margin-top:8px;margin-left:8px}
+.ex-card{margin:0 0 20px}
+.exfig{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 6px}
+.exfig figure{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:6px 6px 8px;text-align:center}
+.exfig svg{width:100%;height:auto;display:block}
+.exfig figcaption{font-size:11px;font-weight:800;color:var(--mut);margin-top:2px}
+.exfig figcaption b{display:inline-block;width:18px;height:18px;line-height:18px;border-radius:50%;background:var(--volt);color:var(--bg);font-size:10px;margin-right:4px}
+.exsteps,.exerr{margin:0 0 6px;padding-left:20px;font-size:14px;line-height:1.5}
+.exsteps li{margin-bottom:8px}.exerr{color:var(--mut)}.exerr li{margin-bottom:4px}
+.exsteps li::marker{color:var(--volt);font-weight:900}
+</style>
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -94,7 +110,7 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 </svg>
 
 <header class="top">
-  <div class="logo">LOCKED<span>IN</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v15</small></div>
+  <div class="logo">LOCKED<span>IN</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v16</small></div>
   <button class="pill" id="profileBtn">PROFIL</button>
 </header>
 
@@ -492,7 +508,112 @@ function matchEx(name){
   const x=String(name).toLowerCase();
   return ALLEX.find(e=>e.name.toLowerCase()===x)||ALLEX.find(e=>{const n=e.name.toLowerCase();return x.includes(n)||n.includes(x)});
 }
-const catItem=([n,s,t],m)=>`<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><button class="launch" data-n="${n}" data-m="${m}" data-s="${s}">CAM LAUNCH</button></div>`;
+const EXH=(()=>{
+const D=Math.PI/180,P=(p,l,a)=>[p[0]+l*Math.cos(a*D),p[1]+l*Math.sin(a*D)];
+function ik(r,t,l1,l2,b){
+  const dx=t[0]-r[0],dy=t[1]-r[1],d=Math.hypot(dx,dy)||1,ang=Math.atan2(dy,dx)/D;
+  if(d>=l1+l2-.01)return {mid:P(r,l1,ang),end:P(r,l1+l2,ang)};
+  const dd=Math.max(d,Math.abs(l1-l2)+.01),a=(l1*l1-l2*l2+dd*dd)/(2*dd),h=Math.sqrt(Math.max(0,l1*l1-a*a)),ux=dx/d,uy=dy/d;
+  let px=-uy,py=ux;if(px*b[0]+py*b[1]<0){px=-px;py=-py}
+  return {mid:[r[0]+ux*a+px*h,r[1]+uy*a+py*h],end:t};
+}
+function limb(root,s,l1,l2,c){
+  if(Array.isArray(s)){const m=P(root,l1,s[0]);return {r:root,m,e:P(m,l2,s[1])}}
+  const to=typeof s.to==='function'?s.to(c):s.to,r=ik(root,to,l1,l2,s.b||[0,1]);return {r:root,m:r.mid,e:r.end};
+}
+function F(o){
+  const H=o.H;let S,t=o.t;
+  if(o.S){S=o.S;t=Math.atan2(S[1]-H[1],S[0]-H[0])/D}else S=P(H,26,t);
+  const head=P(S,16,o.hd??t),c={H,S,head},L=(o.L||[]).map(s=>limb(H,s,22,22,c)),A=(o.A||[]).map(s=>limb(S,s,15,15,c));
+  const ys=[H[1],S[1]];L.concat(A).forEach(l=>ys.push(l.m[1],l.e[1]));
+  const dy=(o.air||0)-Math.min(...ys),sh=p=>[p[0],p[1]+dy];
+  const sl=l=>({r:sh(l.r),m:sh(l.m),e:sh(l.e)});
+  return {H:sh(H),S:sh(S),head:sh(head),L:L.map(sl),A:A.map(sl),hl:o.hl||'',ft:o.ft??1,la:o.la??.55,
+    props:(o.props||[]).map(r=>[r[0],r[1]+dy,r[2],r[3]+dy]),arrows:(o.arrows||[]).map(r=>[r[0],r[1]+dy,r[2],r[3]+dy])};
+}
+function drawAll(poses,W=220,Hh=140){
+  const fs=poses.map(F),pts=[[0,0]];
+  fs.forEach(f=>{pts.push(f.H,f.S,[f.head[0]-8,f.head[1]-8],[f.head[0]+8,f.head[1]+8]);f.L.concat(f.A).forEach(l=>pts.push(l.m,l.e));
+    f.props.forEach(r=>pts.push([r[0],r[1]],[r[2],r[3]]));f.arrows.forEach(r=>pts.push([r[0],r[1]],[r[2],r[3]]))});
+  let x0=1e9,x1=-1e9,y1=-1e9;pts.forEach(q=>{x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y1=Math.max(y1,q[1])});
+  const pad=16,w=Math.max(50,x1-x0),h=Math.max(50,y1),s=Math.min(1.6,(W-2*pad)/w,(Hh-2*pad-6)/h);
+  const ox=(W-(x1+x0)*s)/2,gy=Hh-pad+2-(Hh-2*pad-6-h*s)/2-2;
+  const X=q=>(q[0]*s+ox).toFixed(1),Y=q=>(gy-q[1]*s).toFixed(1);
+  return fs.map(f=>{
+    const col=k=>`style="stroke:${f.hl.includes(k)?'var(--volt)':'#E8EAF0'}"`;
+    const ln=(pp,k,al,wd)=>`<polyline points="${pp.map(q=>X(q)+','+Y(q)).join(' ')}" fill="none" ${col(k)} stroke-width="${wd||4.5}" stroke-linecap="round" stroke-linejoin="round" opacity="${al}"/>`;
+    const foot=(l,al)=>{if(!f.ft)return '';const dir=f.ft===2?(l.e[0]>=f.H[0]?1:-1):1;return ln([l.e,[l.e[0]+7*dir,l.e[1]]],'l',al,4)};
+    let o=`<svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg" role="img">`;
+    o+=`<line x1="8" y1="${Y([0,0])}" x2="${W-8}" y2="${Y([0,0])}" style="stroke:#3A3F52" stroke-width="2" stroke-dasharray="4 4"/>`;
+    f.props.forEach(r=>{const xx=Math.min(r[0],r[2]),yy=Math.max(r[1],r[3]);o+=`<rect x="${(xx*s+ox).toFixed(1)}" y="${(gy-yy*s).toFixed(1)}" width="${(Math.abs(r[2]-r[0])*s).toFixed(1)}" height="${(Math.abs(r[3]-r[1])*s).toFixed(1)}" rx="2" fill="#2A2D3A" style="stroke:#94A3B8" stroke-width="1.5"/>`});
+    f.L.forEach((l,i)=>{if(i>=1)o+=ln([l.r,l.m,l.e],'l',f.la)+foot(l,f.la)});
+    f.A.forEach((l,i)=>{if(i>=1&&f.A.length>1&&!f.armsAll)o+=ln([l.r,l.m,l.e],'a',.55)});
+    o+=ln([f.H,f.S],'c',1,5.5);
+    if(f.L[0])o+=ln([f.L[0].r,f.L[0].m,f.L[0].e],'l',1)+foot(f.L[0],1);
+    if(f.A[0])o+=ln([f.A[0].r,f.A[0].m,f.A[0].e],'a',1);
+    o+=`<circle cx="${X(f.head)}" cy="${Y(f.head)}" r="${(7*s).toFixed(1)}" fill="#1E2029" style="stroke:#E8EAF0" stroke-width="3.5"/>`;
+    f.arrows.forEach(r=>{const a=[+X([r[0],r[1]]),+Y([r[0],r[1]])],b=[+X([r[2],r[3]]),+Y([r[2],r[3]])],an=Math.atan2(b[1]-a[1],b[0]-a[0]),hd=(d)=>`${(b[0]-8*Math.cos(an+d)).toFixed(1)},${(b[1]-8*Math.sin(an+d)).toFixed(1)}`;
+      o+=`<polyline points="${a.join(',')} ${b.join(',')}" fill="none" style="stroke:var(--volt)" stroke-width="3" stroke-linecap="round"/><polyline points="${hd(.5)} ${b.join(',')} ${hd(-.5)}" fill="none" style="stroke:var(--volt)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`});
+    return o+'</svg>';
+  });
+}
+/* ---------- Posen ---------- */
+const lin=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const PU=(Sy,Fx=[0,0],o={})=>{const th=Math.asin(lin((Sy-Fx[1])/70,-1,1))/D,H=P(Fx,44,th),S=P(H,26,th),hand=o.hand||0;
+  return {H,S,t:th,hd:th+8,L:[[th+180,th+180]],A:[{to:[S[0],hand],b:[-1,.4]}],hl:'a',props:o.box?[[S[0]-14,0,S[0]+14,o.box]]:o.props,...(o.x||{})}};
+const KP=Sy=>{const th=Math.asin(Sy/48)/D,H=P([0,0],22,th),S=P(H,26,th);return {H,S,t:th,hd:th+8,L:[[th+180,170]],A:[{to:[S[0],0],b:[-1,.4]}],hl:'a'}};
+const FP=(sag=0,hl='c')=>{const F0=[0,0],th=Math.asin(15/70)/D;let H=P(F0,44,th);const S=P(H,26,th);H=[H[0],H[1]-sag];
+  return {H,S,hd:th+8,L:[{to:F0,b:[0,1]}],A:[[-90,0]],hl}};
+const SP=(sag=0)=>{const g=FP(sag,'c');return {...g,L:[...g.L,{to:[2,.5],b:[0,1]}],A:[[-90,0],[90,90]],armsAll:1}};
+const DIP=(Sy,F0)=>({H:[4,Sy-26],S:[4,Sy],hd:80,L:[{to:F0,b:[0,1]}],A:[{to:[0,27],b:[-1,.2]}],hl:'a',props:[[-34,24,0,27],[-31,0,-28,24],[-4,0,-1,24]]});
+const PIKE=u=>u?{H:[21,38.6],S:[36,17],L:[{to:[0,0]}],A:[{to:[62,0],b:[0,1]}],hl:'a',ft:0}:{H:[31,31],S:[46.9,10.4],L:[{to:[0,0]}],A:[{to:[62,0],b:[-.5,1]}],hl:'a',ft:0};
+const CR=u=>{const t=u?38:0;return {H:[0,2],t,hd:t+22,L:[[135,233]],A:[{to:c=>[c.head[0]-3,c.head[1]-3],b:[-.2,1]}],hl:'c'}};
+const RC=u=>({H:u?[0,10]:[0,2],t:u?-18:0,hd:u?2:22,L:[[u?55:90,u?165:180]],A:[[176,176]],hl:'c'});
+const BK=sw=>{const b=[75,215],e=[172,172];return {H:[0,2],t:28,hd:50,L:sw?[e,b]:[b,e],la:1,A:[{to:c=>[c.head[0]-3,c.head[1]-3],b:[-.2,1]}],hl:'c'}};
+const MC=sw=>{const th=Math.asin(30/70)/D,H=P([0,0],44,th),k=[-35,-165],e=[th+180,th+180];
+  return {H,t:th,hd:th+8,L:sw?[e,k]:[k,e],la:1,A:[{to:c=>[c.S[0],0],b:[-1,.4]}],hl:'c',ft:0}};
+const FL=sw=>({H:[0,2],t:0,hd:22,L:sw?[[170,170],[155,155]]:[[155,155],[170,170]],la:1,hl:'l'});
+const RT=tw=>({H:[0,0],t:110,hd:100,L:[[50,5],[52,10]],A:[{to:c=>tw?[c.S[0]+16,c.S[1]-24]:[c.S[0]+24,c.S[1]-6],b:[0,-1]}],hl:'c'});
+const SM=u=>({H:[0,3],t:u?12:0,hd:u?20:0,L:u?[[165,165],[168,168]]:[[180,180],[182,182]],la:1,A:[u?[24,24]:[0,0]],hl:'c'});
+const SQ=d=>d?{H:[-16.3,21.3],t:65,L:[[0,-105]],A:[[0,0]],hl:'l'}:{H:[0,44],t:90,L:[[-90,-90]],A:[[0,0]],hl:'l'};
+const SUMO=h=>({H:[0,h],t:90,L:[{to:[-24,0],b:[-1,.3]},{to:[24,0],b:[1,.3]}],la:1,A:[{to:c=>[-5,c.S[1]-16],b:[-1,0]},{to:c=>[5,c.S[1]-16],b:[1,0]}],armsAll:1,hl:'l',ft:2});
+const JS=a=>a?{H:[-16.3,21.3],t:65,L:[[0,-105]],A:[[-150,-150]],hl:'l'}:{H:[0,44],t:90,L:[[-92,-96]],A:[[80,80]],air:10,hl:'l',arrows:[[26,40,26,72]]};
+const LG=(d,dir)=>d?{H:[0,22],t:90,L:[[0,-90],[-104,160]],la:1,A:[[-90,-90]],hl:'l'}:{H:[0,44],t:90,L:[[-90,-90]],A:[[-90,-90]],hl:'l',arrows:[dir>0?[10,4,36,4]:[-10,4,-36,4]]};
+const GB=m=>{const S=[26,2],A=[-20,0];if(!m)return {H:[0,2],S,L:[{to:A,b:[.4,1]}],A:[[180,180]],hl:'l',hd:null};
+  return {H:[1.9,11.7],S,L:m===2?[{to:A,b:[.4,1]},{to:c=>P(c.H,44,158),b:[0,1]}]:[{to:A,b:[.4,1]}],la:1,A:[[180,180]],hl:'l'}};
+const WS=(h)=>({H:[5,h],t:90,L:h>22?[{to:[31,0],b:[1,.3]}]:[[0,-90]],A:[[0,0]],hl:'l',props:[[-8,0,0,74]]});
+const T=(l,p)=>({l,p});
+const INFO={
+'Klassische Liegestütze':{m:'Brust, vordere Schulter, Trizeps',f:[T('Oben',PU(30)),T('Unten',PU(9))],s:['Hände etwas weiter als schulterbreit, Körper bildet eine gerade Linie von Kopf bis Ferse.','Ellbogen etwa 45° zum Körper, langsam absenken bis die Brust knapp über dem Boden ist.','Kraftvoll hochdrücken und die Arme strecken. Rumpf und Po bleiben fest.'],e:['Hüfte hängt durch oder ragt nach oben','Ellbogen flattern weit nach außen']},
+'Frauen-Liegestütze':{m:'Brust, Trizeps (Einstiegsvariante)',f:[T('Oben',KP(30)),T('Unten',KP(9))],s:['Knie auf dem Boden, Hände unter den Schultern. Von Knie bis Schulter eine gerade Linie.','Ellbogen leicht angewinkelt langsam absenken.','Hochdrücken, ohne dass das Becken nach hinten ausweicht.'],e:['Po zu weit nach hinten geschoben','Kopf hängt nach unten']},
+'Diamond Push-ups':{m:'Trizeps, innere Brust',f:[T('Oben',PU(30)),T('Unten',PU(9))],s:['Daumen und Zeigefinger bilden unter der Brust eine Raute.','Ellbogen bleiben eng am Körper, während du dich absenkst.','Hochdrücken und oben die Arme ganz strecken.'],e:['Ellbogen gehen nach außen','Handgelenke knicken ein, Hände dann weiter auseinander stellen']},
+'Trizeps-Dips':{m:'Trizeps, Schulter',f:[T('Oben',DIP(57,[36,0])),T('Unten',DIP(41,[36,0]))],s:['Hände an der Stuhlkante hinter dir, Finger zeigen nach vorn, Beine nach vorn gestreckt oder leicht angewinkelt.','Ellbogen nach hinten beugen und das Becken nah am Stuhl senken, bis die Arme etwa 90° haben.','Mit den Armen hochdrücken. Schultern bleiben tief, nicht zu den Ohren ziehen.'],e:['Stuhl rutscht weg, nutze eine stabile Kante oder Wand','Ellbogen weichen nach außen aus']},
+'Pike Push-ups':{m:'Schultern, oberer Trizeps',f:[T('Oben',PIKE(1)),T('Unten',PIKE(0))],s:['Hüfte hoch, Körper bildet ein umgekehrtes V. Beine möglichst gestreckt.','Beuge die Ellbogen und senke den Kopf zwischen die Hände Richtung Boden.','Drücke dich wieder in das V hoch.'],e:['Hüfte sinkt ab, daraus wird ein normaler Liegestütz','Kopf wandert zu weit nach vorn']},
+'Decline Push-ups':{m:'Obere Brust, Schulter',f:[T('Oben',PU(30,[0,29],{props:[[-14,0,8,28.5]]})),T('Unten',PU(9,[0,29],{props:[[-14,0,8,28.5]]}))],s:['Füße auf eine stabile Erhöhung (Stuhl, Bank), Hände am Boden unter den Schultern.','Körper bleibt eine Linie. Brust zum Boden senken.','Hochdrücken, Rumpf und Po dabei anspannen.'],e:['Der Rücken fällt ins Hohlkreuz','Kopf sackt ab']},
+'Incline Push-ups':{m:'Brust, Trizeps (leichter)',f:[T('Oben',PU(56,[0,0],{hand:26,box:26})),T('Unten',PU(35,[0,0],{hand:26,box:26}))],s:['Hände auf eine stabile Erhöhung (Tisch, Sofakante), Körper gerade.','Brust zur Kante senken.','Hochdrücken. Je höher die Erhöhung, desto leichter.'],e:['Hüfte hängt durch','Erhöhung ist nicht rutschfest']},
+'Plank-to-Push-up':{m:'Brust, Schulter, Rumpf',f:[T('Unterarme',FP(0,'a')),T('Hände',PU(30))],s:['Starte in der Unterarm-Plank.','Setze erst die eine, dann die andere Hand auf und drücke dich in die Liegestütz-Position.','Wieder erst eine, dann die andere Seite zurück auf die Unterarme. Wechsle die Startseite.'],e:['Hüfte schaukelt stark von links nach rechts','Füße zu eng, stell sie etwas breiter']},
+'Klassische Plank':{m:'Bauch, Rücken, Schulter',f:[T('Richtig',FP(0)),T('Falsch: Hüfte hängt',FP(9))],s:['Unterarme auf den Boden, Ellbogen genau unter den Schultern.','Körper bildet eine gerade Linie von Kopf bis Ferse. Bauch und Po fest.','Blick zum Boden, ruhig atmen und die Position halten.'],e:['Hüfte hängt durch (rechtes Bild)','Po ragt nach oben']},
+'Side Plank':{m:'Seitliche Bauchmuskeln, Hüfte',f:[T('Richtig',SP(0)),T('Falsch: Hüfte hängt',SP(9))],s:['Auf die Seite legen, Ellbogen unter der Schulter, Beine übereinander.','Hüfte anheben, bis der Körper eine gerade Linie bildet. Freier Arm zeigt nach oben.','Halten und ruhig atmen. Dann Seite wechseln.'],e:['Hüfte sackt zum Boden','Oberkörper dreht nach vorn oder hinten']},
+'Crunches':{m:'Gerade Bauchmuskeln',f:[T('Unten',CR(0)),T('Oben',CR(1))],s:['Rücken, Füße flach auf dem Boden, Hände locker hinter dem Kopf.','Schultern vom Boden heben, Blick zur Decke. Der Bauch zieht zusammen.','Langsam wieder ablegen, ohne die Spannung zu verlieren.'],e:['Am Nacken ziehen','Mit Schwung hochkommen']},
+'Reverse Crunches':{m:'Untere Bauchmuskeln',f:[T('Start',RC(0)),T('Oben',RC(1))],s:['Auf den Rücken, Knie über der Hüfte gebeugt, Arme neben dem Körper.','Becken einrollen und die Knie Richtung Brust heben.','Kontrolliert zurück, die Beine nicht fallen lassen.'],e:['Mit den Beinen Schwung holen','Lendenwirbel hebt sich vom Boden']},
+'Bicycle Crunches':{m:'Gerade und schräge Bauchmuskeln',f:[T('Links',BK(0)),T('Rechts',BK(1))],s:['Rücken, Hände locker am Kopf, Schultern leicht angehoben.','Ein Knie zur Brust, der Gegenellbogen dreht dem Knie entgegen, das andere Bein streckt sich.','Wechsle fließend die Seite, langsam und kontrolliert.'],e:['Zu schnell, dabei fehlt die Drehung','Am Kopf ziehen']},
+'Mountain Climbers':{m:'Rumpf, Schulter, Hüftbeuger',f:[T('Links',MC(0)),T('Rechts',MC(1))],s:['Hohe Plank, Hände unter den Schultern.','Ein Knie Richtung Brust ziehen.','Beine im Wechsel tauschen. Hüfte bleibt tief und der Rücken gerade.'],e:['Po schießt nach oben','Hände rutschen nach vorn']},
+'Flutter Kicks':{m:'Untere Bauchmuskeln, Hüftbeuger',f:[T('Links',FL(0)),T('Rechts',FL(1))],s:['Auf den Rücken, Hände unter das Becken, Beine gestreckt knapp über dem Boden.','Beine im Wechsel schnell auf und ab bewegen.','Unterer Rücken bleibt am Boden.'],e:['Hohlkreuz','Beine zu hoch, dann arbeitet der Bauch kaum']},
+'Russian Twist':{m:'Schräge Bauchmuskeln',f:[T('Mitte',RT(0)),T('Drehung',RT(1))],s:['Sitz mit Oberkörper leicht nach hinten, Füße angehoben. Hände vor der Brust.','Drehe den Oberkörper zur Seite, die Hände folgen den Schultern.','Zur anderen Seite wechseln. Der Rücken bleibt gerade.'],e:['Nur die Arme schwingen, nicht der Rumpf','Rücken rundet sich']},
+'Superman':{m:'Unterer Rücken, Gesäß',f:[T('Start',SM(0)),T('Oben',SM(1))],s:['Auf den Bauch, Arme nach vorn gestreckt.','Arme, Brust und Beine gleichzeitig anheben. Blick bleibt zum Boden.','Oben kurz halten, dann langsam absenken.'],e:['Nacken überstrecken','Mit Schwung hochreißen']},
+'Klassische Squats':{m:'Oberschenkel, Gesäß',f:[T('Stand',SQ(0)),T('Unten',SQ(1))],s:['Füße schulterbreit, Zehen leicht nach außen.','Hüfte nach hinten unten schieben, bis die Oberschenkel waagerecht sind. Rücken gerade, Arme nach vorn.','Aus den Fersen hochdrücken, Po oben anspannen.'],e:['Knie kippen nach innen','Fersen heben ab']},
+'Sumo Squats':{m:'Innere Oberschenkel, Gesäß',f:[T('Stand (von vorn)',SUMO(36.9)),T('Unten (von vorn)',SUMO(22))],s:['Sehr breiter Stand, Zehen 45° nach außen.','Gerade nach unten gehen, die Knie folgen der Richtung der Zehen.','Hochdrücken und oben das Gesäß anspannen.'],e:['Knie fallen nach innen','Oberkörper kippt nach vorn']},
+'Jump Squats':{m:'Oberschenkel, Gesäß, Waden',f:[T('Tief',JS(1)),T('Sprung',JS(0))],s:['Tiefer Squat, Arme nach hinten.','Explosiv nach oben springen, die Arme schwingen mit.','Weich auf den Fußballen landen und sofort in den nächsten Squat.'],e:['Harte Landung mit gestreckten Knien','Knie knicken nach innen']},
+'Ausfallschritte':{m:'Oberschenkel, Gesäß',f:[T('Stand',LG(0,1)),T('Unten',LG(1,1))],s:['Aufrecht stehen. Mit einem Bein einen großen Schritt nach vorn.','Hinteres Knie Richtung Boden, vorderes Knie bleibt über dem Fuß.','Mit dem vorderen Fuß zurückdrücken, Seite wechseln.'],e:['Vorderes Knie schiebt weit über die Zehen','Oberkörper kippt nach vorn']},
+'Backward Lunges':{m:'Gesäß, Oberschenkel (kniefreundlich)',f:[T('Stand',LG(0,-1)),T('Unten',LG(1,-1))],s:['Aufrecht stehen. Mit einem Bein einen Schritt nach hinten.','Beide Knie auf etwa 90° beugen, das hintere Knie knapp über dem Boden.','Über das vordere Bein zurück in den Stand drücken, Seite wechseln.'],e:['Zu kurzer Schritt, vorderes Knie schiebt vor','Rücken rundet sich']},
+'Glute Bridges':{m:'Gesäß, hinterer Oberschenkel',f:[T('Unten',GB(0)),T('Oben',GB(1))],s:['Auf den Rücken, Füße hüftbreit aufgestellt, Arme neben dem Körper.','Becken anheben, bis Schulter, Hüfte und Knie eine Linie bilden.','Oben kurz den Po anspannen, dann langsam absenken.'],e:['Hohlkreuz am oberen Punkt','Füße zu weit weg vom Po']},
+'Single-Leg Glute Bridges':{m:'Gesäß, Rumpfstabilität',f:[T('Unten',GB(0)),T('Oben, ein Bein',GB(2))],s:['Wie die normale Bridge, ein Bein gestreckt in die Luft heben.','Becken anheben und gerade halten, es darf nicht zur Seite kippen.','Absenken, nach den Wiederholungen das Bein wechseln.'],e:['Becken dreht zur Seite','Mit Schwung hochdrücken']},
+'Wall Sit':{m:'Oberschenkel, Gesäß',f:[T('Richtig',WS(22)),T('Falsch: zu hoch',WS(31))],s:['Rücken an die Wand, Füße etwa einen Schritt davor.','Rutsche runter, bis die Oberschenkel waagerecht sind. Knie über den Knöcheln.','Position halten. Hände nicht auf die Oberschenkel stützen.'],e:['Knie weiter vorn als die Zehen','Zu hoch, der Winkel ist größer als 90°']}
+};
+return {INFO,drawAll,svgs:n=>INFO[n]?drawAll(INFO[n].f.map(x=>x.p)):[]};
+})();
+
+const catItem=([n,s,t],m)=>`<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><div class="exbtns"><button class="launch" data-n="${n}" data-m="${m}" data-s="${s}">CAM LAUNCH</button>${EXH.INFO[n]?`<button class="explain" data-n="${n}">ERKLÄREN</button>`:''}</div></div>`;
 const catHtml=()=>Object.entries(CATALOG).map(([cat,c],ci)=>`<details class="acc"${ci===0?' open':''}><summary><span>${cat}</span><em>${c.items.length}</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">${c.items.map(i=>catItem(i,c.mode)).join('')}</div></details>`).join('');
 function renderCatalog(){ $('catalogList').innerHTML=catHtml() }
 document.addEventListener('click',e=>{
@@ -872,7 +993,7 @@ const exKey=(dn,name)=>weekDate(dn)+'|'+name;
 const exDone=(dn,x)=>!!pdone[exKey(dn,x.name)]||(dn===todayName()&&(prog.sets['ex:'+x.name]||0)>=Math.max(1,+x.sets||1));
 const planHtml=(p,act)=>p.days.map(d=>`<div class="pd${d.rest?' rest':''}"><b>${esc(d.day)}</b><em>${d.rest?'RUHETAG':esc(d.focus)}</em>${d.rest?'':`<div class="pex">`+(d.exercises||[]).map(x=>{
   const m=matchEx(x.name),sets=/^\d+$/.test(String(x.reps))?`${x.sets} × ${x.reps}`:(m?m.sets:`${x.sets} × 12`),ok=act&&exDone(d.day,x);
-  return `<div class="pe${ok?' ok':''}">${act?`<button class="pchk" data-day="${esc(d.day)}" data-ex="${esc(x.name)}" aria-label="Abhaken"><svg class="chk"><use href="#${ok?'i-check':'i-circle'}"/></svg></button>`:''}<span${m?` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}"`:''}>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span></div>`}).join('')+`</div>`}</div>`).join('');
+  return `<div class="pe${ok?' ok':''}">${act?`<button class="pchk" data-day="${esc(d.day)}" data-ex="${esc(x.name)}" aria-label="Abhaken"><svg class="chk"><use href="#${ok?'i-check':'i-circle'}"/></svg></button>`:''}<span${m?` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}"`:''}>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span>${m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">ERKLÄREN</button>`:''}</div>`}).join('')+`</div>`}</div>`).join('');
 function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
 async function enablePush(){
   if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Push ist hier nicht verfügbar. Auf dem iPhone: in Safari Teilen, dann "Zum Home-Bildschirm", und die App von dort öffnen.');
@@ -1063,12 +1184,30 @@ document.addEventListener('click',e=>{
   let c;
   if(c=q('.pchk')){togglePlanEx(c.dataset.day,c.dataset.ex);return}
   if(c=q('.tick')){tickToday(c.dataset.id);return}
+  if(c=q('.explain,.exinfo')){showExplain(c.dataset.n);return}
   if(c=q('.go')){if(c.dataset.tab)showTab(c.dataset.tab);else if(c.dataset.n)launch(c.dataset.n,c.dataset.m,c.dataset.s)}
 });
+function exBtn(t){if(t.type!=='ex')return '';const m=matchEx(t.name);return m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">ERKLÄREN</button>`:''}
+function closeExplain(){const m=document.getElementById('exModal');if(m)m.remove()}
+function showExplain(name){
+  const i=EXH.INFO[name];if(!i)return;closeExplain();
+  const sv=EXH.svgs(name),ex=matchEx(name)||{};
+  const m=document.createElement('div');m.className='modal';m.id='exModal';
+  m.innerHTML=`<div class="card modal-card ex-card"><div class="row between"><span class="label">ÜBUNG ERKLÄRT</span><button class="pill" id="exClose">SCHLIESSEN</button></div>
+  <h2>${esc(name)}</h2><p class="muted">Trainiert: ${esc(i.m)}</p>
+  <div class="exfig">${i.f.map((f,k)=>`<figure>${sv[k]}<figcaption><b>${k+1}</b> ${esc(f.l)}</figcaption></figure>`).join('')}</div>
+  <p class="muted small">Grün markiert: die Körperteile, die hier arbeiten.</p>
+  <h3>SO GEHT'S</h3><ol class="exsteps">${i.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+  <h3>HÄUFIGE FEHLER</h3><ul class="exerr">${i.e.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+  <button class="primary" id="exCam">MIT KAMERA STARTEN</button></div>`;
+  m.addEventListener('click',e=>{if(e.target===m||e.target.closest('#exClose'))closeExplain();else if(e.target.closest('#exCam')){closeExplain();if(ex.name)launch(ex.name,ex.mode,ex.sets)}});
+  document.body.appendChild(m);m.scrollTop=0;
+}
+addEventListener('keydown',e=>{if(e.key==='Escape')closeExplain()});
 function renderToday(){
   const tasks=todayTasks(),req=tasks.filter(t=>!t.info),open=req.filter(t=>!isDone(t)),all=req.length>0&&!open.length;
   $('todayDate').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td${goAttrs(t)}><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td>${t.info?`<svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg>`:`<button class="tick" data-id="${esc(t.id)}" aria-label="Abhaken"><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></button>`}</td></tr>`}).join('');
+  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td${goAttrs(t)}><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}${exBtn(t)}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td>${t.info?`<svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg>`:`<button class="tick" data-id="${esc(t.id)}" aria-label="Abhaken"><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></button>`}</td></tr>`}).join('');
   $('todayFocus').textContent=todayFocus();
   $('todayHint').textContent=all?'Alles erledigt für heute. Stark!':open.length?`Noch offen: ${openText(open)}`:'';
   const wl=store.get('weeklog',{});wl[isoDate(new Date())]=all;store.set('weeklog',wl);
