@@ -73,7 +73,7 @@ function initProfile(){if(!profile)openProfile();else applyProfile()}
 
 /* ---------- FOOD ---------- */
 // [Name, kcal, Eiweiß, Einheit] je Einheit; ohne Einheit = Portion
-const FOOD = {
+const OLD = {
   "Ei & Frühstück":[["Ei als Rührei",90,6.5,"Stück"],["Spiegelei",95,6.5,"Stück"],["Hartgekochtes Ei",78,6.5,"Stück"],["Omelett mit Gemüse",310,22],["Haferflocken mit Whey",420,32],["Overnight Oats",380,18],["Skyr mit Beeren",190,20],["Vollkorntoast mit Ei",320,17],["Protein-Pancake",120,9.3,"Stück"],["Porridge mit Banane",340,12],["Griechischer Joghurt mit Honig",230,15],["Avocado-Toast mit Ei",410,16],["Müsli mit Milch",390,14]],
   "Fast Food (Cleaned)":[["Grilled-Chicken-Burger",480,38],["Döner-Teller ohne Soße",560,42],["Chicken Wrap Vollkorn",450,34],["Reisbowl mit Hähnchen",620,45],["Subway 15 cm Hähnchen",330,24],["Burrito Bowl ohne Sourcreme",580,40],["Sushi-Stück",44,2,"Stück"],["Gyros-Pita mit Tzatziki",520,30],["Chicken Nugget",43,2.5,"Stück"],["Pizza Margherita (¼)",250,11],["Kebab-Salat",390,33],["Pulled-Chicken-Sandwich",470,36]],
   "Fleisch & Fisch":[["Hähnchenbrust 200 g",330,62],["Rinderhack 200 g (mager)",340,42],["Lachsfilet 150 g",310,31],["Thunfisch Dose",120,26],["Putenbrust 150 g",165,35],["Steak 200 g",430,50],["Garnelen 150 g",150,32],["Forelle 150 g",210,30],["Schweinefilet 200 g",250,44],["Hähnchenschenkel 200 g",380,40]],
@@ -90,34 +90,80 @@ const FOOD = {
   "Mexikanisch":[["Chicken Burrito",700,38],["Taco mit Hähnchen",170,12,"Stück"],["Quesadilla",520,26],["Guacamole 50 g",90,1],["Chili con Carne",480,32],["Nachos mit Käse",520,12],["Huevos Rancheros",420,20],["Fajita-Pfanne",450,38],["Bohnensalat",250,12],["Enchiladas",560,30]],
   "Getränke":[["Whey-Shake mit Wasser",120,24],["Whey-Shake mit Milch",280,32],["Mass-Gainer-Shake",650,50],["Magermilch 500 ml",175,17],["Vollmilch 500 ml",320,17],["Kaffee schwarz",5,0,"Tasse"],["Kaffee mit Milch",45,2,"Tasse"],["Latte Macchiato",150,8,"Glas"],["Protein-Kaffee",160,20],["Smoothie Banane-Beere",220,4,"Glas"],["Orangensaft 250 ml",110,2,"Glas"],["Kokoswasser 330 ml",60,1,"Dose"],["Hafermilch 250 ml",120,3,"Glas"],["Kakao mit Milch",190,8,"Tasse"],["Proteinshake Schoko (RTD)",160,30,"Flasche"],["Isotonisches Getränk 500 ml",130,0,"Flasche"],["Cola Zero",1,0,"Dose"],["Energy Drink Zuckerfrei",10,0,"Dose"],["Grüner Tee",2,0,"Tasse"],["Wasser",0,0,"Glas"]]
 };
+const pick=(a,ix)=>ix.map(i=>a[i]);
+const E0=OLD["Ei & Frühstück"],D0=OLD["Getränke"];
+const EGGS=[...pick(E0,[0,1,2,3]),["Ei pochiert",72,6.3,"Stück"],["Eiweiß",17,3.6,"Stück"]];
+const BASICS=[["Basmatireis gekocht",130,2.7,"100 g"],["Jasminreis gekocht",130,2.7,"100 g"],["Vollkornreis gekocht",120,2.6,"100 g"],["Nudeln gekocht",158,5.8,"100 g"],["Vollkornnudeln gekocht",140,5.5,"100 g"],["Kartoffeln gekocht",77,2,"100 g"],["Süßkartoffel gebacken",90,1.6,"100 g"],["Kartoffelpüree",90,2,"100 g"],["Pommes frites",300,3.8,"100 g"],["Couscous gekocht",112,3.8,"100 g"],["Quinoa gekocht",120,4.4,"100 g"],["Bulgur gekocht",83,3,"100 g"]];
+const SOUPS=[["Gemüsesuppe",120,4],["Hühnersuppe",180,14],["Kürbissuppe",200,5],["Tomatensuppe",150,4],["Gulaschsuppe",300,20],["Erbseneintopf",380,20],["Linsensuppe",220,12]];
+const LIGHT=[["Hähnchen-Gemüse-Pfanne",380,40],["Ofengemüse mit Feta",340,14],["Zucchini-Nudeln mit Garnelen",330,30],["Rührei mit Gemüse",260,18],["Lachs mit Brokkoli",420,36],["Hüttenkäse mit Gurke",200,24],["Skyr-Bowl",220,25],["Quark mit Leinöl",250,30]];
+const MEALS={"Reis, Nudeln & Kartoffeln (je 100 g)":BASICS,"Eier":EGGS,"Fleisch & Fisch":OLD["Fleisch & Fisch"],"Bowls & Salate":OLD["Salate & Bowls"],"Suppen & Eintöpfe":SOUPS,"Fast Food (Cleaned)":OLD["Fast Food (Cleaned)"],"Chinesisch":OLD["Chinesisch"],"Japanisch & Koreanisch":OLD["Japanisch & Koreanisch"],"Thai & Vietnamesisch":OLD["Thai & Vietnamesisch"],"Indisch":OLD["Indisch"],"Orientalisch & Türkisch":OLD["Orientalisch & Türkisch"],"Italienisch":OLD["Italienisch"],"Mexikanisch":OLD["Mexikanisch"]};
+const FOOD={
+  "Getränke":{"Wasser, Tee & Kaffee":pick(D0,[19,18,5,6,7,8]),"Milch & Shakes":pick(D0,[0,1,2,14,3,4,12,13]),"Säfte & Softdrinks":[...pick(D0,[9,10,11,15,16,17]),["Cola",140,0,"Dose"],["Apfelschorle",60,0.2,"Glas"],["Eistee",100,0,"Flasche"],["Matcha Latte",120,6,"Tasse"],["Chai Latte",170,5,"Tasse"]],"Alkohol":[["Bier 0,5 l",215,2,"Glas"],["Alkoholfreies Bier 0,5 l",100,1,"Glas"],["Radler 0,5 l",190,1,"Glas"],["Wein 0,2 l",150,0.1,"Glas"],["Schnaps 2 cl",45,0,"Glas"]]},
+  "Frühstück":{"Eier":EGGS,"Haferflocken & Müsli":pick(E0,[4,5,9,12]),"Joghurt & Quark":[...pick(E0,[6,10]),["Magerquark 250 g",170,31]],"Toast & Pancakes":pick(E0,[7,8,11])},
+  "Mittagessen":MEALS,
+  "Abendessen":{"Leichtes Abendessen":LIGHT,...MEALS},
+  "Snacks":{"Protein-Snacks":OLD["Protein-Snacks"],"Obst & Gemüse":OLD["Obst & Gemüse"],"Herzhaft":[["Chips 30 g",160,2],["Popcorn 30 g",115,3],["Salzstangen 30 g",120,3],["Käsewürfel 30 g",110,7],["Oliven 50 g",60,0.4],["Laugenbrezel",250,7,"Stück"]],"Süßes":[["Schokoriegel",230,3,"Stück"],["Zartbitterschokolade 30 g",170,2],["Gummibärchen 30 g",100,2],["Müsliriegel",120,2,"Stück"],["Proteinkeks",200,15,"Stück"]]},
+  "Café & Kuchen":{"Kaffee & Heißgetränke":[["Espresso",3,0.2,"Tasse"],["Cappuccino",120,6,"Tasse"],["Flat White",140,7,"Tasse"],["Latte Macchiato",150,8,"Glas"],["Chai Latte",170,5,"Tasse"],["Heiße Schokolade",280,9,"Tasse"],["Eiskaffee",300,6,"Glas"],["Frappé",350,6,"Glas"],["Tee mit Honig",25,0,"Tasse"]],"Kuchen & Torten":[["Käsekuchen",330,9,"Stück"],["New-York-Cheesecake",420,8,"Stück"],["Schokokuchen",420,5,"Stück"],["Apfelkuchen",280,3,"Stück"],["Carrot Cake",400,5,"Stück"],["Marmorkuchen",300,4,"Stück"],["Sachertorte",450,5,"Stück"],["Erdbeertorte",260,4,"Stück"],["Tiramisu",450,7,"Stück"],["Brownie",250,3,"Stück"]],"Gebäck & Eis":[["Croissant",230,5,"Stück"],["Schoko-Croissant",300,5,"Stück"],["Franzbrötchen",330,5,"Stück"],["Donut",300,4,"Stück"],["Muffin",380,5,"Stück"],["Cookie",160,2,"Stück"],["Waffel mit Puderzucker",320,6,"Stück"],["Macaron",70,1,"Stück"],["Eiskugel",130,2,"Stück"]]}
+};
+const SIDES=[["Basmatireis",260,5],["Jasminreis",260,5],["Naan",260,8],["Chapati",100,3],["Pommes (klein)",320,4],["Kartoffeln",230,6],["Nudeln",350,13],["Couscous",230,8],["Gemischter Salat",80,3],["Gemüse gedünstet",90,4],["Brot (2 Scheiben)",200,8],["Raita",60,3]];
+const NOSIDE=new Set(["Reis, Nudeln & Kartoffeln (je 100 g)","Eier"]);
+const BREADS=[["Vollkornbrot",100,4],["Roggenbrot",90,3],["Weißbrot",80,2.5],["Toastbrot",70,2],["Dinkelbrot",95,4],["Körnerbrot",110,4.5],["Knäckebrot",35,1],["Baguette",70,2.5],["Fladenbrot",130,4]];
+const TOPS={"Süß":[["Nuss-Nougat-Creme",100,1],["Protein-Schoko-Aufstrich",70,4],["Erdnussbutter",95,4],["Mandelmus",90,3],["Honig",60,0],["Marmelade",40,0]],"Herzhaft & Vegetarisch":[["Butter",36,0],["Frischkäse natur",50,2],["Frischkäse Kräuter",55,2],["Kräuterquark",35,5],["Hummus",50,2],["Gemüseaufstrich Paprika-Tomate",45,1],["Linsen-Aufstrich",55,3],["Tofu-Aufstrich",60,4],["Avocado",80,1],["Tomate & Gurke",10,0.5]],"Wurst, Käse & Ei":[["Gouda",100,7],["Camembert",80,5],["Mozzarella & Tomate",90,6],["Salami",80,5],["Kochschinken",40,7],["Putenbrust",35,7],["Leberwurst",85,4],["Thunfischsalat",90,8],["Ei gekocht (½)",40,3]]};
 let eaten=store.get('eaten',null);
 if(!eaten||eaten.day!==new Date().toDateString())eaten={kcal:0,protein:0,day:new Date().toDateString()};
-const foodItem=t=>FOOD[t.dataset.c][t.dataset.i];
+const foodItem=t=>FOOD[t.dataset.t][t.dataset.c][t.dataset.i];
 function calcTile(t){
   const [,k,p]=foodItem(t),q=Math.max(0.5,+t.querySelector('.q').value||1);
-  t.querySelector('.sum').textContent=`= ${Math.round(k*q)} kcal • ${(Math.round(p*q*10)/10)} g Eiweiß`;
+  const sd=t.querySelector('.side'),s=sd&&sd.value!==''?SIDES[+sd.value]:null;
+  const kc=Math.round(k*q+(s?s[1]*q:0)),pr=Math.round((p*q+(s?s[2]*q:0))*10)/10;
+  t.querySelector('.sum').textContent=`= ${kc} kcal • ${pr} g Eiweiß`;
+  return [kc,pr];
 }
+let foodTop='Getränke';
 function renderFood(){
-  $('foodList').innerHTML=Object.entries(FOOD).map(([cat,items],ci)=>
+  $('foodNav').innerHTML=[...Object.keys(FOOD),'Brot'].map(t=>`<button class="chip${t===foodTop?' on':''}" data-top="${t}">${t}</button>`).join('');
+  if(foodTop==='Brot'){renderBread();return}
+  const side=foodTop==='Mittagessen'||foodTop==='Abendessen';
+  $('foodList').innerHTML=Object.entries(FOOD[foodTop]).map(([cat,items],ci)=>
     `<details class="acc"${ci===0?' open':''}><summary><span>${cat}</span><em>${items.length}</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">`+
-    items.map(([n,k,p,u],i)=>{const unit=u||'Portion',step=u?1:0.5;
-      return `<div class="tile" data-c="${cat}" data-i="${i}" data-step="${step}"><b>${n}</b><span class="per">je ${unit}: ${k} kcal • ${p} g Eiweiß</span><div class="row2"><div class="qty"><button class="qm" aria-label="Weniger">−</button><input class="q" type="number" inputmode="decimal" min="0.5" step="${step}" value="1" aria-label="Menge in ${unit}"><button class="qp" aria-label="Mehr">+</button></div><span class="sum"></span><button class="add"><svg><use href="#i-plus"/></svg>ADD</button></div></div>`}).join('')+
+    items.map(([n,k,p,u],i)=>{const unit=u||'Portion',step=(!u||u==='100 g')?0.5:1;
+      const sel=side&&!NOSIDE.has(cat)?`<select class="side"><option value="">Beilage: keine</option>${SIDES.map((s,j)=>`<option value="${j}">${s[0]} (+${s[1]} kcal)</option>`).join('')}</select>`:'';
+      return `<div class="tile" data-t="${foodTop}" data-c="${cat}" data-i="${i}" data-step="${step}"><b>${n}</b><span class="per">je ${unit}: ${k} kcal • ${p} g Eiweiß</span>${sel}<div class="row2"><div class="qty"><button class="qm" aria-label="Weniger">−</button><input class="q" type="number" inputmode="decimal" min="0.5" step="${step}" value="1" aria-label="Menge in ${unit}"><button class="qp" aria-label="Mehr">+</button></div><span class="sum"></span><button class="add"><svg><use href="#i-plus"/></svg>ADD</button></div></div>`}).join('')+
     `</div></details>`).join('');
   document.querySelectorAll('#foodList .tile').forEach(calcTile);
   updFood();
 }
+function renderBread(){
+  const opts='<option value="">– keiner –</option>'+Object.entries(TOPS).map(([g,a])=>`<optgroup label="${g}">`+a.map(([n,k])=>`<option value="${g}|${n}">${n} (${k} kcal)</option>`).join('')+'</optgroup>').join('');
+  $('foodList').innerHTML=`<div class="card"><span class="label">BROT-BUILDER</span><div class="grid2"><label>Brotsorte<select id="bBread">${BREADS.map((b,i)=>`<option value="${i}">${b[0]} (${b[1]} kcal)</option>`).join('')}</select></label><label>Scheiben<div class="qty"><button id="bm" aria-label="Weniger">−</button><input id="bQty" class="q" type="number" inputmode="numeric" min="1" step="1" value="2"><button id="bp" aria-label="Mehr">+</button></div></label><label>Belag 1<select id="bT1">${opts}</select></label><label>Belag 2<select id="bT2">${opts}</select></label></div><p class="sum" id="bSum"></p><button class="primary" id="bAdd">HINZUFÜGEN</button></div>`;
+  breadCalc();updFood();
+}
+function breadCalc(){
+  const b=BREADS[+$('bBread').value]||BREADS[0],n=Math.max(1,Math.round(+$('bQty').value||1));
+  let k=b[1],p=b[2];
+  ['bT1','bT2'].forEach(id=>{const v=$(id).value;if(v){const [g,nm]=v.split('|'),t=TOPS[g].find(x=>x[0]===nm);if(t){k+=t[1];p+=t[2]}}});
+  const kc=Math.round(k*n),pr=Math.round(p*n*10)/10;
+  $('bSum').textContent=`= ${kc} kcal • ${pr} g Eiweiß`;return [kc,pr];
+}
+function addEaten(kc,pr,btn,label){
+  eaten.kcal+=kc;eaten.protein=Math.round((eaten.protein+pr)*10)/10;store.set('eaten',eaten);updFood();
+  if(btn){const old=btn.innerHTML;btn.textContent='OK';setTimeout(()=>{btn.innerHTML=old},800)}
+}
+$('foodNav').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b){foodTop=b.dataset.top;renderFood()}});
 $('foodList').addEventListener('click',e=>{
+  if(e.target.closest('#bm')){$('bQty').value=Math.max(1,(+$('bQty').value||1)-1);breadCalc();return}
+  if(e.target.closest('#bp')){$('bQty').value=(+$('bQty').value||1)+1;breadCalc();return}
+  if(e.target.closest('#bAdd')){const [kc,pr]=breadCalc();addEaten(kc,pr,e.target.closest('#bAdd'));return}
   const t=e.target.closest('.tile');if(!t)return;
   const q=t.querySelector('.q'),st=+t.dataset.step;
   if(e.target.closest('.qm')){q.value=Math.max(0.5,(+q.value||1)-st);calcTile(t)}
   else if(e.target.closest('.qp')){q.value=(+q.value||1)+st;calcTile(t)}
-  else if(e.target.closest('.add')){
-    const [,k,p]=foodItem(t),n=Math.max(0.5,+q.value||1),b=e.target.closest('.add');
-    eaten.kcal+=Math.round(k*n);eaten.protein=Math.round((eaten.protein+p*n)*10)/10;
-    store.set('eaten',eaten);updFood();b.textContent='OK';setTimeout(()=>{b.innerHTML='<svg><use href="#i-plus"/></svg>ADD'},800);
-  }
+  else if(e.target.closest('.add')){const [kc,pr]=calcTile(t);addEaten(kc,pr,e.target.closest('.add'))}
 });
-$('foodList').addEventListener('input',e=>{const t=e.target.closest('.tile');if(t)calcTile(t)});
+['input','change'].forEach(ev=>$('foodList').addEventListener(ev,e=>{
+  if(e.target.closest('#bBread,#bQty,#bT1,#bT2')){breadCalc();return}
+  const t=e.target.closest('.tile');if(t)calcTile(t);
+}));
 function updFood(){
   const g=goals();
   $('kcalTotal').textContent=eaten.kcal.toLocaleString('de-DE');
@@ -154,7 +200,7 @@ let reps=0,phase='up',camOn=false,pose=null,stream=null,lastSpoken='',lastSpeakT
 function launch(name,mode,sets){
   const m=sets.match(/(\d+)\s*×\s*(\d+)/);
   exercise={name,mode,sets:m?+m[1]:3,target:m?+m[2]:12,set:1,unit:/s/.test(sets)?'s':'WDH'};
-  reps=0;phase='up';holdStart=0;
+  reps=0;phase='up';holdStart=0;resetTrack();
   $('camExercise').textContent=name;updCam();showTab('catalog');$('camAcc').open=true;setTimeout(()=>$('camAcc').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 function updCam(){
@@ -175,48 +221,72 @@ function angle(a,b,c){
   let d=Math.abs(r*180/Math.PI);return d>180?360-d:d;
 }
 const LINKS=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
+let side=null,emaE=null,emaB=null,lastRep=0,minA=180,badSince=0,holdMs=0,lastT=0,facing='user';
+const ema=(p,v,k=0.35)=>p==null?v:p+(v-p)*k;
+function resetTrack(){phase='up';emaE=null;emaB=null;badSince=0;holdMs=0;lastT=0;side=null;minA=180}
+// 3D-Winkel aus Weltkoordinaten: unabhängig vom Kamerawinkel, deutlich genauer als 2D
+function ang3(a,b,c){
+  const u=[a.x-b.x,a.y-b.y,a.z-b.z],v=[c.x-b.x,c.y-b.y,c.z-b.z];
+  const d=u[0]*v[0]+u[1]*v[1]+u[2]*v[2],n=Math.hypot(...u)*Math.hypot(...v)||1;
+  return Math.acos(Math.max(-1,Math.min(1,d/n)))*180/Math.PI;
+}
 function onResults(res){
   const cv=$('overlay'),v=$('video');
   cv.width=v.videoWidth;cv.height=v.videoHeight;
   const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);
   const L=res.poseLandmarks;
-  if(!L){setForm('KEINE PERSON ERKANNT – KAMERA ZURÜCKSTELLEN',true);return}
+  if(!L){setForm('KEINE PERSON ERKANNT: GANZEN KÖRPER INS BILD',true);return}
+  const Wd=res.poseWorldLandmarks||L;
   ctx.lineWidth=4;ctx.strokeStyle='#CCFF00';
   LINKS.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(L[a].x*cv.width,L[a].y*cv.height);ctx.lineTo(L[b].x*cv.width,L[b].y*cv.height);ctx.stroke()});
   ctx.fillStyle='#00F0FF';
   [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i=>{ctx.beginPath();ctx.arc(L[i].x*cv.width,L[i].y*cv.height,6,0,7);ctx.fill()});
-  // sichtbarere Körperseite wählen
-  const left=(L[11].visibility+L[13].visibility+L[23].visibility)>=(L[12].visibility+L[14].visibility+L[24].visibility);
-  const [S,E,W,H,K,A]=(left?[11,13,15,23,25,27]:[12,14,16,24,26,28]).map(i=>L[i]);
-  const m=exercise.mode;
-  if(m==='elbow'||m==='knee'){
-    const ang=m==='elbow'?angle(S,E,W):angle(H,K,A);
-    $('angleTxt').textContent=Math.round(ang)+'°';
-    if(ang<90&&phase==='up'){phase='down'}
-    else if(ang>160&&phase==='down'){phase='up';reps++;updCam();say(String(reps),true);
-      if(reps>=exercise.target){say('Satz '+exercise.set+' geschafft!',true);exercise.set=Math.min(exercise.sets,exercise.set+1);reps=0;updCam()}}
-  }else{
-    if(!holdStart)holdStart=Date.now();
-    reps=Math.floor((Date.now()-holdStart)/1000);
-    if(reps&&reps%10===0)say(reps+' Sekunden');
-    updCam();
-  }
-  // Rücken-Check: Schulter–Hüfte–Knöchel soll eine Linie sein (nur Brett-Übungen)
+  // Körperseite mit Verzögerung wechseln, damit nichts flackert
+  const vis=ix=>ix.reduce((s,i)=>s+(L[i].visibility||0),0);
+  const lv=vis([11,13,15,23,25,27]),rv=vis([12,14,16,24,26,28]);
+  if(!side)side=lv>=rv?'l':'r';else if(side==='l'&&rv>lv+0.8)side='r';else if(side==='r'&&lv>rv+0.8)side='l';
+  const [iS,iE,iW,iH,iK,iA]=side==='l'?[11,13,15,23,25,27]:[12,14,16,24,26,28];
+  const m=exercise.mode,need=m==='elbow'?[iS,iE,iW]:m==='knee'?[iH,iK,iA]:[iS,iH,iA];
+  if(Math.min(...need.map(i=>L[i].visibility||0))<0.55){setForm('KAMERA: SEITLICH STELLEN, GANZER KÖRPER IM BILD',true);return}
+  const now=performance.now(),dt=lastT?now-lastT:0;lastT=now;
+  emaB=ema(emaB,ang3(Wd[iS],Wd[iH],Wd[iA]));
   const plankLike=/Liegestütze|Push-up|Plank/.test(exercise.name)&&!/Pike|Dips/.test(exercise.name);
+  let backOk=true;
   if(plankLike){
-    const back=angle(S,H,A);
-    if(back<160){setForm('FORM CHECK: RÜCKEN GERADE HALTEN',true);say('Rücken gerade halten')}
-    else setForm(`FORM CHECK: <span style="color:#CCFF00">KÖRPERLINIE OK (${Math.round(back)}°)</span>`);
-  }else setForm('FORM CHECK: <span style="color:#CCFF00">TRACKING AKTIV</span>');
+    if(emaB<160){if(!badSince)badSince=now;backOk=!(now-badSince>600)}else badSince=0;
+  }
+  if(m==='elbow'||m==='knee'){
+    emaE=ema(emaE,m==='elbow'?ang3(Wd[iS],Wd[iE],Wd[iW]):ang3(Wd[iH],Wd[iK],Wd[iA]));
+    const a=emaE,DOWN=100,UP=155;
+    $('angleTxt').textContent=Math.round(a)+'°';
+    if(phase==='up'&&a<130){phase='going';minA=a}
+    if(phase!=='up')minA=Math.min(minA,a);
+    if(phase==='going'&&a<DOWN)phase='down';
+    else if(phase==='going'&&a>UP){phase='up';say(m==='knee'?'Tiefer gehen':'Tiefer runter');setForm('FORM CHECK: NICHT TIEF GENUG, ZÄHLT NICHT',true);return}
+    else if(phase==='down'&&a>UP&&Date.now()-lastRep>500){
+      phase='up';lastRep=Date.now();
+      if(!backOk){say('Rücken gerade, zählt nicht')}
+      else{reps++;updCam();say(String(reps),true);
+        if(reps>=exercise.target){say('Satz '+exercise.set+' geschafft',true);exercise.set=Math.min(exercise.sets,exercise.set+1);reps=0;updCam()}}
+    }
+  }else{
+    $('angleTxt').textContent=Math.round(emaB)+'°';
+    if(backOk)holdMs+=dt;
+    const s=Math.floor(holdMs/1000);
+    if(s!==reps){reps=s;updCam();if(s&&s%10===0)say(s+' Sekunden')}
+  }
+  if(!backOk){setForm('FORM CHECK: RÜCKEN GERADE HALTEN',true);say('Rücken gerade halten')}
+  else if(plankLike)setForm(`FORM CHECK: <span style="color:#CCFF00">KÖRPERLINIE OK (${Math.round(emaB)}°)</span>`);
+  else setForm('FORM CHECK: <span style="color:#CCFF00">TRACKING AKTIV</span>');
 }
 function setForm(t,bad){const f=$('formBanner');f.innerHTML=t;f.classList.toggle('bad',!!bad)}
 async function startCam(){
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:640,height:480},audio:false});
     const v=$('video');v.srcObject=stream;await v.play();
     if(!pose){
       pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
-      pose.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+      pose.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.6,minTrackingConfidence:.6});
       pose.onResults(onResults);
     }
     camOn=true;$('camBtn').textContent='KAMERA STOPPEN';setForm('FORM CHECK: ANALYSE LÄUFT');
@@ -226,7 +296,8 @@ async function startCam(){
 }
 function stopCam(){camOn=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('camBtn').textContent='KAMERA STARTEN';setForm('FORM CHECK: KAMERA GESTOPPT')}
 $('camBtn').onclick=()=>camOn?stopCam():startCam();
-$('resetReps').onclick=()=>{reps=0;phase='up';holdStart=0;exercise.set=1;updCam()};
+$('resetReps').onclick=()=>{reps=0;resetTrack();exercise.set=1;updCam()};
+$('camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';if(camOn){stopCam();startCam()}};
 
 /* ---------- LUNG ---------- */
 let bStart=0,bTimer=null;
@@ -247,15 +318,104 @@ bBtn.addEventListener('pointerdown',e=>{e.preventDefault();bStart=performance.no
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>bBtn.addEventListener(ev,bStop));
 bBtn.addEventListener('contextmenu',e=>e.preventDefault());
 
-let marks=[];
+let pts=[],mk=[],routeLine=null;
+const TILE='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 function initMap(){
-  if(map)return;
-  map=L.map('map').setView([50.0,9.15],6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  map.on('click',e=>marks.push(L.marker(e.latlng).addTo(map)));
-  if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],14),()=>{});
+  if(map||typeof L==='undefined'||!L.map)return;
+  map=L.map('map',{tap:false}).setView([50.0,9.15],6);
+  L.tileLayer(TILE,{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  map.on('click',e=>addPoint(e.latlng));
+  locate(false);
 }
-$('clearMarks').onclick=()=>{marks.forEach(m=>m.remove());marks=[]};
+const info=t=>{$('routeInfo').textContent=t};
+function clearRoute(all){
+  if(routeLine){routeLine.remove();routeLine=null}
+  if(all){mk.forEach(m=>m.remove());mk=[];pts=[]}
+}
+function addMarker(p){if(map)mk.push(L.marker([p.lat,p.lng]).addTo(map))}
+function haversine(a,b){const R=6371,r=x=>x*Math.PI/180,dl=r(b.lat-a.lat),dn=r(b.lng-a.lng),h=Math.sin(dl/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function dest(p,dKm,deg){
+  const R=6371,b=deg*Math.PI/180,la=p.lat*Math.PI/180,lo=p.lng*Math.PI/180,d=dKm/R;
+  const la2=Math.asin(Math.sin(la)*Math.cos(d)+Math.cos(la)*Math.sin(d)*Math.cos(b));
+  const lo2=lo+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la),Math.cos(d)-Math.sin(la)*Math.sin(la2));
+  return {lat:la2*180/Math.PI,lng:lo2*180/Math.PI};
+}
+async function routeVia(list){
+  const c=list.map(p=>`${p.lng.toFixed(6)},${p.lat.toFixed(6)}`).join(';');
+  const r=await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${c}?overview=full&geometries=geojson`);
+  const j=await r.json();
+  if(j.code!=='Ok'||!j.routes||!j.routes[0])throw new Error('Keine Route gefunden');
+  return {km:j.routes[0].distance/1000,coords:j.routes[0].geometry.coordinates.map(([x,y])=>[y,x])};
+}
+function drawRoute(res,note){
+  if(routeLine)routeLine.remove();
+  routeLine=L.polyline(res.coords,{color:'#CCFF00',weight:5,opacity:.95}).addTo(map);
+  map.fitBounds(routeLine.getBounds(),{padding:[24,24]});
+  info(`Route: ${res.km.toFixed(1)} km${note||' zu Fuß'}, ca. ${Math.round(res.km*6)} min bei 6 min/km.`);
+}
+async function updateRoute(){
+  if(pts.length<2){info('Setze einen zweiten Punkt, dann zeichne ich die Laufroute.');return}
+  info('Route wird berechnet…');
+  try{drawRoute(await routeVia(pts))}
+  catch(e){
+    let km=0;for(let i=1;i<pts.length;i++)km+=haversine(pts[i-1],pts[i]);
+    drawRoute({km,coords:pts.map(p=>[p.lat,p.lng])},' (Luftlinie, Routing nicht erreichbar)');
+  }
+}
+function addPoint(ll){const p={lat:ll.lat,lng:ll.lng};pts.push(p);addMarker(p);updateRoute()}
+function getPos(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation)return rej(new Error('Standort nicht verfügbar'));
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),()=>rej(new Error('Standort nicht erlaubt')),{enableHighAccuracy:true,timeout:9000});
+  });
+}
+async function locate(zoom){
+  try{const p=await getPos();if(map)map.setView([p.lat,p.lng],zoom?15:14);return p}
+  catch(e){if(zoom)info(e.message+'. Suche stattdessen einen Ort.')}
+}
+async function loopRoute(){
+  if(!map){info('Karte wird noch geladen.');return}
+  const a=kmAdvice($('runGoal').value,Math.max(40,+$('runWeight').value||75),profile?profile.level:'Anfänger');
+  const target=a.km;info(`Rundkurs mit ${target} km wird gebaut…`);
+  let c;try{c=await getPos()}catch(e){const m=map.getCenter();c={lat:m.lat,lng:m.lng}}
+  clearRoute(true);addMarker(c);
+  const brg=Math.random()*360;let d=target/3.9,best=null;
+  try{
+    for(let i=0;i<4;i++){
+      const A=dest(c,d,brg),B=dest(c,d,brg+60),list=[c,A,B,c],r=await routeVia(list);
+      best={list,r};
+      if(Math.abs(r.km-target)/target<0.12)break;
+      d*=Math.min(1.6,Math.max(0.6,target/r.km));
+    }
+    pts=best.list;drawRoute(best.r,` Rundkurs (Ziel ${target} km)`);
+  }catch(e){info('Rundkurs konnte nicht berechnet werden: '+e.message+'. Setze stattdessen Punkte per Tipp auf die Karte.')}
+}
+async function searchPlace(){
+  const q=$('placeQ').value.trim();if(!q||!map)return;
+  info('Suche…');
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
+    const j=await r.json();if(!j[0])throw new Error('Ort nicht gefunden');
+    const p={lat:+j[0].lat,lng:+j[0].lon};map.setView([p.lat,p.lng],15);
+    clearRoute(true);pts=[p];addMarker(p);info('Startpunkt gesetzt. Tippe weitere Punkte oder starte einen Rundkurs.');
+  }catch(e){info('Fehler: '+e.message)}
+}
+const ll=p=>`${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
+function openMaps(kind){
+  if(pts.length<2){info('Erst eine Route anlegen (zwei Punkte oder Rundkurs).');return}
+  const o=pts[0],d=pts[pts.length-1],mid=pts.slice(1,-1);
+  const url=kind==='g'
+    ?`https://www.google.com/maps/dir/?api=1&origin=${ll(o)}&destination=${ll(d)}${mid.length?'&waypoints='+mid.map(ll).join('|'):''}&travelmode=walking`
+    :`https://maps.apple.com/?saddr=${ll(o)}&daddr=${pts.slice(1).map(ll).join('+to:')}&dirflg=w`;
+  window.open(url,'_blank');
+}
+$('placeGo').onclick=searchPlace;
+$('placeQ').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});
+$('locBtn').onclick=()=>locate(true);
+$('loopBtn').onclick=loopRoute;
+$('clearMarks').onclick=()=>{clearRoute(true);info('Karte geleert.')};
+$('gmapsBtn').onclick=()=>openMaps('g');
+$('amapsBtn').onclick=()=>openMaps('a');
 $('runCalc').onclick=()=>{
   const w=Math.max(40,+$('runWeight').value||75);
   const a=kmAdvice($('runGoal').value,w,profile?profile.level:'Anfänger');
