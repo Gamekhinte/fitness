@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -80,7 +80,6 @@
       <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
       <button class="primary" id="scanBtn">ESSEN FOTOGRAFIEREN</button>
       <img id="scanImg" class="scan-img" alt="" hidden>
-      <div id="scanKeyRow" class="fields" hidden><input id="scanKeyIn" type="password" placeholder="Gemini-Key (AIza…)" autocomplete="off" autocapitalize="off"><button class="ghost" id="scanKeySave" style="margin-top:0">Speichern</button></div>
       <div id="scanOut"></div>
     </div>
     <div id="foodNav" class="chips"></div>
@@ -93,7 +92,7 @@
   <!-- CATALOG -->
   <section id="tab-catalog" class="tab">
     <details class="acc" id="camAcc"><summary><span>AI CAM – Live Zähler &amp; Formcheck</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">
-    <div class="card cam-card">
+    <div class="card cam-card" id="camPrev" hidden>
       <div class="cam-wrap">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
@@ -186,6 +185,7 @@
     </div>
     <div class="card chat">
       <span class="label">AI COACH</span>
+      <div id="chatChips" class="chips in"></div>
       <div id="chatLog" class="chat-log"></div>
       <div class="chat-in">
         <input id="chatInput" type="text" placeholder="Frag deinen Coach…" enterkeyhint="send">
@@ -239,6 +239,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
