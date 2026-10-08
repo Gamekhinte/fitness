@@ -160,3 +160,4 @@ input[type=time]::-webkit-date-and-time-value,input[type=date]::-webkit-date-and
 .scan-img{display:block;width:100%;max-height:240px;object-fit:cover;border-radius:16px;margin-top:12px}
 .scan-name{font-size:17px;font-weight:800;margin:12px 0 0}
 #scanKeyRow{margin-top:10px}
+.chips.in{margin:10px -18px 0;padding:2px 18px 6px}
