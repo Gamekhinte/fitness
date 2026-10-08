@@ -325,11 +325,11 @@ bBtn.addEventListener('pointerdown',e=>{e.preventDefault();bStart=performance.no
 bBtn.addEventListener('contextmenu',e=>e.preventDefault());
 
 let pts=[],mk=[],routeLine=null;
-const TILE='https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 function initMap(){
   if(map||typeof L==='undefined'||!L.map)return;
   map=L.map('map',{tap:false}).setView([50.0,9.15],6);
-  L.tileLayer(TILE,{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  L.tileLayer(TILE,{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   map.on('click',e=>addPoint(e.latlng));
   locate(false);
 }
@@ -410,9 +410,10 @@ const ll=p=>`${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
 function openMaps(kind){
   if(pts.length<2){info('Erst eine Route anlegen (zwei Punkte oder Rundkurs).');return}
   const o=pts[0],d=pts[pts.length-1],mid=pts.slice(1,-1);
+  const q=encodeURIComponent;
   const url=kind==='g'
-    ?`https://www.google.com/maps/dir/?api=1&origin=${ll(o)}&destination=${ll(d)}${mid.length?'&waypoints='+mid.map(ll).join('|'):''}&travelmode=walking`
-    :`https://maps.apple.com/?saddr=${ll(o)}&daddr=${pts.slice(1).map(ll).join('+to:')}&dirflg=w`;
+    ?`https://www.google.com/maps/dir/?api=1&origin=${q(ll(o))}&destination=${q(ll(d))}${mid.length?'&waypoints='+q(mid.map(ll).join('|')):''}&travelmode=walking`
+    :`https://maps.apple.com/?saddr=${q(ll(o))}&daddr=${pts.slice(1).map(p=>q(ll(p))).join('+to:')}&dirflg=w`;
   window.open(url,'_blank');
 }
 $('placeGo').onclick=searchPlace;
@@ -604,10 +605,24 @@ if(!prog||prog.day!==dayKey())prog={day:dayKey(),sets:{},km:0};
 const saveProg=()=>store.set('prog',prog);
 const GOAL_TXT={lose:'Abnehmen',maintain:'Fit bleiben',gain:'Muskelaufbau',endurance:'Ausdauer'};
 function profCtx(){return profile?`[Profil: ${profile.sex==='m'?'männlich':'weiblich'}, ${profile.age} Jahre, ${profile.height} cm, ${profile.weight} kg, Ziel ${GOAL_TXT[profile.goal]}, Level ${profile.level}] `:''}
+const repTxt=r=>/^\d+$/.test(String(r))?`${r} Wdh.`:String(r);
+function camBtn(t){
+  if(t.type!=='ex')return '';
+  const m=matchEx(t.name);if(!m)return '';
+  const s=/^\d+$/.test(t.reps)?`${t.goal} × ${t.reps}`:m.sets;
+  return `<button class="launch mini" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(s)}">CAM STARTEN</button>`;
+}
+function todayFocus(){
+  const a=store.get('activePlan',null),dn=DAYS[(new Date().getDay()+6)%7],d=a&&a.plan.days.find(x=>x.day===dn);
+  if(!a)return 'Dein Workout heute: Starter-Workout. Erstelle im Coach-Tab einen Wochenplan, dann ersetzt er diese Übungen.';
+  if(d&&d.rest)return 'Heute ist laut Plan Ruhetag. Erhol dich gut und iss genug Eiweiß.';
+  return `Dein Workout heute: ${d?d.focus:'Training'}. Tippe bei einer Übung auf CAM STARTEN, die Kamera zählt mit.`;
+}
 function todayTasks(){
   const a=store.get('activePlan',null),dn=DAYS[(new Date().getDay()+6)%7];
   const d=a&&a.plan.days.find(x=>x.day===dn),out=[];
-  if(d&&!d.rest)(d.exercises||[]).forEach(x=>out.push({id:'ex:'+x.name,type:'ex',name:x.name,goal:Math.max(1,+x.sets||1),detail:`${x.reps} Wdh.`}));
+  if(d&&!d.rest){(d.exercises||[]).forEach(x=>out.push({id:'ex:'+x.name,type:'ex',name:x.name,goal:Math.max(1,+x.sets||1),reps:String(x.reps),detail:repTxt(x.reps)}))}
+  else if(!a){const n=profile&&profile.level==='Profi'?4:3;[['Klassische Liegestütze','12'],['Klassische Squats','15'],['Klassische Plank','30 s']].forEach(([nm,r])=>out.push({id:'ex:'+nm,type:'ex',name:nm,goal:n,reps:r,detail:repTxt(r)}))}
   if(!(d&&d.rest))out.push({id:'run',type:'run',name:'Lauf',goal:kmAdvice(profile?profile.goal:'maintain',profile?profile.weight:75,profile?profile.level:'Anfänger').km});
   out.push({id:'steps',type:'steps',name:'Schritte',goal:STEP_GOAL,info:true},{id:'kcal',type:'kcal',name:'Kalorien',goal:goals().kcal,info:true});
   return out;
@@ -621,7 +636,8 @@ function openText(list){return list.map(t=>t.type==='ex'?`${t.goal-standOf(t)} S
 function renderToday(){
   const tasks=todayTasks(),req=tasks.filter(t=>!t.info),open=req.filter(t=>!isDone(t)),all=req.length>0&&!open.length;
   $('todayDate').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></td></tr>`}).join('');
+  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}${camBtn(t)}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></td></tr>`}).join('');
+  $('todayFocus').textContent=todayFocus();
   $('todayHint').textContent=all?'Alles erledigt für heute. Stark!':open.length?`Noch offen: ${openText(open)}`:'';
   const wl=store.get('weeklog',{});wl[isoDate(new Date())]=all;store.set('weeklog',wl);
   renderWeek(wl);
