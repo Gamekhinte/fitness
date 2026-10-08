@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="LockedIn">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 <div id="errbar" hidden></div>
@@ -47,6 +47,7 @@
       <div class="bar thin"><i id="protBar"></i></div>
       <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
     </div>
+    <div id="foodNav" class="chips"></div>
     <div id="foodList"></div>
   </section>
 
@@ -71,6 +72,7 @@
       <p class="muted" id="camSets">Satz 1 von 4 • Ziel: 15 WDH</p>
       <div class="bar"><i id="repBar"></i></div>
       <button class="primary" id="camBtn">KAMERA STARTEN</button>
+      <button class="ghost" id="camFlip">Kamera wechseln</button>
       <button class="ghost" id="resetReps"><svg><use href="#i-refresh"/></svg>Zähler zurücksetzen</button>
       <div class="voice"><svg><use href="#i-sound"/></svg><span id="voiceTxt">LIVE VOICE COACH BEREIT</span></div>
     </div>
@@ -93,9 +95,11 @@
       </div>
       <button class="primary" id="runCalc">KILOMETER BERECHNEN</button>
       <p id="runResult" class="muted"></p>
+      <div class="fields"><input id="placeQ" type="search" placeholder="Ort oder Adresse suchen"><button class="send" id="placeGo" aria-label="Suchen"><svg><use href="#i-pin"/></svg></button></div>
       <div id="map"></div>
-      <p class="muted small">Tippe auf die Karte, um Marker für deine Route zu setzen.</p>
-      <button class="ghost" id="clearMarks"><svg><use href="#i-refresh"/></svg>Marker löschen</button>
+      <div class="btnrow"><button class="ghost" id="locBtn">Mein Standort</button><button class="ghost" id="loopBtn">Rundkurs vom Coach</button><button class="ghost" id="clearMarks">Leeren</button></div>
+      <p id="routeInfo" class="muted">Tippe auf die Karte für Punkte oder starte einen Rundkurs mit deiner Coach-Distanz.</p>
+      <div class="btnrow"><button class="ghost" id="gmapsBtn">In Google Maps öffnen</button><button class="ghost" id="amapsBtn">In Apple Karten öffnen</button></div>
     </div>
   </section>
 
@@ -188,6 +192,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
