@@ -466,8 +466,9 @@ async function coachAI(msg){
   const t=await gemini([{text:msg}],{system:COACH_SYS,history:chatHist.slice(-8)});
   chatHist.push({role:'user',parts:[{text:msg}]},{role:'model',parts:[{text:t}]});return t;
 }
-const aiErr=e=>e.message==='NOKEY'?'Trag zuerst oben deinen Gemini-Key ein und tippe auf Speichern.':e.message;
+const aiErr=e=>e.message==='NOKEY'?'Trag im Coach-Tab einen funktionierenden Gemini-Key ein.':e.message;
 async function ask(pre){
+  if(!keyOk()){updLock();return}
   const q=(typeof pre==='string'?pre:$('chatInput').value).trim();if(!q)return;
   $('chatInput').value='';addMsg(q,'me');
   if(/plan/i.test(q)&&/(mach|erstell|bau|schreib|brauch|will|gib|generier)/i.test(q)){
@@ -487,21 +488,47 @@ $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
 
 /* ---------- GEMINI DIREKT (Key nur auf diesem Gerät) ---------- */
 const getKey=()=>localStorage.getItem('gkey')||localStorage.getItem('scanKey')||'';
+const keyOk=()=>!!getKey()&&localStorage.getItem('gok')==='1';
+// Prüft den Key schnell über die Modell-Liste und findet automatisch die aktuellen Flash-Modelle
+async function checkKey(key){
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key},signal:ctl.signal});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error?.message||('HTTP '+r.status));
+    const ver=n=>parseFloat(n.match(/gemini-([\d.]+)-flash/)[1]);
+    const names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/','')).filter(n=>/^gemini-[\d.]+-flash$/.test(n)).sort((a,b)=>ver(b)-ver(a));
+    localStorage.setItem('gmodels',JSON.stringify(names));return names;
+  }catch(e){throw new Error(e.name==='AbortError'?'Zeitüberschreitung beim Prüfen':e.message)}
+  finally{clearTimeout(to)}
+}
+function updLock(){
+  const ok=keyOk();
+  $('chatInput').disabled=!ok;$('chatSend').disabled=!ok;$('chatChips').hidden=!ok;$('planBtn').disabled=!ok;$('scanBtn').disabled=!ok;
+  $('chatInput').placeholder=ok?'Frag deinen Coach…':'Erst funktionierenden Gemini-Key eintragen';
+}
 async function gemini(parts,{system,json,history}={}){
-  const key=getKey();if(!key)throw new Error('NOKEY');
-  const contents=[...(history||[]),{role:'user',parts}];
+  if(!keyOk())throw new Error('NOKEY');
+  const key=getKey(),contents=[...(history||[]),{role:'user',parts}];
   const body=th=>JSON.stringify({contents,...(system?{systemInstruction:{parts:[{text:system}]}}:{}),generationConfig:{temperature:0.7,...(json?{responseMimeType:'application/json'}:{}),...(th?{thinkingConfig:{thinkingBudget:0}}:{})}});
+  let cached=[];try{cached=JSON.parse(localStorage.getItem('gmodels')||'[]')}catch(e){}
+  const models=(cached.length?cached:['gemini-2.5-flash']).slice(0,3);
   let err='Unbekannter Fehler';
-  for(const [m,th] of [['gemini-2.5-flash',true],['gemini-2.0-flash',false]]){
-    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),30000);
-    try{
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:body(th)});
-      const j=await r.json().catch(()=>({}));
-      if(r.ok){const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();if(t)return t;err='Leere Antwort';continue}
-      err=j.error?.message||('HTTP '+r.status);
-      if(/api key/i.test(err)||r.status===403||r.status===429)break;
-    }catch(e){err=e.name==='AbortError'?'Zeitüberschreitung':e.message}
-    finally{clearTimeout(to)}
+  outer:for(const m of models){
+    for(const th of [true,false]){
+      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),30000);
+      try{
+        const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:body(th)});
+        const j=await r.json().catch(()=>({}));
+        if(r.ok){const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();if(t)return t;err='Leere Antwort';continue outer}
+        err=j.error?.message||('HTTP '+r.status);
+        if((r.status===400&&/api key/i.test(err))||r.status===403){localStorage.removeItem('gok');updLock();break outer}
+        if(r.status===429)break outer;
+        if(th&&/thinking/i.test(err))continue;
+        continue outer;
+      }catch(e){err=e.name==='AbortError'?'Zeitüberschreitung':e.message;continue outer}
+      finally{clearTimeout(to)}
+    }
   }
   throw new Error(err);
 }
@@ -557,6 +584,7 @@ function buildReminders(plan,time){
   return out;
 }
 async function createPlan(){
+  if(!keyOk()){$('planMsg').textContent='Trag zuerst einen funktionierenden Gemini-Key ein.';return}
   const btn=$('planBtn');btn.disabled=true;btn.textContent='PLAN WIRD ERSTELLT…';$('planMsg').textContent='';$('planDraft').innerHTML='';
   const names=' | Nutze bevorzugt diese Übungsnamen: Klassische Liegestütze, Diamond Push-ups, Pike Push-ups, Klassische Squats, Ausfallschritte, Glute Bridges, Klassische Plank, Crunches, Mountain Climbers, Wall Sit';
   const inputs={goal:$('pGoal').value,level:$('pLevel').value,days:+$('pDays').value,minutes:+$('pMin').value,equipment:$('pEquip').value,age:profile?profile.age:'',weight:profile?profile.weight:'',notes:$('pNotes').value.slice(0,100)+names};
@@ -565,7 +593,7 @@ async function createPlan(){
     $('planDraft').innerHTML=`<h2>${esc(plan.title)}</h2><p class="muted">${esc(plan.summary)}</p><p class="kmline">${esc(kmLine())}</p>${planHtml(plan)}<button class="primary" id="acceptPlan">PLAN ANNEHMEN</button>`;
     $('acceptPlan').onclick=acceptPlan;
   }catch(e){$('planMsg').textContent='Fehler: '+aiErr(e)}
-  btn.disabled=false;btn.textContent='PLAN ERSTELLEN';
+  btn.textContent='PLAN ERSTELLEN';updLock();
 }
 $('planBtn').onclick=createPlan;
 async function acceptPlan(){
@@ -591,18 +619,24 @@ $('cancelPlan').onclick=async()=>{
 };
 
 /* ---------- EIGENER GEMINI-KEY ---------- */
-function showKey(has){
-  $('keyState').textContent=has?'Key ist auf diesem Gerät gespeichert und wird direkt an Google gesendet. Das ist schnell und ohne Umweg.':'Kein Key hinterlegt. Hol dir kostenlos einen auf aistudio.google.com/apikey und trag ihn hier ein.';
-  $('keyDel').hidden=!has;$('keySave').textContent=has?'KEY ERSETZEN':'KEY SPEICHERN';
+function showKey(){
+  const has=!!getKey(),ok=keyOk();
+  $('keyState').textContent=ok?'Key funktioniert und ist auf diesem Gerät gespeichert. Er wird direkt an Google gesendet.':has?'Der gespeicherte Key funktioniert nicht. Trag einen neuen ein.':'Kein Key hinterlegt. Ohne funktionierenden Key antwortet der Coach nicht. Hol dir kostenlos einen auf aistudio.google.com/apikey.';
+  $('keyDel').hidden=!has;$('keySave').textContent=has?'KEY ERSETZEN':'KEY SPEICHERN';updLock();
 }
-$('keySave').onclick=()=>{
+$('keySave').onclick=async()=>{
   const k=$('keyInput').value.trim();if(!k){$('keyMsg').textContent='Bitte Key eintragen.';return}
-  localStorage.setItem('gkey',k);localStorage.removeItem('scanKey');$('keyInput').value='';
-  $('keyMsg').textContent='Key gespeichert. Du kannst loslegen.';showKey(true);
+  $('keySave').disabled=true;$('keyMsg').textContent='Prüfe Key…';
+  try{
+    await checkKey(k);
+    localStorage.setItem('gkey',k);localStorage.setItem('gok','1');localStorage.removeItem('scanKey');
+    $('keyInput').value='';$('keyMsg').textContent='Key funktioniert. Du kannst loslegen.';
+  }catch(e){$('keyMsg').textContent='Key funktioniert nicht: '+e.message}
+  $('keySave').disabled=false;showKey();
 };
-$('keyDel').onclick=()=>{localStorage.removeItem('gkey');localStorage.removeItem('scanKey');$('keyMsg').textContent='Key gelöscht.';showKey(false)};
-showKey(!!getKey());
-
+$('keyDel').onclick=()=>{['gkey','scanKey','gok','gmodels'].forEach(k=>localStorage.removeItem(k));$('keyMsg').textContent='Key gelöscht.';showKey()};
+showKey();
+if(getKey()&&!keyOk())checkKey(getKey()).then(()=>{localStorage.setItem('gok','1');showKey()}).catch(()=>showKey());
 
 /* ---------- SCHRITTZÄHLER ---------- */
 let steps=store.get('steps',null);
