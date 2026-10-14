@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121318">
+<title>LockedIn Fit</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#121318;--card:#1E2029;--line:#2A2D3A;--volt:#CCFF00;--txt:#fff;--mut:#94A3B8;--rot:#FF4D4D;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:0 18px calc(110px + var(--safe))}
+button,input,select{font:inherit;color:inherit}
+.tab{display:none}
+.tab.aktiv{display:block}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:22px 0 14px}
+.top .tab-name{color:var(--mut);font-size:14px;font-weight:700}
+.logo{font-weight:900;font-size:21px;letter-spacing:1.5px}
+.logo span{color:var(--volt)}
+.datum{color:var(--mut);font-size:12px;font-weight:600;text-align:right;line-height:1.3}
+
+/* Tabelle wie im Heute-Tab, für alle Tabs */
+.tbl{width:100%;border-collapse:collapse}
+.tbl+.tbl{margin-top:26px}
+.tbl th{color:var(--mut);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;text-align:left;padding:0 4px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:18px 4px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:middle}
+.tbl td.name{font-weight:800}
+.tbl td.ziel{color:var(--mut);font-size:13px;font-weight:600;white-space:nowrap}
+.tbl td.stand{font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl th:last-child,.tbl td:last-child{width:40px;text-align:right}
+.tbl td.stand.tippbar{cursor:pointer;user-select:none}
+.tbl .unter{display:block;color:var(--mut);font-size:12px;font-weight:600;margin-top:3px}
+.kreis{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,background-color .2s,border-color .2s;color:var(--txt)}
+.kreis:active{transform:scale(.88)}
+.kreis svg{width:15px;height:15px;opacity:0;transition:opacity .2s}
+.kreis.symbol svg{opacity:1}
+.kreis.voll{background:var(--volt);border-color:var(--volt);color:#121318}
+.kreis.stopp{background:var(--rot);border-color:var(--rot);color:#fff}
+.kreis.dreht svg{animation:drehen .8s linear infinite}
+@keyframes drehen{to{transform:rotate(360deg)}}
+tr.fertig .kreis{background:var(--volt);border-color:var(--volt)}
+tr.fertig .kreis svg{opacity:1}
+tr.fertig td.name,tr.fertig td.ziel{color:var(--mut)}
+tr.fertig td.stand{color:var(--volt)}
+.eingabe{background:transparent;border:0;border-bottom:1.5px dashed var(--line);color:inherit;font:inherit;font-weight:800;padding:2px 0;outline:none;border-radius:0}
+.eingabe:focus{border-bottom-color:var(--volt)}
+.eingabe::placeholder{color:var(--mut);font-weight:600}
+.eingabe.km{width:2.4em}
+.eingabe.zahl{width:4.2em}
+.eingabe.breit{width:100%}
+select.eingabe{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:4px}
+select.eingabe option{background:var(--card);color:var(--txt)}
+.einheit{color:var(--mut);font-size:12px;font-weight:700;margin-left:3px}
+.hinweis{color:var(--mut);font-size:12px;font-weight:600;margin-top:14px;opacity:.8}
+.leise{background:transparent;border:0;color:var(--mut);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0;margin-right:16px}
+.backup{margin-top:22px}
+
+/* Heute */
+.woche{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:6px 0 22px}
+.tag{height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1.5px solid transparent;color:var(--mut);font-size:13px;font-weight:800}
+.tag.verpasst{color:var(--rot)}
+.tag.geschafft{color:var(--volt)}
+.tag.heute{border-color:var(--volt);background:var(--card);color:var(--volt)}
+
+/* Map */
+#karte{height:36vh;min-height:230px;border-radius:14px;border:1px solid var(--line);overflow:hidden;margin:6px 0 22px;background:var(--card)}
+.leaflet-container{background:var(--card);font-family:inherit}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4)}   /* helle OSM-Karte dunkel machen */
+.leaflet-control-attribution{background:rgba(18,19,24,.75)!important;color:var(--mut)!important;font-size:10px}
+.leaflet-control-attribution a{color:var(--mut)!important}
+.km-wahl{display:inline-flex;align-items:center;gap:12px}
+.km-wahl button{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);background:transparent;font-size:16px;font-weight:800;line-height:1;cursor:pointer}
+.km-wahl button:active{border-color:var(--volt)}
+.karte-tbl{table-layout:fixed}
+tr.lauf{cursor:pointer}
+tr.lauf.gewaehlt td.name{color:var(--volt)}
+#tab-map .live td.stand{color:var(--volt)}
+
+/* Habits */
+tr.habit{cursor:pointer}
+tr.aktionen td{padding:0 4px 16px;border-bottom:1px solid var(--line)}
+tr.aktionen button{background:transparent;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;margin-right:8px}
+tr.aktionen button.rot{color:var(--rot)}
+tr.habit.offen td{border-bottom-color:transparent}
+.ring{width:28px;height:28px;display:inline-block;vertical-align:middle}
+
+/* Navigation und Meldungen */
+.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + var(--safe));display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:8px;z-index:1000}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;color:var(--mut);font-size:10px;font-weight:800;letter-spacing:.4px;padding:11px 0 9px;border-radius:15px;border:1.5px solid transparent;cursor:pointer}
+.nav button.aktiv{background:var(--card);color:var(--volt);border-color:var(--volt)}
+.nav svg{width:22px;height:22px}
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe));transform:translate(-50%,10px);background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:1001;max-width:calc(100% - 40px);text-align:center}
+.toast.zeigen{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ort" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-neu" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
+  <symbol id="i-stopp" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+</svg>
+
+<!-- HEUTE -->
+<main id="tab-heute" class="tab aktiv">
+  <header class="top">
+    <div class="tab-name">Heute</div>
+    <div class="logo">LOCKED<span>IN</span></div>
+    <div class="datum" data-datum></div>
+  </header>
+  <nav class="woche" id="woche"></nav>
+  <table class="tbl">
+    <thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead>
+    <tbody id="liste"></tbody>
+  </table>
+  <p class="hinweis">Tipp auf den Stand, um einen Satz zu zählen.</p>
+  <div class="backup">
+    <button class="leise" id="backupRaus">Backup speichern</button>
+    <button class="leise" id="backupRein">Backup laden</button>
+    <input type="file" id="backupDatei" accept="application/json,.json" hidden>
+  </div>
+</main>
+
+<!-- MAP -->
+<main id="tab-map" class="tab">
+  <header class="top">
+    <div class="tab-name">Map</div>
+    <div class="logo">LOCKED<span>IN</span></div>
+    <div class="datum" data-datum></div>
+  </header>
+  <div id="karte"></div>
+  <table class="tbl karte-tbl"><colgroup><col style="width:32%"><col><col><col style="width:44px"></colgroup>
+    <thead><tr><th>Route</th><th colspan="2"></th><th></th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">Start</td>
+        <td colspan="2"><input class="eingabe breit" id="ortSuche" type="search" placeholder="Ort suchen" enterkeyhint="search" autocomplete="off"></td>
+        <td><button class="kreis symbol" id="standortStart" aria-label="Mein Standort"><svg><use href="#i-ort"/></svg></button></td>
+      </tr>
+      <tr>
+        <td class="name">Strecke</td>
+        <td colspan="2" class="stand"><span class="km-wahl"><button data-schritt="-0.5" aria-label="weniger">&minus;</button><span><span id="zielKm">3</span><span class="einheit">km</span></span><button data-schritt="0.5" aria-label="mehr">+</button></span></td>
+        <td></td>
+      </tr>
+      <tr id="routeZeile">
+        <td class="name">Rundkurs</td>
+        <td class="stand" id="routeKm">-</td>
+        <td class="ziel" id="routeMin"></td>
+        <td><button class="kreis symbol" id="routeKnopf" aria-label="Route berechnen"><svg><use href="#i-neu"/></svg></button></td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="tbl karte-tbl"><colgroup><col style="width:32%"><col><col><col style="width:44px"></colgroup>
+    <thead><tr><th>Lauf</th><th>Strecke</th><th>Zeit</th><th></th></tr></thead>
+    <tbody id="laeufe">
+      <tr class="live">
+        <td class="name">Jetzt<span class="unter" id="laufPace">-</span></td>
+        <td class="stand" id="laufKm">0,00 km</td>
+        <td class="ziel" id="laufZeit">00:00</td>
+        <td><button class="kreis symbol voll" id="laufKnopf" aria-label="Lauf starten"><svg><use href="#i-play"/></svg></button></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+
+<!-- HABITS -->
+<main id="tab-habits" class="tab">
+  <header class="top">
+    <div class="tab-name">Habits</div>
+    <div class="logo">LOCKED<span>IN</span></div>
+    <div class="datum" data-datum></div>
+  </header>
+  <table class="tbl">
+    <thead><tr><th>Gewohnheit</th><th>Clean</th><th>Gespart</th><th></th></tr></thead>
+    <tbody id="habitListe"></tbody>
+    <tbody>
+      <tr>
+        <td class="name">
+          <select class="eingabe" id="habitArt"><option>Rauchen</option><option>Alkohol</option><option>Feiern</option><option>Fluchen</option><option value="Eigene">Eigene...</option></select>
+          <input class="eingabe" id="habitEigen" type="text" maxlength="30" placeholder="Name" hidden style="width:7.5em;margin-top:8px;display:block">
+        </td>
+        <td colspan="2" class="stand"><input class="eingabe zahl" id="habitKosten" inputmode="decimal" placeholder="0"><span class="einheit">€ / Tag</span></td>
+        <td><button class="kreis symbol" id="habitStart" aria-label="Zähler starten"><svg><use href="#i-plus"/></svg></button></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+
+<nav class="nav">
+  <button class="aktiv" data-tab="heute"><svg><use href="#i-list"/></svg>HEUTE</button>
+  <button data-tab="map"><svg><use href="#i-pin"/></svg>MAP</button>
+  <button data-tab="habits"><svg><use href="#i-shield"/></svg>HABITS</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ================= DATEN (Backend im Gerät) =================
+   Alles liegt in einem Objekt unter "lif-daten" im localStorage:
+   { v, tage: {JJJJ-MM-TT: {werte, manuell, fertig}}, laeufe: [...], habits: [...], plan: {...} }
+   Funktioniert offline, kein Server und keine Kosten. Backup als JSON-Datei. */
+const SCHLUESSEL = 'lif-daten';
+const VERSION = 1;
+
+const Speicher = (() => {
+  let daten = { v: VERSION, tage: {}, laeufe: [], habits: [] };
+  try {
+    const roh = JSON.parse(localStorage.getItem(SCHLUESSEL));
+    if (roh && roh.v) daten = Object.assign(daten, roh);
+  } catch {}
+  // Tag-2-Daten (lif-JJJJ-MM-TT) einmalig übernehmen
+  try {
+    Object.keys(localStorage).filter(k => /^lif-\d{4}-\d{2}-\d{2}$/.test(k)).forEach(k => {
+      const tag = k.slice(4);
+      if (!daten.tage[tag]) daten.tage[tag] = JSON.parse(localStorage.getItem(k));
+      localStorage.removeItem(k);
+    });
+  } catch {}
+  const sichern = () => { try { localStorage.setItem(SCHLUESSEL, JSON.stringify(daten)); } catch { meldung('Speichern nicht möglich'); } };
+  return {
+    get daten() { return daten; },
+    tag: iso => daten.tage[iso] || { werte: {}, manuell: {}, fertig: false },
+    tagSetzen(iso, wert) { daten.tage[iso] = wert; sichern(); },
+    laufDazu(lauf) { daten.laeufe.unshift(lauf); daten.laeufe = daten.laeufe.slice(0, 100); sichern(); },
+    habitsSichern: sichern,
+    planSetzen(plan) { daten.plan = plan; sichern(); },
+    exportieren: () => JSON.stringify(daten, null, 1),
+    importieren(text) {
+      const neu = JSON.parse(text);
+      if (!neu || !neu.v || !neu.tage) throw new Error('Keine LockedIn-Datei');
+      daten = Object.assign({ v: VERSION, tage: {}, laeufe: [], habits: [] }, neu);
+      sichern();
+    },
+  };
+})();
+
+/* ================= ALLGEMEIN ================= */
+const $ = id => document.getElementById(id);
+const heute = new Date();
+const iso = d => d.toLocaleDateString('sv-SE');           // JJJJ-MM-TT in Ortszeit
+const HEUTE = iso(heute);
+const zahl = (n, stellen = 0) => n.toLocaleString('de-DE', { maximumFractionDigits: stellen });
+const km2 = n => n.toFixed(2).replace('.', ',');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const symbol = (knopf, name) => { knopf.querySelector('use').setAttribute('href', '#i-' + name); };
+
+document.querySelectorAll('[data-datum]').forEach(el =>
+  el.textContent = heute.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'short' }));
+
+function meldung(text) {
+  const t = $('toast');
+  t.textContent = text;
+  t.classList.add('zeigen');
+  clearTimeout(t.timer);
+  t.timer = setTimeout(() => t.classList.remove('zeigen'), 2000);
+}
+
+function tabZeigen(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('aktiv', t.id === 'tab-' + name));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
+  if (name === 'map') karteStarten();
+  if (name === 'habits') habitsZeichnen();
+  if (name === 'heute') listeZeichnen();
+  history.replaceState(null, '', '#' + name);
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => tabZeigen(b.dataset.tab)));
+
+/* ================= HEUTE ================= */
+const AUFGABEN = [
+  { id: 'liegestuetze', name: 'Liegestütze', art: 'sets', ziel: 3 },
+  { id: 'squats',       name: 'Squats',      art: 'sets', ziel: 3 },
+  { id: 'plank',        name: 'Plank',       art: 'sets', ziel: 3 },
+  { id: 'lauf',         name: 'Lauf',        art: 'km',   ziel: 2 },
+  { id: 'schritte',     name: 'Schritte',    art: 'zahl', ziel: 10000 },
+];
+const zielText = a => a.art === 'sets' ? a.ziel + ' Sets' : a.art === 'km' ? zahl(a.ziel, 1) + ' km' : zahl(a.ziel);
+const standText = (a, wert) => a.art === 'sets' ? wert + '/' + a.ziel : a.art === 'km' ? zahl(wert, 1) + ' km' : zahl(wert);
+
+function heuteDaten() {
+  const t = Speicher.tag(HEUTE);
+  return { werte: { ...(t.werte || {}) }, manuell: { ...(t.manuell || {}) } };
+}
+const istFertig = (a, d) => (d.werte[a.id] || 0) >= a.ziel || (a.art !== 'sets' && d.manuell[a.id]);
+
+function heuteSichern(d) {
+  Speicher.tagSetzen(HEUTE, { werte: d.werte, manuell: d.manuell, fertig: AUFGABEN.every(a => istFertig(a, d)) });
+}
+
+function wocheZeichnen() {
+  const montag = new Date(heute);
+  montag.setDate(heute.getDate() - ((heute.getDay() + 6) % 7));
+  const el = $('woche');
+  el.innerHTML = '';
+  ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].forEach((name, i) => {
+    const d = new Date(montag);
+    d.setDate(montag.getDate() + i);
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.textContent = name;
+    if (iso(d) === HEUTE) tag.classList.add('heute');
+    else if (d < heute) tag.classList.add(Speicher.daten.tage[iso(d)]?.fertig ? 'geschafft' : 'verpasst');
+    el.appendChild(tag);
+  });
+}
+
+function listeZeichnen() {
+  const d = heuteDaten();
+  const tb = $('liste');
+  tb.innerHTML = '';
+  AUFGABEN.forEach(a => {
+    const wert = d.werte[a.id] || 0;
+    const tr = document.createElement('tr');
+    tr.dataset.id = a.id;
+    const standZelle = a.art === 'sets'
+      ? `<td class="stand tippbar">${standText(a, wert)}</td>`
+      : `<td class="stand"><input class="eingabe ${a.art}" inputmode="decimal" value="${wert ? zahl(wert, a.art === 'km' ? 2 : 0) : ''}" placeholder="0"><span class="einheit">${a.art === 'km' ? 'km' : ''}</span></td>`;
+    tr.innerHTML = `<td class="name">${a.name}</td><td class="ziel">${zielText(a)}</td>${standZelle}
+      <td><button class="kreis" aria-label="${a.name} abhaken"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#121318" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>`;
+    if (istFertig(a, d)) tr.classList.add('fertig');
+
+    tr.querySelector('.tippbar')?.addEventListener('click', () => {
+      d.werte[a.id] = wert >= a.ziel ? 0 : wert + 1;
+      heuteSichern(d); listeZeichnen();
+    });
+    tr.querySelector('.eingabe')?.addEventListener('change', e => {
+      const roh = e.target.value.trim();
+      const n = a.art === 'km'
+        ? parseFloat(roh.replace(',', '.'))
+        : parseFloat(roh.replace(/[.\s]/g, '').replace(',', '.'));
+      d.werte[a.id] = isNaN(n) || n < 0 ? 0 : n;
+      heuteSichern(d); listeZeichnen();
+    });
+    tr.querySelector('.kreis').addEventListener('click', () => {
+      if (a.art === 'sets') d.werte[a.id] = istFertig(a, d) ? 0 : a.ziel;
+      else {
+        const war = istFertig(a, d);
+        d.manuell[a.id] = !war;
+        if (war && wert >= a.ziel) d.werte[a.id] = 0;
+      }
+      heuteSichern(d); listeZeichnen();
+    });
+    tb.appendChild(tr);
+  });
+  wocheZeichnen();
+}
+
+$('backupRaus').addEventListener('click', () => {
+  const blob = new Blob([Speicher.exportieren()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `lockedin-backup-${HEUTE}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  meldung('Backup gespeichert');
+});
+$('backupRein').addEventListener('click', () => $('backupDatei').click());
+$('backupDatei').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    Speicher.importieren(await f.text());
+    listeZeichnen(); laeufeZeichnen(); habitsZeichnen();
+    meldung('Backup geladen');
+  } catch (err) { meldung('Datei passt nicht'); }
+  e.target.value = '';
+});
+
+/* ================= MAP: Karte und GPS-Lauf ================= */
+function abstandKm(a, b) {
+  const R = 6371, r = x => x * Math.PI / 180;
+  const dLat = r(b[0] - a[0]), dLng = r(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const uhrzeit = sek => `${String(Math.floor(sek / 60)).padStart(2, '0')}:${String(Math.floor(sek % 60)).padStart(2, '0')}`;
+const paceWert = p => `${Math.floor(p)}:${String(Math.round(p % 1 * 60) % 60).padStart(2, '0')}`;
+const paceText = (sek, km) => km < 0.05 ? '-' : paceWert(sek / 60 / km) + ' /km';
+
+let karte = null, linie = null, punkt = null, planLinie = null, startMarke = null;
+function karteStarten() {
+  if (karte || typeof L === 'undefined') {
+    if (karte) setTimeout(() => karte.invalidateSize(), 50);
+    laeufeZeichnen();
+    return;
+  }
+  karte = L.map('karte', { zoomControl: false, attributionControl: true }).setView([51.16, 10.45], 6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap',
+  }).addTo(karte);
+  planLinie = L.polyline([], { color: '#FFFFFF', weight: 5, opacity: .75, dashArray: '2 10', lineCap: 'round', interactive: false }).addTo(karte);
+  linie = L.polyline([], { color: '#CCFF00', weight: 5, opacity: .95, interactive: false }).addTo(karte);
+  startMarke = L.circleMarker([0, 0], { radius: 9, color: '#CCFF00', weight: 4, fillColor: '#121318', fillOpacity: 1, interactive: false });
+  punkt = L.circleMarker([0, 0], { radius: 7, color: '#121318', weight: 3, fillColor: '#CCFF00', fillOpacity: 1, interactive: false });
+  karte.on('click', e => { if (!lauf.an) startSetzen([e.latlng.lat, e.latlng.lng], 'Punkt auf Karte'); });
+  planZeigen(true);
+  // Startansicht: eigener Standort, ohne Tracking
+  if (!plan.start) navigator.geolocation?.getCurrentPosition(p => {
+    if (!lauf.an && !plan.start) karte.setView([p.coords.latitude, p.coords.longitude], 15);
+  }, () => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 });
+  laeufeZeichnen();
+}
+
+const lauf = { an: false, watch: null, timer: null, start: 0, meter: 0, punkte: [], letzter: null, wake: null };
+
+function laufAnzeigen() {
+  const sek = lauf.an ? (Date.now() - lauf.start) / 1000 : 0;
+  const km = lauf.meter / 1000;
+  $('laufKm').textContent = km2(km) + ' km';
+  $('laufZeit').textContent = uhrzeit(sek);
+  $('laufPace').textContent = paceText(sek, km);
+}
+
+function neuePosition(p) {
+  const c = p.coords;
+  if (c.accuracy > 35) return;                  // zu ungenau, auf besseres Signal warten
+  const pt = [c.latitude, c.longitude];
+  punkt.setLatLng(pt).addTo(karte);
+  if (lauf.letzter) {
+    const m = abstandKm(lauf.letzter, pt) * 1000;
+    if (m < 3) return;                           // Zittern im Stand ignorieren
+    if (m > 60) { lauf.letzter = pt; return; }   // Sprung, nicht mitzählen
+    lauf.meter += m;
+  }
+  lauf.letzter = pt;
+  lauf.punkte.push(pt);
+  linie.addLatLng(pt);
+  karte.panTo(pt);
+  laufAnzeigen();
+}
+
+async function laufUmschalten() {
+  if (lauf.an) return laufBeenden();
+  if (!navigator.geolocation) return meldung('Kein GPS');
+  Object.assign(lauf, { an: true, start: Date.now(), meter: 0, punkte: [], letzter: null });
+  linie.setLatLngs([]);
+  document.querySelectorAll('tr.lauf').forEach(x => x.classList.remove('gewaehlt'));
+  karte.setZoom(17);
+  try { if ('wakeLock' in navigator) lauf.wake = await navigator.wakeLock.request('screen'); } catch {}
+  lauf.watch = navigator.geolocation.watchPosition(neuePosition,
+    e => meldung(e.code === 1 ? 'Standort nicht erlaubt' : 'GPS-Fehler'),
+    { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  lauf.timer = setInterval(laufAnzeigen, 1000);
+  const k = $('laufKnopf');
+  k.classList.replace('voll', 'stopp'); symbol(k, 'stopp'); k.setAttribute('aria-label', 'Lauf beenden');
+  laufAnzeigen();
+}
+
+function laufBeenden() {
+  navigator.geolocation.clearWatch(lauf.watch);
+  clearInterval(lauf.timer);
+  lauf.wake?.release().catch(() => {}); lauf.wake = null;
+  const sek = Math.round((Date.now() - lauf.start) / 1000);
+  const km = Math.round(lauf.meter) / 1000;
+  lauf.an = false;
+  const k = $('laufKnopf');
+  k.classList.replace('stopp', 'voll'); symbol(k, 'play'); k.setAttribute('aria-label', 'Lauf starten');
+  lauf.meter = 0;
+  if (km < 0.05) { meldung('Zu kurz'); laufAnzeigen(); return; }
+  // Punkte ausdünnen, damit der Speicher klein bleibt
+  const punkte = lauf.punkte.filter((_, i, arr) => i % 3 === 0 || i === arr.length - 1)
+    .map(([a, b]) => [+a.toFixed(5), +b.toFixed(5)]);
+  Speicher.laufDazu({ id: String(lauf.start), tag: HEUTE, start: lauf.start, km, sek, punkte });
+  const d = heuteDaten();
+  d.werte.lauf = Math.round(((d.werte.lauf || 0) + km) * 100) / 100;
+  heuteSichern(d);
+  laeufeZeichnen();
+  meldung(km2(km) + ' km gespeichert');
+}
+$('laufKnopf').addEventListener('click', laufUmschalten);
+
+function laeufeZeichnen() {
+  document.querySelectorAll('tr.lauf').forEach(x => x.remove());
+  const tb = $('laeufe');
+  Speicher.daten.laeufe.slice(0, 10).forEach(l => {
+    const d = new Date(l.start);
+    const tr = document.createElement('tr');
+    tr.className = 'lauf';
+    tr.dataset.id = l.id;
+    tr.innerHTML = `<td class="name">${d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })}<span class="unter">${paceText(l.sek, l.km)}</span></td>
+      <td class="stand">${km2(l.km)} km</td><td class="ziel">${uhrzeit(l.sek)}</td><td></td>`;
+    tb.appendChild(tr);
+  });
+  laufAnzeigen();
+}
+$('laeufe').addEventListener('click', e => {
+  const z = e.target.closest('tr.lauf');
+  if (!z || !karte || lauf.an) return;
+  const l = Speicher.daten.laeufe.find(x => x.id === z.dataset.id);
+  document.querySelectorAll('tr.lauf').forEach(x => x.classList.toggle('gewaehlt', x === z));
+  if (!l?.punkte?.length) return;
+  linie.setLatLngs(l.punkte);
+  karte.fitBounds(linie.getBounds(), { padding: [30, 30] });
+});
+
+/* ================= MAP: Route planen ================= */
+// Rundkurs: Start -> A -> B -> Start, Fußwege über den OSM-Router. Abstand wird angepasst, bis die Länge passt.
+const plan = Object.assign({ start: null, startName: '', km: 3, richtung: null, punkte: [], laenge: 0 }, Speicher.daten.plan || {});
+$('zielKm').textContent = zahl(plan.km, 1);
+$('ortSuche').value = plan.startName || '';
+
+document.querySelectorAll('[data-schritt]').forEach(b => b.addEventListener('click', () => {
+  plan.km = Math.min(42, Math.max(0.5, plan.km + parseFloat(b.dataset.schritt)));
+  $('zielKm').textContent = zahl(plan.km, 1);
+  planSichern();
+}));
+
+function planSichern() { Speicher.planSetzen({ ...plan }); }
+
+function planZeigen(einpassen) {
+  const p = meinePace();
+  $('routeKm').textContent = plan.laenge ? zahl(plan.laenge, 1) + ' km' : '-';
+  $('routeMin').textContent = plan.laenge ? Math.round(plan.laenge * p) + ' min' : '';
+  if (!karte) return;
+  if (plan.start) startMarke.setLatLng(plan.start).addTo(karte); else startMarke.remove();
+  planLinie.setLatLngs(plan.punkte || []);
+  if (einpassen) {
+    if (plan.punkte?.length) karte.fitBounds(planLinie.getBounds(), { padding: [24, 24] });
+    else if (plan.start) karte.setView(plan.start, 15);
+  }
+}
+
+function startSetzen(pt, name) {
+  Object.assign(plan, { start: pt, startName: name, punkte: [], laenge: 0, richtung: null });
+  $('ortSuche').value = name;
+  planSichern();
+  planZeigen(false);
+  karte.panTo(pt);
+}
+
+$('standortStart').addEventListener('click', () => {
+  if (!navigator.geolocation) return meldung('Kein GPS');
+  const k = $('standortStart');
+  k.classList.add('dreht');
+  navigator.geolocation.getCurrentPosition(
+    p => { k.classList.remove('dreht'); karte.setView([p.coords.latitude, p.coords.longitude], 15); startSetzen([p.coords.latitude, p.coords.longitude], 'Mein Standort'); },
+    e => { k.classList.remove('dreht'); meldung(e.code === 1 ? 'Standort nicht erlaubt' : 'Standort nicht gefunden'); },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+});
+
+async function ortSuchen() {
+  const q = $('ortSuche').value.trim();
+  if (!q) return;
+  $('ortSuche').blur();
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=de&q=' + encodeURIComponent(q));
+    const j = await r.json();
+    if (!j[0]) throw new Error();
+    karte.setView([+j[0].lat, +j[0].lon], 15);
+    startSetzen([+j[0].lat, +j[0].lon], j[0].display_name.split(',')[0]);
+  } catch { meldung('Nicht gefunden'); }
+}
+$('ortSuche').addEventListener('keydown', e => { if (e.key === 'Enter') ortSuchen(); });
+$('ortSuche').addEventListener('search', ortSuchen);
+
+function zielPunkt([lat, lng], km, grad) {
+  const R = 6371, b = grad * Math.PI / 180, la = lat * Math.PI / 180, lo = lng * Math.PI / 180, d = km / R;
+  const la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(b));
+  const lo2 = lo + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2));
+  return [la2 * 180 / Math.PI, lo2 * 180 / Math.PI];
+}
+
+async function fussRoute(punkte) {
+  const c = punkte.map(([la, lo]) => `${lo.toFixed(6)},${la.toFixed(6)}`).join(';');
+  const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${c}?overview=full&geometries=geojson`);
+  const j = await r.json();
+  if (j.code !== 'Ok' || !j.routes?.[0]) throw new Error('keine Route');
+  return { km: j.routes[0].distance / 1000, punkte: j.routes[0].geometry.coordinates.map(([lo, la]) => [la, lo]) };
+}
+
+function meinePace() {
+  const l = Speicher.daten.laeufe.filter(x => x.km >= 0.5).slice(0, 5);
+  if (!l.length) return 6.5;                                   // Startwert: 6:30 min/km
+  return l.reduce((s, x) => s + x.sek / 60 / x.km, 0) / l.length;
+}
+
+async function routeBerechnen() {
+  if (!karte) return;
+  if (!plan.start) { $('ortSuche').focus(); return meldung('Erst Start wählen'); }
+  const ziel = plan.km;
+  // jedes Antippen würfelt eine neue Richtung, so gibt es immer eine andere Runde
+  plan.richtung = Math.random() * 360;
+  const knopf = $('routeKnopf');
+  if (knopf.disabled) return;
+  knopf.disabled = true; knopf.classList.add('dreht');
+  try {
+    let d = ziel / 3.6, beste = null;
+    for (let i = 0; i < 5; i++) {
+      const wege = [plan.start, zielPunkt(plan.start, d, plan.richtung), zielPunkt(plan.start, d, plan.richtung + 60), plan.start];
+      const r = await fussRoute(wege);
+      if (!beste || Math.abs(r.km - ziel) < Math.abs(beste.km - ziel)) beste = r;
+      if (Math.abs(r.km - ziel) / ziel < 0.08) break;
+      d *= Math.min(1.6, Math.max(0.6, ziel / r.km));
+    }
+    plan.punkte = beste.punkte.map(([a, b]) => [+a.toFixed(5), +b.toFixed(5)]);
+    plan.laenge = Math.round(beste.km * 100) / 100;
+    planSichern();
+    planZeigen(true);
+  } catch {
+    meldung('Keine Route gefunden');
+  }
+  knopf.disabled = false; knopf.classList.remove('dreht');
+}
+$('routeKnopf').addEventListener('click', routeBerechnen);
+
+/* ================= HABITS ================= */
+const MEILENSTEINE = [1, 3, 7, 14, 30, 60, 90, 180, 365];
+const tage = h => (Date.now() - h.seit) / 864e5;
+const cleanText = ms => {
+  const t = Math.floor(ms / 864e5), s = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4), sek = Math.floor(ms % 6e4 / 1e3);
+  return `${t}T ${String(s).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sek).padStart(2, '0')}`;
+};
+// Ring bis zum nächsten Meilenstein (1, 3, 7, ... Tage)
+const ring = anteil => {
+  const u = 2 * Math.PI * 11;
+  return `<svg class="ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11" fill="none" stroke="#2A2D3A" stroke-width="3"/>
+    <circle cx="14" cy="14" r="11" fill="none" stroke="#CCFF00" stroke-width="3" stroke-linecap="round" stroke-dasharray="${u}" stroke-dashoffset="${u * (1 - anteil)}" transform="rotate(-90 14 14)"/></svg>`;
+};
+
+$('habitArt').addEventListener('change', () => { $('habitEigen').hidden = $('habitArt').value !== 'Eigene'; if (!$('habitEigen').hidden) $('habitEigen').focus(); });
+$('habitStart').addEventListener('click', () => {
+  const art = $('habitArt').value.toLowerCase();
+  const name = art === 'eigene' ? $('habitEigen').value.trim().slice(0, 30) : $('habitArt').value;
+  if (!name) return $('habitEigen').focus();
+  if (Speicher.daten.habits.some(h => h.name.toLowerCase() === name.toLowerCase())) return meldung(name + ' läuft schon');
+  const kosten = parseFloat(($('habitKosten').value || '').replace(',', '.'));
+  Speicher.daten.habits.push({ id: String(Date.now()), name, art, seit: Date.now(), rekord: 0, rueckfaelle: 0, kosten: kosten > 0 ? kosten : 0 });
+  Speicher.habitsSichern();
+  $('habitEigen').value = ''; $('habitKosten').value = '';
+  habitsZeichnen();
+});
+
+let offenId = null;
+function habitsZeichnen() {
+  $('habitListe').innerHTML = Speicher.daten.habits.map(h => `
+    <tr class="habit${h.id === offenId ? ' offen' : ''}" data-id="${h.id}">
+      <td class="name">${esc(h.name)}<span class="unter rekord"></span></td>
+      <td class="stand clean"></td>
+      <td class="ziel gespart"></td>
+      <td class="fortschritt"></td>
+    </tr>
+    ${h.id === offenId ? `<tr class="aktionen" data-id="${h.id}"><td colspan="4"><button class="rueckfall">Rückfall</button><button class="entfernen rot">Entfernen</button></td></tr>` : ''}`).join('');
+  habitsTicken();
+}
+
+function habitsTicken() {
+  document.querySelectorAll('tr.habit').forEach(z => {
+    const h = Speicher.daten.habits.find(x => x.id === z.dataset.id);
+    if (!h) return;
+    const d = tage(h);
+    const ziel = MEILENSTEINE.find(m => m > d) || 365;
+    const vorher = [0, ...MEILENSTEINE].filter(m => m <= d).pop();
+    z.querySelector('.clean').textContent = cleanText(Date.now() - h.seit);
+    z.querySelector('.gespart').textContent = h.kosten ? zahl(d * h.kosten, 0) + ' €' : '-';
+    z.querySelector('.rekord').textContent = `Rekord ${Math.max(h.rekord || 0, Math.floor(d))}T` + (h.rueckfaelle ? ` · ${h.rueckfaelle}x` : '');
+    z.querySelector('.fortschritt').innerHTML = ring(Math.min(1, (d - vorher) / (ziel - vorher)));
+  });
+}
+setInterval(() => { if ($('tab-habits').classList.contains('aktiv')) habitsTicken(); }, 1000);
+
+$('habitListe').addEventListener('click', e => {
+  const z = e.target.closest('tr');
+  if (!z) return;
+  const h = Speicher.daten.habits.find(x => x.id === z.dataset.id);
+  if (!h) return;
+  if (e.target.closest('.rueckfall')) {
+    if (!confirm('Rückfall? Zähler startet neu, Rekord bleibt.')) return;
+    h.rekord = Math.max(h.rekord || 0, Math.floor(tage(h)));
+    h.rueckfaelle++;
+    h.seit = Date.now();
+    offenId = null;
+  } else if (e.target.closest('.entfernen')) {
+    if (!confirm(h.name + ' entfernen?')) return;
+    Speicher.daten.habits = Speicher.daten.habits.filter(x => x !== h);
+    offenId = null;
+  } else if (z.classList.contains('habit')) {
+    offenId = offenId === h.id ? null : h.id;
+    return habitsZeichnen();
+  } else return;
+  Speicher.habitsSichern(); habitsZeichnen();
+});
+
+/* ================= START ================= */
+listeZeichnen();
+planZeigen(false);
+const start = location.hash.slice(1);
+if (['heute', 'map', 'habits'].includes(start)) tabZeigen(start);
+</script>
+</body>
+</html>
