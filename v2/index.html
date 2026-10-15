@@ -75,6 +75,7 @@ select.eingabe option{background:var(--card);color:var(--txt)}
 .km-wahl button{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line);background:transparent;font-size:16px;font-weight:800;line-height:1;cursor:pointer}
 .km-wahl button:active{border-color:var(--volt)}
 .karte-tbl{table-layout:fixed}
+tr.aus{opacity:.4}
 tr.lauf{cursor:pointer}
 tr.lauf.gewaehlt td.name{color:var(--volt)}
 #tab-map .live td.stand{color:var(--volt)}
@@ -105,6 +106,7 @@ tr.habit.offen td{border-bottom-color:transparent}
   <symbol id="i-neu" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
   <symbol id="i-stopp" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
+  <symbol id="i-nav" viewBox="0 0 24 24"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
 </svg>
 
@@ -155,6 +157,11 @@ tr.habit.offen td{border-bottom-color:transparent}
         <td class="ziel" id="routeMin"></td>
         <td><button class="kreis symbol" id="routeKnopf" aria-label="Route berechnen"><svg><use href="#i-neu"/></svg></button></td>
       </tr>
+      <tr id="navZeile">
+        <td class="name">Navigation</td>
+        <td class="ziel" colspan="2">Google Maps</td>
+        <td><button class="kreis symbol voll" id="navKnopf" aria-label="In Google Maps öffnen"><svg><use href="#i-nav"/></svg></button></td>
+      </tr>
     </tbody>
   </table>
   <table class="tbl karte-tbl"><colgroup><col style="width:32%"><col><col><col style="width:44px"></colgroup>
@@ -183,8 +190,8 @@ tr.habit.offen td{border-bottom-color:transparent}
     <tbody>
       <tr>
         <td class="name">
-          <select class="eingabe" id="habitArt"><option>Rauchen</option><option>Alkohol</option><option>Feiern</option><option>Fluchen</option><option value="Eigene">Eigene...</option></select>
-          <input class="eingabe" id="habitEigen" type="text" maxlength="30" placeholder="Name" hidden style="width:7.5em;margin-top:8px;display:block">
+          <input class="eingabe breit" id="habitName" type="text" maxlength="30" placeholder="Gewohnheit" list="habitVorschlaege" autocomplete="off" enterkeyhint="done">
+          <datalist id="habitVorschlaege"><option value="Rauchen"><option value="Alkohol"><option value="Feiern"><option value="Fluchen"></datalist>
         </td>
         <td colspan="2" class="stand"><input class="eingabe zahl" id="habitKosten" inputmode="decimal" placeholder="0"><span class="einheit">€ / Tag</span></td>
         <td><button class="kreis symbol" id="habitStart" aria-label="Zähler starten"><svg><use href="#i-plus"/></svg></button></td>
@@ -518,6 +525,7 @@ function planZeigen(einpassen) {
   const p = meinePace();
   $('routeKm').textContent = plan.laenge ? zahl(plan.laenge, 1) + ' km' : '-';
   $('routeMin').textContent = plan.laenge ? Math.round(plan.laenge * p) + ' min' : '';
+  $('navZeile').classList.toggle('aus', !plan.punkte?.length);
   if (!karte) return;
   if (plan.start) startMarke.setLatLng(plan.start).addTo(karte); else startMarke.remove();
   planLinie.setLatLngs(plan.punkte || []);
@@ -610,6 +618,36 @@ async function routeBerechnen() {
 }
 $('routeKnopf').addEventListener('click', routeBerechnen);
 
+/* ================= MAP: Navigation in Google Maps ================= */
+// Start = Ziel, dazu 3 Punkte entlang unseres Rundkurses, damit Google ungefähr denselben Weg nimmt.
+// Der Link öffnet die Google-Maps-App (falls installiert) direkt mit Sprachnavigation zu Fuß, sonst die Website.
+function punkteEntlang(punkte, n) {
+  const strecke = [0];
+  for (let i = 1; i < punkte.length; i++) strecke.push(strecke[i - 1] + abstandKm(punkte[i - 1], punkte[i]));
+  const gesamt = strecke[strecke.length - 1], aus = [];
+  let j = 1;
+  for (let k = 1; k <= n; k++) {
+    const ziel = gesamt * k / (n + 1);
+    while (j < punkte.length - 1 && strecke[j] < ziel) j++;
+    aus.push(punkte[j]);
+  }
+  return aus;
+}
+const ll = ([a, b]) => `${a.toFixed(6)},${b.toFixed(6)}`;
+
+function googleMapsLink() {
+  const p = new URLSearchParams({
+    api: '1', origin: ll(plan.start), destination: ll(plan.start),
+    waypoints: punkteEntlang(plan.punkte, 3).map(ll).join('|'),
+    travelmode: 'walking', dir_action: 'navigate',
+  });
+  return 'https://www.google.com/maps/dir/?' + p.toString();
+}
+$('navKnopf').addEventListener('click', () => {
+  if (!plan.punkte?.length) return meldung('Erst Rundkurs berechnen');
+  window.open(googleMapsLink(), '_blank', 'noopener');
+});
+
 /* ================= HABITS ================= */
 const MEILENSTEINE = [1, 3, 7, 14, 30, 60, 90, 180, 365];
 const tage = h => (Date.now() - h.seit) / 864e5;
@@ -624,18 +662,22 @@ const ring = anteil => {
     <circle cx="14" cy="14" r="11" fill="none" stroke="#CCFF00" stroke-width="3" stroke-linecap="round" stroke-dasharray="${u}" stroke-dashoffset="${u * (1 - anteil)}" transform="rotate(-90 14 14)"/></svg>`;
 };
 
-$('habitArt').addEventListener('change', () => { $('habitEigen').hidden = $('habitArt').value !== 'Eigene'; if (!$('habitEigen').hidden) $('habitEigen').focus(); });
-$('habitStart').addEventListener('click', () => {
-  const art = $('habitArt').value.toLowerCase();
-  const name = art === 'eigene' ? $('habitEigen').value.trim().slice(0, 30) : $('habitArt').value;
-  if (!name) return $('habitEigen').focus();
+// Freier Name, Rauchen/Alkohol/Feiern/Fluchen sind nur Vorschläge
+const BEKANNT = ['rauchen', 'alkohol', 'feiern', 'fluchen'];
+function habitAnlegen() {
+  const name = $('habitName').value.trim().replace(/\s+/g, ' ').slice(0, 30);
+  if (!name) return $('habitName').focus();
   if (Speicher.daten.habits.some(h => h.name.toLowerCase() === name.toLowerCase())) return meldung(name + ' läuft schon');
+  const art = BEKANNT.includes(name.toLowerCase()) ? name.toLowerCase() : 'eigene';
   const kosten = parseFloat(($('habitKosten').value || '').replace(',', '.'));
   Speicher.daten.habits.push({ id: String(Date.now()), name, art, seit: Date.now(), rekord: 0, rueckfaelle: 0, kosten: kosten > 0 ? kosten : 0 });
   Speicher.habitsSichern();
-  $('habitEigen').value = ''; $('habitKosten').value = '';
+  $('habitName').value = ''; $('habitKosten').value = '';
+  $('habitName').blur(); $('habitKosten').blur();
   habitsZeichnen();
-});
+}
+$('habitStart').addEventListener('click', habitAnlegen);
+['habitName', 'habitKosten'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') habitAnlegen(); }));
 
 let offenId = null;
 function habitsZeichnen() {
