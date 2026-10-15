@@ -635,6 +635,8 @@ function punkteEntlang(punkte, n) {
 }
 const ll = ([a, b]) => `${a.toFixed(6)},${b.toFixed(6)}`;
 
+const istIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 function googleMapsLink() {
   const p = new URLSearchParams({
     api: '1', origin: ll(plan.start), destination: ll(plan.start),
@@ -643,9 +645,25 @@ function googleMapsLink() {
   });
   return 'https://www.google.com/maps/dir/?' + p.toString();
 }
+
+// iPhone: der https-Link landet erst auf der Website. Das App-Schema öffnet die App direkt
+// und nimmt mehr Zwischenpunkte an, so bleibt die Runde wie geplant.
+function googleMapsAppLink() {
+  const ziele = [...punkteEntlang(plan.punkte, 8), plan.start].map(ll).join('+to:');
+  return `comgooglemaps://?saddr=${ll(plan.start)}&daddr=${ziele}&directionsmode=walking`;
+}
+
 $('navKnopf').addEventListener('click', () => {
   if (!plan.punkte?.length) return meldung('Erst Rundkurs berechnen');
-  window.open(googleMapsLink(), '_blank', 'noopener');
+  if (!istIOS) return void window.open(googleMapsLink(), '_blank', 'noopener');
+  let weg = false;
+  const merken = () => { if (document.hidden) weg = true; };
+  document.addEventListener('visibilitychange', merken);
+  location.href = googleMapsAppLink();
+  setTimeout(() => {
+    document.removeEventListener('visibilitychange', merken);
+    if (!weg) meldung('Google Maps App nicht gefunden');
+  }, 2500);
 });
 
 /* ================= HABITS ================= */
