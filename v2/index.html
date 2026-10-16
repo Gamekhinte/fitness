@@ -156,7 +156,7 @@ tr.habit.offen td{border-bottom-color:transparent}
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 5.1</p>
+  <p class="version">Version 5.2</p>
 </main>
 
 <!-- MAP -->
@@ -875,7 +875,7 @@ const kam = { aufgabe: null, zaehler: null, satz: 1, strom: null, an: false, lan
   ton: null, stimmen: {}, stimmeGeladen: false, quelle: null };
 
 /* Eigene Stimme: Dateien in stimme/<code>.mp3. Fehlt eine Datei, spricht die Computerstimme. */
-const STIMME = ['los', 'bild', 'tiefer', 'huefte', 'brust', 'position', 'satz', 'fertig', 's10', 's20',
+const STIMME = ['los', 'bild', 'tiefer', 'huefte', 'brust', 'position', 'satz', 'fertig', 's10', 's20', 's30', 's40', 's50', 's60',
   ...Array.from({ length: 15 }, (_, i) => 'z' + (i + 1))];
 
 function stimmeLaden() {
@@ -1109,7 +1109,7 @@ function kameraSchleife() {
         const n = kam.zaehler.wdh;
         if (n >= kam.aufgabe.wdh) satzFertig();                       // letzte Zahl übernimmt "Satz geschafft"
         else if (kam.aufgabe.modus !== 'halten') sprich('z' + n, String(n), true);
-        else if (n % 10 === 0) sprich('s' + n, n + ' Sekunden', true);
+        else if (n % 10 === 0) sprich('s' + Math.min(n, 60), n === 60 ? 'Eine Minute' : n + ' Sekunden', true);
       } else if (e.status === 'bild') sprich('bild', STATUS.bild[0], false, 8000);
       else if (!gut) sprich(e.status, STATUS[e.status][0]);
     }
