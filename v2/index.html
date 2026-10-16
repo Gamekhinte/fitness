@@ -101,6 +101,8 @@ tr.habit.offen td{border-bottom-color:transparent}
 .kamera[hidden]{display:none}
 .kamera video,.kamera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .kamera.spiegel video,.kamera.spiegel canvas{transform:scaleX(-1)}
+.kamera.anonym video{opacity:0}
+.k-knoepfe .kreis.voll{background:var(--volt);border-color:var(--volt);color:#121318}
 .k-oben{position:absolute;left:14px;right:14px;top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;background:rgba(18,19,24,.82);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
 .k-oben b{display:block;font-size:18px;font-weight:900;margin-top:2px}
 .k-knoepfe{display:flex;gap:10px}
@@ -130,6 +132,7 @@ tr.habit.offen td{border-bottom-color:transparent}
   <symbol id="i-stopp" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
   <symbol id="i-nav" viewBox="0 0 24 24"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></symbol>
   <symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-anonym" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4" fill="currentColor"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z" fill="currentColor"/></symbol>
   <symbol id="i-zu" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></symbol>
   <symbol id="i-drehen" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
@@ -153,7 +156,7 @@ tr.habit.offen td{border-bottom-color:transparent}
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 5.0</p>
+  <p class="version">Version 5.1</p>
 </main>
 
 <!-- MAP -->
@@ -237,6 +240,7 @@ tr.habit.offen td{border-bottom-color:transparent}
   <div class="k-oben">
     <div><span class="label" id="kSatz">Satz 1 / 3</span><b id="kName">Liegestütze</b></div>
     <div class="k-knoepfe">
+      <button class="kreis symbol" id="kAnonym" aria-label="Anonym"><svg><use href="#i-anonym"/></svg></button>
       <button class="kreis symbol" id="kDrehen" aria-label="Kamera wechseln"><svg><use href="#i-drehen"/></svg></button>
       <button class="kreis symbol" id="kZu" aria-label="Schließen"><svg><use href="#i-zu"/></svg></button>
     </div>
@@ -866,7 +870,48 @@ function neuerZaehler(modus) {
   return z;
 }
 
-const kam = { aufgabe: null, zaehler: null, satz: 1, strom: null, an: false, landmarker: null, vorne: true, zuletzt: '', zuletztT: 0, fertig: false, festStatus: null };
+const kam = { aufgabe: null, zaehler: null, satz: 1, strom: null, an: false, landmarker: null, vorne: true, zuletzt: '', zuletztT: 0, fertig: false, festStatus: null,
+  anonym: (() => { try { return localStorage.getItem('lif-anonym') === '1'; } catch { return false; } })(),
+  ton: null, stimmen: {}, stimmeGeladen: false, quelle: null };
+
+/* Eigene Stimme: Dateien in stimme/<code>.mp3. Fehlt eine Datei, spricht die Computerstimme. */
+const STIMME = ['los', 'bild', 'tiefer', 'huefte', 'brust', 'position', 'satz', 'fertig', 's10', 's20',
+  ...Array.from({ length: 15 }, (_, i) => 'z' + (i + 1))];
+
+function stimmeLaden() {
+  try {
+    kam.ton = kam.ton || new (window.AudioContext || window.webkitAudioContext)();
+    kam.ton.resume();                              // iPhone: Ton geht erst nach einem Tipp
+  } catch { return; }
+  if (kam.stimmeGeladen) return;
+  kam.stimmeGeladen = true;
+  // stimme/liste.json sagt, welche Aufnahmen es gibt, dann wird nur die geladen
+  fetch('stimme/liste.json').then(a => a.ok ? a.json() : []).catch(() => []).then(liste => {
+    liste.filter(code => STIMME.includes(code)).forEach(async code => {
+      try {
+        const antwort = await fetch(`stimme/${code}.mp3`);
+        if (antwort.ok) kam.stimmen[code] = await kam.ton.decodeAudioData(await antwort.arrayBuffer());
+      } catch {}
+    });
+  });
+}
+
+// code = Name der Aufnahme, text = Ersatz für die Computerstimme
+function sprich(code, text, immer, pauseMs = 3500) {
+  const jetzt = Date.now();
+  if (!immer && code === kam.zuletzt && jetzt - kam.zuletztT < pauseMs) return;
+  kam.zuletzt = code; kam.zuletztT = jetzt;
+  const puffer = kam.stimmen[code];
+  if (puffer && kam.ton) {
+    try { kam.quelle?.stop(); } catch {}
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    const q = kam.ton.createBufferSource();
+    q.buffer = puffer; q.connect(kam.ton.destination); q.start();
+    kam.quelle = q;
+    return;
+  }
+  sagen(text, true);
+}
 
 function sagen(text, immer) {
   if (!('speechSynthesis' in window)) return;
@@ -899,7 +944,8 @@ async function landmarkerLaden() {
   const { FilesetResolver, PoseLandmarker } = await import(MP + '/vision_bundle.mjs');
   const dateien = await FilesetResolver.forVisionTasks(MP + '/wasm');
   const optionen = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
+    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
+    outputSegmentationMasks: kam.anonym });
   try { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('GPU')); }
   catch { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('CPU')); }
   return kam.landmarker;
@@ -916,11 +962,13 @@ async function kameraOeffnen(a) {
   kameraZahlen();
   kameraStatus(kam.fertig ? 'fertig' : 'laden');
   sagen(' ', true);                              // iPhone: Sprache muss nach einem Tipp einmal starten
+  stimmeLaden();
+  anonymAnzeigen();
   try {
     await kameraStarten();
     await landmarkerLaden();
     if (!kam.an) return;
-    if (!kam.fertig) { kameraStatus('los'); sagen('Los gehts', true); }
+    if (!kam.fertig) { kameraStatus('los'); sprich('los', 'Los gehts', true); }
     kameraSchleife();
   } catch (e) {
     kameraStatus('bild');
@@ -945,26 +993,36 @@ function kameraSchliessen() {
   kam.strom = null;
   $('kamera').hidden = true;
   if ('speechSynthesis' in window) speechSynthesis.cancel();
+  try { kam.quelle?.stop(); } catch {}
   listeZeichnen();
 }
 
-function skelettZeichnen(L, gelenk, winkel, gut) {
+function skelettZeichnen(L, gelenk, winkel, gut, maske) {
   const v = $('kVideo'), c = $('kBild');
   if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
   const g = c.getContext('2d');
   g.clearRect(0, 0, c.width, c.height);
+  if (kam.anonym) {
+    // Anonym: Kamerabild ist ausgeblendet, statt dir eine weiße Silhouette aus der Personen-Maske
+    g.fillStyle = '#121318';
+    g.fillRect(0, 0, c.width, c.height);
+    if (maske) silhouetteZeichnen(g, maske, c.width, c.height);
+  }
   if (!L) return;
   const p = i => [L[i].x * c.width, L[i].y * c.height];
   const dick = Math.max(4, c.width / 160);
   const farbe = gut ? '#CCFF00' : '#FF4D4D';
   g.lineCap = 'round';
-  g.strokeStyle = farbe;
-  g.lineWidth = dick;
-  KNOCHEN.forEach(([a, b]) => {
-    if ((L[a].visibility || 0) < 0.4 || (L[b].visibility || 0) < 0.4) return;
-    g.beginPath(); g.moveTo(...p(a)); g.lineTo(...p(b)); g.stroke();
-  });
-  g.fillStyle = '#FFFFFF';
+  const linien = (stift, breite) => {
+    g.strokeStyle = stift; g.lineWidth = breite;
+    KNOCHEN.forEach(([a, b]) => {
+      if ((L[a].visibility || 0) < 0.4 || (L[b].visibility || 0) < 0.4) return;
+      g.beginPath(); g.moveTo(...p(a)); g.lineTo(...p(b)); g.stroke();
+    });
+  };
+  if (kam.anonym) linien('#121318', dick * 2.2);   // dunkler Rand, damit Grün und Rot auf Weiß gut zu sehen sind
+  linien(farbe, dick);
+  g.fillStyle = kam.anonym ? '#121318' : '#FFFFFF';
   [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
     if ((L[i].visibility || 0) < 0.4) return;
     g.beginPath(); g.arc(...p(i), dick * 1.1, 0, 7); g.fill();
@@ -985,16 +1043,46 @@ function skelettZeichnen(L, gelenk, winkel, gut) {
   }
 }
 
+let maskenBild = null;
+function silhouetteZeichnen(g, maske, breite, hoehe) {
+  const w = maske.width, h = maske.height, werte = maske.getAsFloat32Array();
+  if (!maskenBild || maskenBild.width !== w || maskenBild.height !== h) {
+    maskenBild = document.createElement('canvas');
+    maskenBild.width = w; maskenBild.height = h;
+  }
+  const mg = maskenBild.getContext('2d'), bild = mg.createImageData(w, h), px = bild.data;
+  for (let i = 0; i < werte.length; i++) {
+    const a = Math.max(0, Math.min(1, (werte[i] - 0.3) / 0.4));      // weiche Kante
+    px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = 255;
+    px[i * 4 + 3] = a * 255;
+  }
+  mg.putImageData(bild, 0, 0);
+  g.drawImage(maskenBild, 0, 0, breite, hoehe);
+}
+
+function anonymAnzeigen() {
+  $('kamera').classList.toggle('anonym', kam.anonym);
+  $('kAnonym').classList.toggle('voll', kam.anonym);
+}
+
+$('kAnonym').addEventListener('click', async () => {
+  kam.anonym = !kam.anonym;
+  try { localStorage.setItem('lif-anonym', kam.anonym ? '1' : '0'); } catch {}
+  anonymAnzeigen();
+  try { await kam.landmarker?.setOptions({ outputSegmentationMasks: kam.anonym }); } catch {}
+  meldung(kam.anonym ? 'Anonym an' : 'Anonym aus');
+});
+
 function satzFertig() {
   const a = kam.aufgabe, d = heuteDaten();
   d.werte[a.id] = Math.min(a.ziel, (d.werte[a.id] || 0) + 1);
   heuteSichern(d);
   if (d.werte[a.id] >= a.ziel) {
     kam.fertig = true;
-    kameraStatus('fertig'); sagen('Fertig für heute. Stark.', true);
+    kameraStatus('fertig'); sprich('fertig', 'Fertig für heute. Stark.', true);
   } else {
     kam.satz = d.werte[a.id] + 1;
-    kameraStatus('satz'); sagen(`Satz geschafft. Kurz Pause, dann Satz ${kam.satz}.`, true);
+    kameraStatus('satz'); sprich('satz', 'Satz geschafft. Kurz Pause.', true);
     kam.zaehler = neuerZaehler(a.modus);
   }
   kam.festStatus = Date.now() + 2500;           // Meldung kurz stehen lassen
@@ -1010,16 +1098,20 @@ function kameraSchleife() {
       letzteVideoZeit = v.currentTime;
       const jetzt = performance.now();
       const r = kam.landmarker.detectForVideo(v, jetzt);
-      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0];
+      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0], maske = r.segmentationMasks?.[0];
       const e = kam.fertig ? { status: 'fertig' } : kam.zaehler.schritt(L, W, jetzt);
       const gut = !STATUS[e.status] || STATUS[e.status][1] !== 'schlecht';
-      skelettZeichnen(L, e.gelenk, e.winkel, gut);
+      skelettZeichnen(L, e.gelenk, e.winkel, gut, maske);
+      r.segmentationMasks?.forEach(m => m.close());   // Speicher der Maske freigeben
       if (!kam.festStatus || Date.now() > kam.festStatus) { kam.festStatus = null; kameraStatus(e.status); }
       if (e.neu) {
         kameraZahlen();
-        if (kam.aufgabe.modus !== 'halten' || kam.zaehler.wdh % 10 === 0) sagen(String(kam.zaehler.wdh), true);
-        if (kam.zaehler.wdh >= kam.aufgabe.wdh) satzFertig();
-      } else if (!gut && e.status !== 'bild') sagen(STATUS[e.status][0]);
+        const n = kam.zaehler.wdh;
+        if (n >= kam.aufgabe.wdh) satzFertig();                       // letzte Zahl übernimmt "Satz geschafft"
+        else if (kam.aufgabe.modus !== 'halten') sprich('z' + n, String(n), true);
+        else if (n % 10 === 0) sprich('s' + n, n + ' Sekunden', true);
+      } else if (e.status === 'bild') sprich('bild', STATUS.bild[0], false, 8000);
+      else if (!gut) sprich(e.status, STATUS[e.status][0]);
     }
     requestAnimationFrame(schritt);
   };
