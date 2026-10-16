@@ -139,7 +139,7 @@ tr.habit.offen td{border-bottom-color:transparent}
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 5.4</p>
+  <p class="version">Version 5.5</p>
 </main>
 
 <!-- MAP -->
@@ -859,6 +859,7 @@ $('apiKey').value = keyLesen();
 $('apiKey').addEventListener('change', () => {
   keySchreiben($('apiKey').value.trim());
   coachZustand.modell = null;
+  coachZustand.modelle = null;
   keyAnzeigen();
   if ($('apiKey').value.trim()) keyPruefen();
 });
@@ -868,39 +869,55 @@ function keyAnzeigen(text) {
   $('keyStatus').textContent = text || (keyLesen() ? 'gespeichert' : 'fehlt');
 }
 
+const warten = ms => new Promise(f => setTimeout(f, ms));
+
+// Fehler mit Status, damit man unterscheiden kann: Key kaputt (abbrechen) oder Google überlastet (anderes Modell)
+function geminiFehler(status, grund) {
+  const text = status === 400 && /api key/i.test(grund) ? 'Key ungültig'
+    : status === 403 ? 'Key gesperrt'
+    : status === 429 ? 'Limit erreicht, später nochmal'
+    : status >= 500 ? 'Google gerade überlastet, gleich nochmal'
+    : 'Fehler ' + status;
+  return Object.assign(new Error(text), { status });
+}
+
+// 500er (vor allem 503 = überlastet) werden zweimal mit kurzer Pause wiederholt
 async function geminiAbruf(pfad, body) {
   const key = keyLesen();
   if (!key) throw new Error('Kein API-Key');
-  const antwort = await fetch(GEMINI + pfad, {
-    method: body ? 'POST' : 'GET',
-    headers: { 'x-goog-api-key': key, ...(body ? { 'Content-Type': 'application/json' } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const j = await antwort.json().catch(() => ({}));
-  if (!antwort.ok) {
-    const grund = j.error?.message || '';
-    if (antwort.status === 400 && /api key/i.test(grund)) throw new Error('Key ungültig');
-    if (antwort.status === 403) throw new Error('Key gesperrt');
-    if (antwort.status === 429) throw new Error('Limit erreicht, später nochmal');
-    throw new Error('Fehler ' + antwort.status);
+  for (let versuch = 0; ; versuch++) {
+    const antwort = await fetch(GEMINI + pfad, {
+      method: body ? 'POST' : 'GET',
+      headers: { 'x-goog-api-key': key, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const j = await antwort.json().catch(() => ({}));
+    if (antwort.ok) return j;
+    if (antwort.status >= 500 && versuch < 2) { await warten(900 * (versuch + 1)); continue; }
+    throw geminiFehler(antwort.status, j.error?.message || '');
   }
-  return j;
 }
 
-// Bevorzugte Modelle der Reihe nach, sonst das neueste normale Flash-Modell aus der Liste
-const BEVORZUGT = ['gemini-3.5-flash', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-async function modellWaehlen() {
-  if (coachZustand.modell) return coachZustand.modell;
+// Alle passenden Flash-Modelle: stabile vor Vorschau-Versionen, dann das neueste zuerst (3.8 vor 3.5 vor 2.5),
+// normales Flash vor Flash-Lite. Ist eins überlastet, kommt das nächste dran.
+const version = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
+function modelleSortieren(namen) {
+  return namen
+    .filter(n => /^gemini-.*flash/.test(n) && !/image|tts|audio|live|embed|vision|thinking|exp/.test(n))
+    .sort((a, b) => /preview/.test(a) - /preview/.test(b) || version(b) - version(a) || /lite/.test(a) - /lite/.test(b) || a.length - b.length);
+}
+async function modelleHolen() {
+  if (coachZustand.modelle?.length) return coachZustand.modelle;
   const j = await geminiAbruf('/models?pageSize=200');
   const namen = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace('models/', ''));
-  let wahl = BEVORZUGT.find(b => namen.includes(b));
-  if (!wahl) {
-    wahl = namen.filter(n => /flash/.test(n) && !/image|tts|audio|live|embed|vision|thinking|exp|preview/.test(n))
-      .sort((a, b) => b.localeCompare(a, 'en', { numeric: true }))[0];
-  }
-  if (!wahl) throw new Error('Kein passendes Modell');
-  coachZustand.modell = wahl;
-  return wahl;
+  const liste = modelleSortieren(namen);
+  if (!liste.length) throw new Error('Kein passendes Modell');
+  coachZustand.modelle = liste;
+  coachZustand.modell = liste[0];
+  return liste;
+}
+async function modellWaehlen() {
+  return (await modelleHolen())[0];
 }
 
 async function keyPruefen() {
@@ -979,12 +996,26 @@ async function planErstellen() {
   k.disabled = true; k.classList.add('dreht');
   $('planStatus').textContent = 'Coach schreibt...';
   try {
-    const modell = await modellWaehlen();
-    const j = await geminiAbruf(`/models/${modell}:generateContent`, {
-      systemInstruction: { parts: [{ text: 'Du bist ein Fitness-Coach in einer App. Du planst sicher, realistisch und motivierend. Antworte nur mit JSON nach dem Schema.' }] },
-      contents: [{ role: 'user', parts: [{ text: planAnfrage() }] }],
-      generationConfig: { responseMimeType: 'application/json', responseSchema: PLAN_SCHEMA, temperature: 0.7 },
-    });
+    // Modelle der Reihe nach probieren: überlastet (5xx) oder Limit (429) beim einen heißt nicht, dass das nächste nicht geht
+    const modelle = (await modelleHolen()).slice(0, 4);
+    let j = null, modell = null, letzterFehler = null;
+    for (const m of modelle) {
+      try {
+        $('planStatus').textContent = 'Coach schreibt... (' + m + ')';
+        j = await geminiAbruf(`/models/${m}:generateContent`, {
+          systemInstruction: { parts: [{ text: 'Du bist ein Fitness-Coach in einer App. Du planst sicher, realistisch und motivierend. Antworte nur mit JSON nach dem Schema.' }] },
+          contents: [{ role: 'user', parts: [{ text: planAnfrage() }] }],
+          generationConfig: { responseMimeType: 'application/json', responseSchema: PLAN_SCHEMA, temperature: 0.7 },
+        });
+        modell = m;
+        break;
+      } catch (e) {
+        letzterFehler = e;
+        if (!(e.status >= 500 || e.status === 429 || e.status === 404)) throw e;   // Key-Probleme: gleich abbrechen
+      }
+    }
+    if (!j) throw letzterFehler;
+    coachZustand.modell = modell;
     const text = j.candidates?.[0]?.content?.parts?.map(x => x.text || '').join('') || '';
     const plan = planPruefen(JSON.parse(text));
     Speicher.trainingSetzen(plan);
