@@ -101,7 +101,7 @@ tr.habit.offen td{border-bottom-color:transparent}
 .kamera[hidden]{display:none}
 .kamera video,.kamera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .kamera.spiegel video,.kamera.spiegel canvas{transform:scaleX(-1)}
-.kamera.anonym video{opacity:0}
+.kamera.anonym.verdeckt video{opacity:0}
 .k-knoepfe .kreis.voll{background:var(--volt);border-color:var(--volt);color:#121318}
 .k-oben{position:absolute;left:14px;right:14px;top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;background:rgba(18,19,24,.82);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
 .k-oben b{display:block;font-size:18px;font-weight:900;margin-top:2px}
@@ -156,7 +156,7 @@ tr.habit.offen td{border-bottom-color:transparent}
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 5.2</p>
+  <p class="version">Version 5.3</p>
 </main>
 
 <!-- MAP -->
@@ -818,8 +818,8 @@ function winkel3(a, b, c) {
 
 // Reine Zähl-Logik ohne Kamera, damit sie sich testen lässt. L = Bildpunkte (mit visibility), W = Weltpunkte.
 function neuerZaehler(modus) {
-  const z = { modus, wdh: 0, phase: 'oben', seite: null, glatt: {}, schlechtMs: 0, haltenMs: 0, letzteZeit: 0, letzteWdh: 0 };
-  const glaetten = (k, v) => (z.glatt[k] = z.glatt[k] == null ? v : z.glatt[k] + (v - z.glatt[k]) * 0.4);
+  const z = { modus, wdh: 0, phase: 'oben', seite: null, glatt: {}, schlechtMs: 0, wdhMs: 0, haltenMs: 0, letzteZeit: 0, letzteWdh: 0 };
+  const glaetten = (k, v) => (z.glatt[k] = z.glatt[k] == null ? v : z.glatt[k] + (v - z.glatt[k]) * 0.6);   // leicht glätten, ohne die Tiefe zu verschlucken
   z.schritt = (L, W, jetzt) => {
     const dt = z.letzteZeit ? Math.min(200, jetzt - z.letzteZeit) : 0;
     z.letzteZeit = jetzt;
@@ -832,14 +832,14 @@ function neuerZaehler(modus) {
     else if (z.seite === 'r' && ls > rs + 0.8) z.seite = 'l';
     const [S, E, Hd, Hu, K, A] = SEITE[z.seite];
     const brauch = modus === 'arm' ? [S, E, Hd, Hu, A] : modus === 'knie' ? [S, Hu, K, A] : [S, Hu, A];
-    if (Math.min(...brauch.map(i => L[i].visibility || 0)) < 0.5) return { status: 'bild' };
+    if (Math.min(...brauch.map(i => L[i].visibility || 0)) < 0.4) return { status: 'bild' };
 
     const linie = glaetten('linie', winkel3(W[S], W[Hu], W[A]));
     if (modus === 'halten') {
       // liegt der Körper? Schulter und Knöchel ungefähr auf gleicher Höhe
       const lang = Math.hypot(W[S].x - W[A].x, W[S].y - W[A].y, W[S].z - W[A].z) || 1;
-      if (Math.abs(W[S].y - W[A].y) / lang > 0.5) return { status: 'position', winkel: linie, gelenk: Hu };
-      if (linie < 160) return { status: 'huefte', winkel: linie, gelenk: Hu };
+      if (Math.abs(W[S].y - W[A].y) / lang > 0.6) return { status: 'position', winkel: linie, gelenk: Hu };
+      if (linie < 150) return { status: 'huefte', winkel: linie, gelenk: Hu };
       z.haltenMs += dt;
       const sek = Math.floor(z.haltenMs / 1000);
       const neu = sek > z.wdh;
@@ -849,20 +849,22 @@ function neuerZaehler(modus) {
 
     const w = modus === 'arm' ? glaetten('arm', winkel3(W[S], W[E], W[Hd])) : glaetten('knie', winkel3(W[Hu], W[K], W[A]));
     const gelenk = modus === 'arm' ? E : K;
-    const OBEN = modus === 'arm' ? 150 : 160, START = modus === 'arm' ? 130 : 140, UNTEN = 100;
+    // Grenzen bewusst großzügig: unten reicht 110° (Arm) bzw. 115° (Knie), oben reicht 145° bzw. 150°
+    const OBEN = modus === 'arm' ? 145 : 150, START = modus === 'arm' ? 135 : 145, UNTEN = modus === 'arm' ? 110 : 115;
     // Haltung während der Wiederholung
     let fehler = null;
-    if (modus === 'arm' && linie < 155) fehler = 'huefte';
-    if (modus === 'knie' && glaetten('rumpf', winkel3(W[S], W[Hu], W[K])) < 40) fehler = 'brust';
-    if (z.phase !== 'oben' && fehler) z.schlechtMs += dt;
+    if (modus === 'arm' && linie < 145) fehler = 'huefte';
+    if (modus === 'knie' && glaetten('rumpf', winkel3(W[S], W[Hu], W[K])) < 30) fehler = 'brust';
+    if (z.phase !== 'oben') { z.wdhMs += dt; if (fehler) z.schlechtMs += dt; }
 
     let status = fehler || 'gut', neu = false;
-    if (z.phase === 'oben' && w < START) { z.phase = 'runter'; z.schlechtMs = 0; }
+    if (z.phase === 'oben' && w < START) { z.phase = 'runter'; z.schlechtMs = 0; z.wdhMs = 0; }
     else if (z.phase === 'runter' && w < UNTEN) z.phase = 'unten';
     else if (z.phase === 'runter' && w > OBEN) { z.phase = 'oben'; status = 'tiefer'; }
     else if (z.phase === 'unten' && w > OBEN) {
       z.phase = 'oben';
-      if (z.schlechtMs > 400) status = modus === 'arm' ? 'huefte' : 'brust';
+      // kurzes Wackeln ist egal, nur wenn die Haltung den Großteil der Wiederholung falsch war
+      if (z.schlechtMs > Math.max(300, z.wdhMs * 0.5)) status = modus === 'arm' ? 'huefte' : 'brust';
       else if (jetzt - z.letzteWdh > 400) { z.wdh++; z.letzteWdh = jetzt; neu = true; status = 'gut'; }
     }
     return { status, winkel: w, gelenk, neu };
@@ -944,8 +946,7 @@ async function landmarkerLaden() {
   const { FilesetResolver, PoseLandmarker } = await import(MP + '/vision_bundle.mjs');
   const dateien = await FilesetResolver.forVisionTasks(MP + '/wasm');
   const optionen = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
-    outputSegmentationMasks: kam.anonym });
+    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
   try { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('GPU')); }
   catch { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('CPU')); }
   return kam.landmarker;
@@ -997,17 +998,12 @@ function kameraSchliessen() {
   listeZeichnen();
 }
 
-function skelettZeichnen(L, gelenk, winkel, gut, maske) {
+function skelettZeichnen(L, gelenk, winkel, gut) {
   const v = $('kVideo'), c = $('kBild');
   if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
   const g = c.getContext('2d');
   g.clearRect(0, 0, c.width, c.height);
-  if (kam.anonym) {
-    // Anonym: Kamerabild ist ausgeblendet, statt dir eine weiße Silhouette aus der Personen-Maske
-    g.fillStyle = '#121318';
-    g.fillRect(0, 0, c.width, c.height);
-    if (maske) silhouetteZeichnen(g, maske, c.width, c.height);
-  }
+  if (kam.anonym) gesichtAbdecken(g, L, c.width, c.height);
   if (!L) return;
   const p = i => [L[i].x * c.width, L[i].y * c.height];
   const dick = Math.max(4, c.width / 160);
@@ -1020,9 +1016,8 @@ function skelettZeichnen(L, gelenk, winkel, gut, maske) {
       g.beginPath(); g.moveTo(...p(a)); g.lineTo(...p(b)); g.stroke();
     });
   };
-  if (kam.anonym) linien('#121318', dick * 2.2);   // dunkler Rand, damit Grün und Rot auf Weiß gut zu sehen sind
   linien(farbe, dick);
-  g.fillStyle = kam.anonym ? '#121318' : '#FFFFFF';
+  g.fillStyle = '#FFFFFF';
   [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
     if ((L[i].visibility || 0) < 0.4) return;
     g.beginPath(); g.arc(...p(i), dick * 1.1, 0, 7); g.fill();
@@ -1043,25 +1038,36 @@ function skelettZeichnen(L, gelenk, winkel, gut, maske) {
   }
 }
 
-let maskenBild = null;
-function silhouetteZeichnen(g, maske, breite, hoehe) {
-  const w = maske.width, h = maske.height, werte = maske.getAsFloat32Array();
-  if (!maskenBild || maskenBild.width !== w || maskenBild.height !== h) {
-    maskenBild = document.createElement('canvas');
-    maskenBild.width = w; maskenBild.height = h;
+// Anonym: Kreis über dem Gesicht (Punkte 0 bis 10 von MediaPipe: Nase, Augen, Ohren, Mund).
+// Größe aus Ohrabstand und Rumpflänge, damit es auch von der Seite passt.
+// Ist die Person kurz weg, bleibt der Kreis 1,5 s stehen, danach wird das Kamerabild ausgeblendet.
+const gesicht = { x: 0, y: 0, r: 0, zeit: 0 };
+function gesichtAbdecken(g, L, breite, hoehe) {
+  const jetzt = performance.now();
+  if (L) {
+    const kopf = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => (L[i].visibility || 0) > 0.2);
+    if (kopf.length) {
+      const px = i => [L[i].x * breite, L[i].y * hoehe];
+      const xs = kopf.map(i => px(i)[0]), ys = kopf.map(i => px(i)[1]);
+      const mx = xs.reduce((a, b) => a + b) / xs.length, my = ys.reduce((a, b) => a + b) / ys.length;
+      const ohren = Math.hypot(px(7)[0] - px(8)[0], px(7)[1] - px(8)[1]);
+      const rumpf = Math.hypot(px(11)[0] - px(23)[0], px(11)[1] - px(23)[1]);
+      const spanne = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+      const r = Math.max(ohren * 1.1, spanne * 1.2, rumpf * 0.32, breite * 0.05);
+      Object.assign(gesicht, { x: mx, y: my, r, zeit: jetzt });
+    }
   }
-  const mg = maskenBild.getContext('2d'), bild = mg.createImageData(w, h), px = bild.data;
-  for (let i = 0; i < werte.length; i++) {
-    const a = Math.max(0, Math.min(1, (werte[i] - 0.3) / 0.4));      // weiche Kante
-    px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = 255;
-    px[i * 4 + 3] = a * 255;
-  }
-  mg.putImageData(bild, 0, 0);
-  g.drawImage(maskenBild, 0, 0, breite, hoehe);
+  const frisch = jetzt - gesicht.zeit < 1500;
+  $('kamera').classList.toggle('verdeckt', !frisch);
+  if (!frisch) return;
+  g.fillStyle = '#121318';
+  g.beginPath(); g.arc(gesicht.x, gesicht.y, gesicht.r, 0, 7); g.fill();
+  g.strokeStyle = '#CCFF00'; g.lineWidth = Math.max(3, breite / 220); g.stroke();
 }
 
 function anonymAnzeigen() {
   $('kamera').classList.toggle('anonym', kam.anonym);
+  $('kamera').classList.toggle('verdeckt', kam.anonym);   // bis das Gesicht gefunden ist, kein Kamerabild
   $('kAnonym').classList.toggle('voll', kam.anonym);
 }
 
@@ -1069,7 +1075,6 @@ $('kAnonym').addEventListener('click', async () => {
   kam.anonym = !kam.anonym;
   try { localStorage.setItem('lif-anonym', kam.anonym ? '1' : '0'); } catch {}
   anonymAnzeigen();
-  try { await kam.landmarker?.setOptions({ outputSegmentationMasks: kam.anonym }); } catch {}
   meldung(kam.anonym ? 'Anonym an' : 'Anonym aus');
 });
 
@@ -1098,11 +1103,10 @@ function kameraSchleife() {
       letzteVideoZeit = v.currentTime;
       const jetzt = performance.now();
       const r = kam.landmarker.detectForVideo(v, jetzt);
-      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0], maske = r.segmentationMasks?.[0];
+      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0];
       const e = kam.fertig ? { status: 'fertig' } : kam.zaehler.schritt(L, W, jetzt);
       const gut = !STATUS[e.status] || STATUS[e.status][1] !== 'schlecht';
-      skelettZeichnen(L, e.gelenk, e.winkel, gut, maske);
-      r.segmentationMasks?.forEach(m => m.close());   // Speicher der Maske freigeben
+      skelettZeichnen(L, e.gelenk, e.winkel, gut);
       if (!kam.festStatus || Date.now() > kam.festStatus) { kam.festStatus = null; kameraStatus(e.status); }
       if (e.neu) {
         kameraZahlen();
