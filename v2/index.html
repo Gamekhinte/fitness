@@ -77,6 +77,14 @@ select.eingabe option{background:var(--card);color:var(--txt)}
 .km-wahl button:active{border-color:var(--volt)}
 .karte-tbl{table-layout:fixed}
 tr.aus{opacity:.4}
+.coach-tbl{table-layout:fixed}
+.coach-tbl td.stand select.eingabe{max-width:100%}
+tr.plantag{cursor:pointer}
+tr.plantag.heute-tag td.name{color:var(--volt)}
+tr.plantag.pause td{color:var(--mut)}
+tr.uebung td{padding:10px 4px;font-size:14px;border-bottom:1px dashed var(--line)}
+tr.uebung td.name{font-weight:700;padding-left:14px}
+a.leise{display:inline-block}
 tr.lauf{cursor:pointer}
 tr.lauf.gewaehlt td.name{color:var(--volt)}
 #tab-map .live td.stand{color:var(--volt)}
@@ -90,34 +98,11 @@ tr.habit.offen td{border-bottom-color:transparent}
 .ring{width:28px;height:28px;display:inline-block;vertical-align:middle}
 
 /* Navigation und Meldungen */
-.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + var(--safe));display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:8px;z-index:1000}
+.nav{position:fixed;left:14px;right:14px;bottom:calc(14px + var(--safe));display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:8px;z-index:1000}
 .nav button{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;color:var(--mut);font-size:10px;font-weight:800;letter-spacing:.4px;padding:11px 0 9px;border-radius:15px;border:1.5px solid transparent;cursor:pointer}
 .nav button.aktiv{background:var(--card);color:var(--volt);border-color:var(--volt)}
 .nav svg{width:22px;height:22px}
-.tbl td.name .cam{background:transparent;border:0;color:var(--mut);width:28px;height:24px;margin-left:6px;vertical-align:-5px;cursor:pointer;padding:0}
-.tbl td.name .cam svg{width:20px;height:20px}
-.tbl td.name .cam:active{color:var(--volt)}
-.kamera{position:fixed;inset:0;background:#000;z-index:2000;overflow:hidden}
-.kamera[hidden]{display:none}
-.kamera video,.kamera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.kamera.spiegel video,.kamera.spiegel canvas{transform:scaleX(-1)}
-.kamera.anonym.verdeckt video{opacity:0}
-.k-knoepfe .kreis.voll{background:var(--volt);border-color:var(--volt);color:#121318}
-.k-oben{position:absolute;left:14px;right:14px;top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;background:rgba(18,19,24,.82);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
-.k-oben b{display:block;font-size:18px;font-weight:900;margin-top:2px}
-.k-knoepfe{display:flex;gap:10px}
-.k-knoepfe .kreis{width:38px;height:38px;background:var(--bg)}
-.k-knoepfe .kreis svg{width:18px;height:18px}
-.k-unten{position:absolute;left:14px;right:14px;bottom:calc(14px + var(--safe));background:rgba(18,19,24,.86);border:1px solid var(--line);border-radius:18px;padding:14px 16px 16px}
-.k-zahl{display:flex;align-items:baseline;gap:8px}
-.k-zahl b{font-size:64px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
-.k-zahl span{color:var(--mut);font-size:22px;font-weight:800}
-.k-status{font-size:17px;font-weight:900;margin-top:6px;color:var(--mut)}
-.k-status.gut{color:var(--volt)}
-.k-status.schlecht{color:var(--rot)}
-.k-unten .balken{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:12px}
-.k-unten .balken i{display:block;height:100%;width:0;background:var(--volt);transition:width .2s}
-.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe));transform:translate(-50%,10px);background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:2001;max-width:calc(100% - 40px);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe));transform:translate(-50%,10px);background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:1001;max-width:calc(100% - 40px);text-align:center}
 .toast.zeigen{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
@@ -131,10 +116,8 @@ tr.habit.offen td{border-bottom-color:transparent}
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
   <symbol id="i-stopp" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
   <symbol id="i-nav" viewBox="0 0 24 24"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></symbol>
-  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
-  <symbol id="i-anonym" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4" fill="currentColor"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z" fill="currentColor"/></symbol>
-  <symbol id="i-zu" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-drehen" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-coach" viewBox="0 0 24 24"><path d="M4 9h2v6H4zM18 9h2v6h-2zM6 11h12v2H6z" fill="currentColor"/><path d="M7 7h2v10H7zM15 7h2v10h-2z" fill="currentColor"/></symbol>
+  <symbol id="i-haken" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
 </svg>
 
@@ -150,13 +133,13 @@ tr.habit.offen td{border-bottom-color:transparent}
     <thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead>
     <tbody id="liste"></tbody>
   </table>
-  <p class="hinweis">Tipp auf den Stand, um einen Satz zu zählen.</p>
+  <p class="hinweis" id="heuteHinweis">Tipp auf den Stand, um einen Satz zu zählen.</p>
   <div class="backup">
     <button class="leise" id="backupRaus">Backup speichern</button>
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 5.3</p>
+  <p class="version">Version 5.4</p>
 </main>
 
 <!-- MAP -->
@@ -206,6 +189,56 @@ tr.habit.offen td{border-bottom-color:transparent}
   </table>
 </main>
 
+<!-- COACH -->
+<main id="tab-coach" class="tab">
+  <header class="top">
+    <div class="tab-name">Coach</div>
+    <div class="logo">LOCKED<span>IN</span></div>
+    <div class="datum" data-datum></div>
+  </header>
+  <table class="tbl coach-tbl">
+    <colgroup><col style="width:42%"><col><col style="width:44px"></colgroup>
+    <thead><tr><th>Profil</th><th colspan="2"></th></tr></thead>
+    <tbody id="profil">
+      <tr><td class="name">Alter</td><td class="stand" colspan="2"><input class="eingabe zahl" data-feld="alter" inputmode="numeric" placeholder="0"><span class="einheit">Jahre</span></td></tr>
+      <tr><td class="name">Größe</td><td class="stand" colspan="2"><input class="eingabe zahl" data-feld="groesse" inputmode="numeric" placeholder="0"><span class="einheit">cm</span></td></tr>
+      <tr><td class="name">Gewicht</td><td class="stand" colspan="2"><input class="eingabe zahl" data-feld="gewicht" inputmode="decimal" placeholder="0"><span class="einheit">kg</span></td></tr>
+      <tr><td class="name">Ziel</td><td class="stand" colspan="2"><select class="eingabe" data-feld="ziel"><option>Muskeln aufbauen</option><option>Abnehmen</option><option>Fitter werden</option><option>Ausdauer</option></select></td></tr>
+      <tr><td class="name">Level</td><td class="stand" colspan="2"><select class="eingabe" data-feld="level"><option>Anfänger</option><option>Fortgeschritten</option><option>Profi</option></select></td></tr>
+      <tr><td class="name">Training</td><td class="stand" colspan="2"><select class="eingabe" data-feld="tage"><option value="2">2 Tage</option><option value="3">3 Tage</option><option value="4">4 Tage</option><option value="5">5 Tage</option><option value="6">6 Tage</option></select><span class="einheit">pro Woche</span></td></tr>
+      <tr><td class="name">Dauer</td><td class="stand" colspan="2"><select class="eingabe" data-feld="minuten"><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option></select><span class="einheit">pro Training</span></td></tr>
+      <tr><td class="name">Ausrüstung</td><td class="stand" colspan="2"><select class="eingabe" data-feld="ausruestung"><option>Keine</option><option>Hanteln</option><option>Klimmzugstange</option><option>Fitnessstudio</option></select></td></tr>
+      <tr><td class="name">Hinweise</td><td colspan="2"><input class="eingabe breit" data-feld="hinweise" maxlength="120" placeholder="z.B. Knie tut weh"></td></tr>
+    </tbody>
+  </table>
+  <table class="tbl coach-tbl">
+    <colgroup><col style="width:42%"><col><col style="width:44px"></colgroup>
+    <thead><tr><th>KI-Coach</th><th colspan="2"></th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">API-Key<span class="unter" id="keyStatus">fehlt</span></td>
+        <td><input class="eingabe breit" id="apiKey" type="password" placeholder="Gemini-Key" autocomplete="off" spellcheck="false"></td>
+        <td><button class="kreis symbol" id="keyTesten" aria-label="Key prüfen"><svg><use href="#i-haken"/></svg></button></td>
+      </tr>
+      <tr id="planZeile">
+        <td class="name">Wochenplan<span class="unter" id="planStatus">noch keiner</span></td>
+        <td class="ziel" id="planAktion">erstellen</td>
+        <td><button class="kreis symbol voll" id="planKnopf" aria-label="Wochenplan erstellen"><svg><use href="#i-neu"/></svg></button></td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="tbl coach-tbl" id="planTabelle" hidden>
+    <colgroup><col style="width:42%"><col><col style="width:44px"></colgroup>
+    <thead><tr><th>Dein Plan</th><th colspan="2"></th></tr></thead>
+    <tbody id="planTage"></tbody>
+  </table>
+  <p class="hinweis" id="planTipp"></p>
+  <div class="backup">
+    <a class="leise" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Key bei Google holen</a>
+    <button class="leise" id="planWeg" hidden>Plan löschen</button>
+  </div>
+</main>
+
 <!-- HABITS -->
 <main id="tab-habits" class="tab">
   <header class="top">
@@ -232,25 +265,9 @@ tr.habit.offen td{border-bottom-color:transparent}
 <nav class="nav">
   <button class="aktiv" data-tab="heute"><svg><use href="#i-list"/></svg>HEUTE</button>
   <button data-tab="map"><svg><use href="#i-pin"/></svg>MAP</button>
+  <button data-tab="coach"><svg><use href="#i-coach"/></svg>COACH</button>
   <button data-tab="habits"><svg><use href="#i-shield"/></svg>HABITS</button>
 </nav>
-<div class="kamera" id="kamera" hidden>
-  <video id="kVideo" playsinline muted autoplay></video>
-  <canvas id="kBild"></canvas>
-  <div class="k-oben">
-    <div><span class="label" id="kSatz">Satz 1 / 3</span><b id="kName">Liegestütze</b></div>
-    <div class="k-knoepfe">
-      <button class="kreis symbol" id="kAnonym" aria-label="Anonym"><svg><use href="#i-anonym"/></svg></button>
-      <button class="kreis symbol" id="kDrehen" aria-label="Kamera wechseln"><svg><use href="#i-drehen"/></svg></button>
-      <button class="kreis symbol" id="kZu" aria-label="Schließen"><svg><use href="#i-zu"/></svg></button>
-    </div>
-  </div>
-  <div class="k-unten">
-    <div class="k-zahl"><b id="kWdh">0</b><span id="kZiel">/ 10</span></div>
-    <div class="k-status" id="kStatus">Lädt</div>
-    <div class="balken"><i id="kBalken"></i></div>
-  </div>
-</div>
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -284,6 +301,8 @@ const Speicher = (() => {
     laufDazu(lauf) { daten.laeufe.unshift(lauf); daten.laeufe = daten.laeufe.slice(0, 100); sichern(); },
     habitsSichern: sichern,
     planSetzen(plan) { daten.plan = plan; sichern(); },
+    profilSetzen(profil) { daten.profil = profil; sichern(); },
+    trainingSetzen(t) { daten.training = t; sichern(); },
     exportieren: () => JSON.stringify(daten, null, 1),
     importieren(text) {
       const neu = JSON.parse(text);
@@ -320,6 +339,7 @@ function tabZeigen(name) {
   document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('aktiv', b.dataset.tab === name));
   if (name === 'map') karteStarten();
   if (name === 'habits') habitsZeichnen();
+  if (name === 'coach') coachZeichnen();
   if (name === 'heute') listeZeichnen();
   history.replaceState(null, '', '#' + name);
   window.scrollTo(0, 0);
@@ -327,14 +347,27 @@ function tabZeigen(name) {
 document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => tabZeigen(b.dataset.tab)));
 
 /* ================= HEUTE ================= */
-const AUFGABEN = [
-  { id: 'liegestuetze', name: 'Liegestütze', art: 'sets', ziel: 3, wdh: 10, modus: 'arm' },
-  { id: 'squats',       name: 'Squats',      art: 'sets', ziel: 3, wdh: 15, modus: 'knie' },
-  { id: 'plank',        name: 'Plank',       art: 'sets', ziel: 3, wdh: 30, modus: 'halten' },
+const STANDARD = [
+  { id: 'liegestuetze', name: 'Liegestütze', art: 'sets', ziel: 3 },
+  { id: 'squats',       name: 'Squats',      art: 'sets', ziel: 3 },
+  { id: 'plank',        name: 'Plank',       art: 'sets', ziel: 3 },
   { id: 'lauf',         name: 'Lauf',        art: 'km',   ziel: 2 },
   { id: 'schritte',     name: 'Schritte',    art: 'zahl', ziel: 10000 },
 ];
-const zielText = a => a.art === 'sets' ? `${a.ziel} × ${a.wdh}${a.modus === 'halten' ? ' s' : ''}` : a.art === 'km' ? zahl(a.ziel, 1) + ' km' : zahl(a.ziel);
+const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const heuteKurz = WOCHENTAGE[(heute.getDay() + 6) % 7];
+const kennung = t => 'p_' + t.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').slice(0, 30);
+
+// Gibt es einen Wochenplan vom Coach, kommen die Übungen von heute daraus. Sonst die Standard-Liste.
+function aufgaben() {
+  const tag = Speicher.daten.training?.tage?.find(t => t.tag === heuteKurz);
+  if (!tag) return STANDARD;
+  const liste = tag.pause ? [] : tag.uebungen.map(u => ({ id: kennung(u.name), name: u.name, art: 'sets', ziel: u.saetze, wdh: u.wdh }));
+  if (tag.laufKm > 0) liste.push({ id: 'lauf', name: 'Lauf', art: 'km', ziel: tag.laufKm });
+  liste.push(STANDARD[4]);
+  return liste;
+}
+const zielText = a => a.art === 'sets' ? (a.wdh ? `${a.ziel} × ${a.wdh}` : a.ziel + ' Sets') : a.art === 'km' ? zahl(a.ziel, 1) + ' km' : zahl(a.ziel);
 const standText = (a, wert) => a.art === 'sets' ? wert + '/' + a.ziel : a.art === 'km' ? zahl(wert, 1) + ' km' : zahl(wert);
 
 function heuteDaten() {
@@ -344,7 +377,7 @@ function heuteDaten() {
 const istFertig = (a, d) => (d.werte[a.id] || 0) >= a.ziel || (a.art !== 'sets' && d.manuell[a.id]);
 
 function heuteSichern(d) {
-  Speicher.tagSetzen(HEUTE, { werte: d.werte, manuell: d.manuell, fertig: AUFGABEN.every(a => istFertig(a, d)) });
+  Speicher.tagSetzen(HEUTE, { werte: d.werte, manuell: d.manuell, fertig: aufgaben().every(a => istFertig(a, d)) });
 }
 
 function wocheZeichnen() {
@@ -368,18 +401,20 @@ function listeZeichnen() {
   const d = heuteDaten();
   const tb = $('liste');
   tb.innerHTML = '';
-  AUFGABEN.forEach(a => {
+  const liste = aufgaben();
+  const tag = Speicher.daten.training?.tage?.find(t => t.tag === heuteKurz);
+  $('heuteHinweis').textContent = tag?.pause ? `Heute ist Ruhetag. ${tag.fokus || ''}`.trim() : tag ? `Heute: ${tag.fokus}. Tipp auf den Stand, um einen Satz zu zählen.` : 'Tipp auf den Stand, um einen Satz zu zählen.';
+  liste.forEach(a => {
     const wert = d.werte[a.id] || 0;
     const tr = document.createElement('tr');
     tr.dataset.id = a.id;
     const standZelle = a.art === 'sets'
       ? `<td class="stand tippbar">${standText(a, wert)}</td>`
       : `<td class="stand"><input class="eingabe ${a.art}" inputmode="decimal" value="${wert ? zahl(wert, a.art === 'km' ? 2 : 0) : ''}" placeholder="0"><span class="einheit">${a.art === 'km' ? 'km' : ''}</span></td>`;
-    tr.innerHTML = `<td class="name">${a.name}${a.modus ? `<button class="cam" aria-label="${a.name} mit Kamera"><svg><use href="#i-cam"/></svg></button>` : ''}</td><td class="ziel">${zielText(a)}</td>${standZelle}
+    tr.innerHTML = `<td class="name">${a.name}</td><td class="ziel">${zielText(a)}</td>${standZelle}
       <td><button class="kreis" aria-label="${a.name} abhaken"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#121318" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>`;
     if (istFertig(a, d)) tr.classList.add('fertig');
 
-    tr.querySelector('.cam')?.addEventListener('click', () => kameraOeffnen(a));
     tr.querySelector('.tippbar')?.addEventListener('click', () => {
       d.werte[a.id] = wert >= a.ziel ? 0 : wert + 1;
       heuteSichern(d); listeZeichnen();
@@ -794,345 +829,211 @@ $('habitListe').addEventListener('click', e => {
   Speicher.habitsSichern(); habitsZeichnen();
 });
 
-/* ================= KAMERA: Wiederholungen zählen und Haltung prüfen =================
-   MediaPipe Pose erkennt 33 Körperpunkte. Gezählt wird über 3D-Winkel (Weltkoordinaten in Metern),
-   damit es egal ist, wie schräg das Handy steht:
-   arm    = Schulter-Ellbogen-Handgelenk (Liegestütze), dazu Körperlinie Schulter-Hüfte-Knöchel
-   knie   = Hüfte-Knie-Knöchel (Squats), dazu Oberkörper Schulter-Hüfte-Knie
-   halten = Körperlinie (Plank), die Zeit läuft nur bei gerader Linie */
-const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35';
-const MODELL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
-const KNOCHEN = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
-const SEITE = { l: [11, 13, 15, 23, 25, 27], r: [12, 14, 16, 24, 26, 28] };   // Schulter, Ellbogen, Hand, Hüfte, Knie, Knöchel
-const STATUS = {
-  laden: ['Lädt', ''], bild: ['Ganzer Körper ins Bild', 'schlecht'], los: ['Los gehts', 'gut'], gut: ['Gut', 'gut'],
-  tiefer: ['Tiefer runter', 'schlecht'], huefte: ['Hüfte gerade', 'schlecht'], brust: ['Brust hoch', 'schlecht'],
-  position: ['In Plank-Position gehen', 'schlecht'], halten: ['Halten', 'gut'], satz: ['Satz geschafft', 'gut'], fertig: ['Fertig für heute', 'gut'],
-};
+/* ================= COACH: Profil, API-Key, Wochenplan =================
+   Profil wird bei jeder Eingabe im Gerät gespeichert (lif-daten.profil).
+   Der API-Key liegt getrennt unter "lif-gemini-key", nur in diesem Browser, und kommt nicht ins Backup.
+   Die App fragt Google, welche Modelle es gibt, und nimmt das beste Flash-Modell. */
+const KEY_SPEICHER = 'lif-gemini-key';
+const GEMINI = 'https://generativelanguage.googleapis.com/v1beta';
+const PROFIL_STANDARD = { alter: '', groesse: '', gewicht: '', ziel: 'Fitter werden', level: 'Anfänger', tage: '3', minuten: '30', ausruestung: 'Keine', hinweise: '' };
+const profil = Object.assign({}, PROFIL_STANDARD, Speicher.daten.profil || {});
+const coachZustand = { modell: null };
 
-function winkel3(a, b, c) {
-  const u = [a.x - b.x, a.y - b.y, a.z - b.z], v = [c.x - b.x, c.y - b.y, c.z - b.z];
-  const n = Math.hypot(...u) * Math.hypot(...v) || 1;
-  return Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) / n))) * 180 / Math.PI;
-}
+const keyLesen = () => { try { return localStorage.getItem(KEY_SPEICHER) || ''; } catch { return ''; } };
+const keySchreiben = k => { try { k ? localStorage.setItem(KEY_SPEICHER, k) : localStorage.removeItem(KEY_SPEICHER); } catch {} };
 
-// Reine Zähl-Logik ohne Kamera, damit sie sich testen lässt. L = Bildpunkte (mit visibility), W = Weltpunkte.
-function neuerZaehler(modus) {
-  const z = { modus, wdh: 0, phase: 'oben', seite: null, glatt: {}, schlechtMs: 0, wdhMs: 0, haltenMs: 0, letzteZeit: 0, letzteWdh: 0 };
-  const glaetten = (k, v) => (z.glatt[k] = z.glatt[k] == null ? v : z.glatt[k] + (v - z.glatt[k]) * 0.6);   // leicht glätten, ohne die Tiefe zu verschlucken
-  z.schritt = (L, W, jetzt) => {
-    const dt = z.letzteZeit ? Math.min(200, jetzt - z.letzteZeit) : 0;
-    z.letzteZeit = jetzt;
-    if (!L || !W) return { status: 'bild' };
-    // Seite nehmen, die die Kamera besser sieht, mit etwas Trägheit gegen Flackern
-    const sicht = ix => ix.reduce((s, i) => s + (L[i].visibility || 0), 0);
-    const ls = sicht(SEITE.l), rs = sicht(SEITE.r);
-    if (!z.seite) z.seite = ls >= rs ? 'l' : 'r';
-    else if (z.seite === 'l' && rs > ls + 0.8) z.seite = 'r';
-    else if (z.seite === 'r' && ls > rs + 0.8) z.seite = 'l';
-    const [S, E, Hd, Hu, K, A] = SEITE[z.seite];
-    const brauch = modus === 'arm' ? [S, E, Hd, Hu, A] : modus === 'knie' ? [S, Hu, K, A] : [S, Hu, A];
-    if (Math.min(...brauch.map(i => L[i].visibility || 0)) < 0.4) return { status: 'bild' };
-
-    const linie = glaetten('linie', winkel3(W[S], W[Hu], W[A]));
-    if (modus === 'halten') {
-      // liegt der Körper? Schulter und Knöchel ungefähr auf gleicher Höhe
-      const lang = Math.hypot(W[S].x - W[A].x, W[S].y - W[A].y, W[S].z - W[A].z) || 1;
-      if (Math.abs(W[S].y - W[A].y) / lang > 0.6) return { status: 'position', winkel: linie, gelenk: Hu };
-      if (linie < 150) return { status: 'huefte', winkel: linie, gelenk: Hu };
-      z.haltenMs += dt;
-      const sek = Math.floor(z.haltenMs / 1000);
-      const neu = sek > z.wdh;
-      z.wdh = sek;
-      return { status: 'halten', winkel: linie, gelenk: Hu, neu };
-    }
-
-    const w = modus === 'arm' ? glaetten('arm', winkel3(W[S], W[E], W[Hd])) : glaetten('knie', winkel3(W[Hu], W[K], W[A]));
-    const gelenk = modus === 'arm' ? E : K;
-    // Grenzen bewusst großzügig: unten reicht 110° (Arm) bzw. 115° (Knie), oben reicht 145° bzw. 150°
-    const OBEN = modus === 'arm' ? 145 : 150, START = modus === 'arm' ? 135 : 145, UNTEN = modus === 'arm' ? 110 : 115;
-    // Haltung während der Wiederholung
-    let fehler = null;
-    if (modus === 'arm' && linie < 145) fehler = 'huefte';
-    if (modus === 'knie' && glaetten('rumpf', winkel3(W[S], W[Hu], W[K])) < 30) fehler = 'brust';
-    if (z.phase !== 'oben') { z.wdhMs += dt; if (fehler) z.schlechtMs += dt; }
-
-    let status = fehler || 'gut', neu = false;
-    if (z.phase === 'oben' && w < START) { z.phase = 'runter'; z.schlechtMs = 0; z.wdhMs = 0; }
-    else if (z.phase === 'runter' && w < UNTEN) z.phase = 'unten';
-    else if (z.phase === 'runter' && w > OBEN) { z.phase = 'oben'; status = 'tiefer'; }
-    else if (z.phase === 'unten' && w > OBEN) {
-      z.phase = 'oben';
-      // kurzes Wackeln ist egal, nur wenn die Haltung den Großteil der Wiederholung falsch war
-      if (z.schlechtMs > Math.max(300, z.wdhMs * 0.5)) status = modus === 'arm' ? 'huefte' : 'brust';
-      else if (jetzt - z.letzteWdh > 400) { z.wdh++; z.letzteWdh = jetzt; neu = true; status = 'gut'; }
-    }
-    return { status, winkel: w, gelenk, neu };
+document.querySelectorAll('#profil [data-feld]').forEach(el => {
+  el.value = profil[el.dataset.feld] ?? '';
+  const speichern = () => {
+    let v = el.value.trim();
+    if (['alter', 'groesse'].includes(el.dataset.feld)) v = v.replace(/\D/g, '').slice(0, 3);
+    if (el.dataset.feld === 'gewicht') v = v.replace(/[^\d.,]/g, '').slice(0, 5);
+    profil[el.dataset.feld] = v;
+    Speicher.profilSetzen({ ...profil });
   };
-  return z;
-}
-
-const kam = { aufgabe: null, zaehler: null, satz: 1, strom: null, an: false, landmarker: null, vorne: true, zuletzt: '', zuletztT: 0, fertig: false, festStatus: null,
-  anonym: (() => { try { return localStorage.getItem('lif-anonym') === '1'; } catch { return false; } })(),
-  ton: null, stimmen: {}, stimmeGeladen: false, quelle: null };
-
-/* Eigene Stimme: Dateien in stimme/<code>.mp3. Fehlt eine Datei, spricht die Computerstimme. */
-const STIMME = ['los', 'bild', 'tiefer', 'huefte', 'brust', 'position', 'satz', 'fertig', 's10', 's20', 's30', 's40', 's50', 's60',
-  ...Array.from({ length: 15 }, (_, i) => 'z' + (i + 1))];
-
-function stimmeLaden() {
-  try {
-    kam.ton = kam.ton || new (window.AudioContext || window.webkitAudioContext)();
-    kam.ton.resume();                              // iPhone: Ton geht erst nach einem Tipp
-  } catch { return; }
-  if (kam.stimmeGeladen) return;
-  kam.stimmeGeladen = true;
-  // stimme/liste.json sagt, welche Aufnahmen es gibt, dann wird nur die geladen
-  fetch('stimme/liste.json').then(a => a.ok ? a.json() : []).catch(() => []).then(liste => {
-    liste.filter(code => STIMME.includes(code)).forEach(async code => {
-      try {
-        const antwort = await fetch(`stimme/${code}.mp3`);
-        if (antwort.ok) kam.stimmen[code] = await kam.ton.decodeAudioData(await antwort.arrayBuffer());
-      } catch {}
-    });
-  });
-}
-
-// code = Name der Aufnahme, text = Ersatz für die Computerstimme
-function sprich(code, text, immer, pauseMs = 3500) {
-  const jetzt = Date.now();
-  if (!immer && code === kam.zuletzt && jetzt - kam.zuletztT < pauseMs) return;
-  kam.zuletzt = code; kam.zuletztT = jetzt;
-  const puffer = kam.stimmen[code];
-  if (puffer && kam.ton) {
-    try { kam.quelle?.stop(); } catch {}
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
-    const q = kam.ton.createBufferSource();
-    q.buffer = puffer; q.connect(kam.ton.destination); q.start();
-    kam.quelle = q;
-    return;
-  }
-  sagen(text, true);
-}
-
-function sagen(text, immer) {
-  if (!('speechSynthesis' in window)) return;
-  const jetzt = Date.now();
-  if (!immer && text === kam.zuletzt && jetzt - kam.zuletztT < 3500) return;
-  kam.zuletzt = text; kam.zuletztT = jetzt;
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE'; u.rate = 1.1;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
-
-function kameraStatus(code) {
-  const [text, art] = STATUS[code] || STATUS.gut;
-  const el = $('kStatus');
-  el.textContent = text;
-  el.className = 'k-status ' + art;
-}
-
-function kameraZahlen() {
-  const a = kam.aufgabe;
-  $('kName').textContent = a.name;
-  $('kSatz').textContent = `Satz ${Math.min(kam.satz, a.ziel)} / ${a.ziel}`;
-  $('kWdh').textContent = kam.zaehler.wdh;
-  $('kZiel').textContent = `/ ${a.wdh}${a.modus === 'halten' ? ' s' : ''}`;
-  $('kBalken').style.width = Math.min(100, kam.zaehler.wdh / a.wdh * 100) + '%';
-}
-
-async function landmarkerLaden() {
-  if (kam.landmarker) return kam.landmarker;
-  const { FilesetResolver, PoseLandmarker } = await import(MP + '/vision_bundle.mjs');
-  const dateien = await FilesetResolver.forVisionTasks(MP + '/wasm');
-  const optionen = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
-  try { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('GPU')); }
-  catch { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('CPU')); }
-  return kam.landmarker;
-}
-
-async function kameraOeffnen(a) {
-  const d = heuteDaten();
-  kam.aufgabe = a;
-  kam.satz = Math.min(a.ziel, (d.werte[a.id] || 0) + 1);
-  kam.fertig = (d.werte[a.id] || 0) >= a.ziel;
-  kam.zaehler = neuerZaehler(a.modus);
-  kam.festStatus = null;
-  $('kamera').hidden = false;
-  kameraZahlen();
-  kameraStatus(kam.fertig ? 'fertig' : 'laden');
-  sagen(' ', true);                              // iPhone: Sprache muss nach einem Tipp einmal starten
-  stimmeLaden();
-  anonymAnzeigen();
-  try {
-    await kameraStarten();
-    await landmarkerLaden();
-    if (!kam.an) return;
-    if (!kam.fertig) { kameraStatus('los'); sprich('los', 'Los gehts', true); }
-    kameraSchleife();
-  } catch (e) {
-    kameraStatus('bild');
-    $('kStatus').textContent = e && e.name === 'NotAllowedError' ? 'Kamera nicht erlaubt' : 'Kamera startet nicht';
-  }
-}
-
-async function kameraStarten() {
-  kam.strom?.getTracks().forEach(t => t.stop());
-  kam.strom = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: kam.vorne ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-  const v = $('kVideo');
-  v.srcObject = kam.strom;
-  await v.play();
-  $('kamera').classList.toggle('spiegel', kam.vorne);
-  kam.an = true;
-}
-
-function kameraSchliessen() {
-  kam.an = false;
-  kam.strom?.getTracks().forEach(t => t.stop());
-  kam.strom = null;
-  $('kamera').hidden = true;
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
-  try { kam.quelle?.stop(); } catch {}
-  listeZeichnen();
-}
-
-function skelettZeichnen(L, gelenk, winkel, gut) {
-  const v = $('kVideo'), c = $('kBild');
-  if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
-  const g = c.getContext('2d');
-  g.clearRect(0, 0, c.width, c.height);
-  if (kam.anonym) gesichtAbdecken(g, L, c.width, c.height);
-  if (!L) return;
-  const p = i => [L[i].x * c.width, L[i].y * c.height];
-  const dick = Math.max(4, c.width / 160);
-  const farbe = gut ? '#CCFF00' : '#FF4D4D';
-  g.lineCap = 'round';
-  const linien = (stift, breite) => {
-    g.strokeStyle = stift; g.lineWidth = breite;
-    KNOCHEN.forEach(([a, b]) => {
-      if ((L[a].visibility || 0) < 0.4 || (L[b].visibility || 0) < 0.4) return;
-      g.beginPath(); g.moveTo(...p(a)); g.lineTo(...p(b)); g.stroke();
-    });
-  };
-  linien(farbe, dick);
-  g.fillStyle = '#FFFFFF';
-  [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
-    if ((L[i].visibility || 0) < 0.4) return;
-    g.beginPath(); g.arc(...p(i), dick * 1.1, 0, 7); g.fill();
-  });
-  if (gelenk != null && winkel != null) {
-    const [x, y] = p(gelenk);
-    g.beginPath(); g.arc(x, y, dick * 4, 0, 7);
-    g.strokeStyle = farbe; g.lineWidth = dick * 0.8; g.stroke();
-    // Zahl nicht spiegeln: bei der Frontkamera ist das ganze Bild per CSS gespiegelt
-    g.save();
-    g.translate(x, y - dick * 7);
-    if (kam.vorne) g.scale(-1, 1);
-    g.font = `900 ${Math.round(dick * 6)}px -apple-system, Segoe UI, Roboto, sans-serif`;
-    g.textAlign = 'center';
-    g.lineWidth = dick; g.strokeStyle = '#121318'; g.strokeText(Math.round(winkel) + '°', 0, 0);
-    g.fillStyle = '#FFFFFF'; g.fillText(Math.round(winkel) + '°', 0, 0);
-    g.restore();
-  }
-}
-
-// Anonym: Kreis über dem Gesicht (Punkte 0 bis 10 von MediaPipe: Nase, Augen, Ohren, Mund).
-// Größe aus Ohrabstand und Rumpflänge, damit es auch von der Seite passt.
-// Ist die Person kurz weg, bleibt der Kreis 1,5 s stehen, danach wird das Kamerabild ausgeblendet.
-const gesicht = { x: 0, y: 0, r: 0, zeit: 0 };
-function gesichtAbdecken(g, L, breite, hoehe) {
-  const jetzt = performance.now();
-  if (L) {
-    const kopf = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => (L[i].visibility || 0) > 0.2);
-    if (kopf.length) {
-      const px = i => [L[i].x * breite, L[i].y * hoehe];
-      const xs = kopf.map(i => px(i)[0]), ys = kopf.map(i => px(i)[1]);
-      const mx = xs.reduce((a, b) => a + b) / xs.length, my = ys.reduce((a, b) => a + b) / ys.length;
-      const ohren = Math.hypot(px(7)[0] - px(8)[0], px(7)[1] - px(8)[1]);
-      const rumpf = Math.hypot(px(11)[0] - px(23)[0], px(11)[1] - px(23)[1]);
-      const spanne = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
-      const r = Math.max(ohren * 1.1, spanne * 1.2, rumpf * 0.32, breite * 0.05);
-      Object.assign(gesicht, { x: mx, y: my, r, zeit: jetzt });
-    }
-  }
-  const frisch = jetzt - gesicht.zeit < 1500;
-  $('kamera').classList.toggle('verdeckt', !frisch);
-  if (!frisch) return;
-  g.fillStyle = '#121318';
-  g.beginPath(); g.arc(gesicht.x, gesicht.y, gesicht.r, 0, 7); g.fill();
-  g.strokeStyle = '#CCFF00'; g.lineWidth = Math.max(3, breite / 220); g.stroke();
-}
-
-function anonymAnzeigen() {
-  $('kamera').classList.toggle('anonym', kam.anonym);
-  $('kamera').classList.toggle('verdeckt', kam.anonym);   // bis das Gesicht gefunden ist, kein Kamerabild
-  $('kAnonym').classList.toggle('voll', kam.anonym);
-}
-
-$('kAnonym').addEventListener('click', async () => {
-  kam.anonym = !kam.anonym;
-  try { localStorage.setItem('lif-anonym', kam.anonym ? '1' : '0'); } catch {}
-  anonymAnzeigen();
-  meldung(kam.anonym ? 'Anonym an' : 'Anonym aus');
+  el.addEventListener('input', speichern);
+  el.addEventListener('change', () => { speichern(); el.value = profil[el.dataset.feld]; });
 });
 
-function satzFertig() {
-  const a = kam.aufgabe, d = heuteDaten();
-  d.werte[a.id] = Math.min(a.ziel, (d.werte[a.id] || 0) + 1);
-  heuteSichern(d);
-  if (d.werte[a.id] >= a.ziel) {
-    kam.fertig = true;
-    kameraStatus('fertig'); sprich('fertig', 'Fertig für heute. Stark.', true);
-  } else {
-    kam.satz = d.werte[a.id] + 1;
-    kameraStatus('satz'); sprich('satz', 'Satz geschafft. Kurz Pause.', true);
-    kam.zaehler = neuerZaehler(a.modus);
+$('apiKey').value = keyLesen();
+$('apiKey').addEventListener('change', () => {
+  keySchreiben($('apiKey').value.trim());
+  coachZustand.modell = null;
+  keyAnzeigen();
+  if ($('apiKey').value.trim()) keyPruefen();
+});
+$('keyTesten').addEventListener('click', keyPruefen);
+
+function keyAnzeigen(text) {
+  $('keyStatus').textContent = text || (keyLesen() ? 'gespeichert' : 'fehlt');
+}
+
+async function geminiAbruf(pfad, body) {
+  const key = keyLesen();
+  if (!key) throw new Error('Kein API-Key');
+  const antwort = await fetch(GEMINI + pfad, {
+    method: body ? 'POST' : 'GET',
+    headers: { 'x-goog-api-key': key, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const j = await antwort.json().catch(() => ({}));
+  if (!antwort.ok) {
+    const grund = j.error?.message || '';
+    if (antwort.status === 400 && /api key/i.test(grund)) throw new Error('Key ungültig');
+    if (antwort.status === 403) throw new Error('Key gesperrt');
+    if (antwort.status === 429) throw new Error('Limit erreicht, später nochmal');
+    throw new Error('Fehler ' + antwort.status);
   }
-  kam.festStatus = Date.now() + 2500;           // Meldung kurz stehen lassen
-  kameraZahlen();
+  return j;
 }
 
-function kameraSchleife() {
-  const v = $('kVideo');
-  let letzteVideoZeit = -1;
-  const schritt = () => {
-    if (!kam.an) return;
-    if (v.currentTime !== letzteVideoZeit && v.readyState >= 2) {
-      letzteVideoZeit = v.currentTime;
-      const jetzt = performance.now();
-      const r = kam.landmarker.detectForVideo(v, jetzt);
-      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0];
-      const e = kam.fertig ? { status: 'fertig' } : kam.zaehler.schritt(L, W, jetzt);
-      const gut = !STATUS[e.status] || STATUS[e.status][1] !== 'schlecht';
-      skelettZeichnen(L, e.gelenk, e.winkel, gut);
-      if (!kam.festStatus || Date.now() > kam.festStatus) { kam.festStatus = null; kameraStatus(e.status); }
-      if (e.neu) {
-        kameraZahlen();
-        const n = kam.zaehler.wdh;
-        if (n >= kam.aufgabe.wdh) satzFertig();                       // letzte Zahl übernimmt "Satz geschafft"
-        else if (kam.aufgabe.modus !== 'halten') sprich('z' + n, String(n), true);
-        else if (n % 10 === 0) sprich('s' + Math.min(n, 60), n === 60 ? 'Eine Minute' : n + ' Sekunden', true);
-      } else if (e.status === 'bild') sprich('bild', STATUS.bild[0], false, 8000);
-      else if (!gut) sprich(e.status, STATUS[e.status][0]);
-    }
-    requestAnimationFrame(schritt);
-  };
-  requestAnimationFrame(schritt);
+// Bevorzugte Modelle der Reihe nach, sonst das neueste normale Flash-Modell aus der Liste
+const BEVORZUGT = ['gemini-3.5-flash', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+async function modellWaehlen() {
+  if (coachZustand.modell) return coachZustand.modell;
+  const j = await geminiAbruf('/models?pageSize=200');
+  const namen = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace('models/', ''));
+  let wahl = BEVORZUGT.find(b => namen.includes(b));
+  if (!wahl) {
+    wahl = namen.filter(n => /flash/.test(n) && !/image|tts|audio|live|embed|vision|thinking|exp|preview/.test(n))
+      .sort((a, b) => b.localeCompare(a, 'en', { numeric: true }))[0];
+  }
+  if (!wahl) throw new Error('Kein passendes Modell');
+  coachZustand.modell = wahl;
+  return wahl;
 }
 
-$('kZu').addEventListener('click', kameraSchliessen);
-$('kDrehen').addEventListener('click', async () => {
-  kam.vorne = !kam.vorne;
-  try { await kameraStarten(); } catch { meldung('Kamera startet nicht'); }
+async function keyPruefen() {
+  const k = $('keyTesten');
+  k.classList.add('dreht');
+  try { const m = await modellWaehlen(); keyAnzeigen('verbunden · ' + m); }
+  catch (e) { keyAnzeigen(e.message); }
+  k.classList.remove('dreht');
+}
+
+const PLAN_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    tage: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          tag: { type: 'STRING', enum: WOCHENTAGE },
+          pause: { type: 'BOOLEAN' },
+          fokus: { type: 'STRING' },
+          laufKm: { type: 'NUMBER' },
+          uebungen: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: { name: { type: 'STRING' }, saetze: { type: 'INTEGER' }, wdh: { type: 'STRING' } },
+              required: ['name', 'saetze', 'wdh'],
+            },
+          },
+        },
+        required: ['tag', 'pause', 'fokus', 'laufKm', 'uebungen'],
+      },
+    },
+    tipp: { type: 'STRING' },
+  },
+  required: ['tage', 'tipp'],
+};
+
+function planAnfrage() {
+  const jung = +profil.alter && +profil.alter < 18;
+  const daten = { alter: profil.alter || 'unbekannt', groesse_cm: profil.groesse || 'unbekannt', gewicht_kg: profil.gewicht || 'unbekannt',
+    ziel: profil.ziel, level: profil.level, trainingstage_pro_woche: +profil.tage, minuten_pro_training: +profil.minuten,
+    ausruestung: profil.ausruestung, hinweise: profil.hinweise || 'keine' };
+  return [
+    'Erstelle einen Wochenplan (Mo bis So) für dieses Profil:',
+    JSON.stringify(daten),
+    `Genau ${profil.tage} Trainingstage, die anderen Tage sind Pause (pause = true, keine Übungen, laufKm 0).`,
+    `Jedes Training passt in ${profil.minuten} Minuten, höchstens 6 Übungen pro Tag, Trainingstage nicht alle hintereinander.`,
+    `Nur Übungen, die mit dieser Ausrüstung gehen: ${profil.ausruestung}.`,
+    'Übungsnamen kurz auf Deutsch, so wie man sie kennt (z.B. Liegestütze, Squats, Plank, Ausfallschritte).',
+    'wdh ist eine Zahl als Text ("12") oder eine Zeit mit s ("30 s"). saetze zwischen 2 und 5.',
+    'laufKm: 0 oder eine Strecke in km, wenn ein Lauf an dem Tag sinnvoll ist.',
+    'fokus: 2 bis 4 Wörter, z.B. "Oberkörper und Rumpf". tipp: ein kurzer Satz zum Plan, ohne Gedankenstriche.',
+    jung ? 'Die Person ist unter 18: jugendgerecht, Körpergewicht und leichte Gewichte, saubere Technik vor Last, keine Maximalversuche, keine Diät-Tipps.' : '',
+    profil.hinweise ? 'Beachte die Hinweise und lass belastende Übungen dafür weg.' : '',
+  ].filter(Boolean).join('\n');
+}
+
+function planPruefen(roh) {
+  const tage = WOCHENTAGE.map(tag => {
+    const t = (roh.tage || []).find(x => x.tag === tag) || { tag, pause: true, fokus: 'Pause', laufKm: 0, uebungen: [] };
+    const uebungen = (t.uebungen || []).slice(0, 8).map(u => ({
+      name: String(u.name || '').slice(0, 40), saetze: Math.max(1, Math.min(6, Math.round(+u.saetze || 3))), wdh: String(u.wdh || '10').slice(0, 10),
+    })).filter(u => u.name);
+    const pause = !!t.pause || (!uebungen.length && !(+t.laufKm > 0));
+    return { tag, pause, fokus: String(t.fokus || (pause ? 'Pause' : 'Training')).slice(0, 40), laufKm: pause ? 0 : Math.max(0, Math.min(15, +t.laufKm || 0)), uebungen: pause ? [] : uebungen };
+  });
+  return { tage, tipp: String(roh.tipp || '').slice(0, 200), erstellt: Date.now() };
+}
+
+async function planErstellen() {
+  if (!keyLesen()) { $('apiKey').focus(); return meldung('Erst API-Key eintragen'); }
+  const k = $('planKnopf');
+  if (k.disabled) return;
+  k.disabled = true; k.classList.add('dreht');
+  $('planStatus').textContent = 'Coach schreibt...';
+  try {
+    const modell = await modellWaehlen();
+    const j = await geminiAbruf(`/models/${modell}:generateContent`, {
+      systemInstruction: { parts: [{ text: 'Du bist ein Fitness-Coach in einer App. Du planst sicher, realistisch und motivierend. Antworte nur mit JSON nach dem Schema.' }] },
+      contents: [{ role: 'user', parts: [{ text: planAnfrage() }] }],
+      generationConfig: { responseMimeType: 'application/json', responseSchema: PLAN_SCHEMA, temperature: 0.7 },
+    });
+    const text = j.candidates?.[0]?.content?.parts?.map(x => x.text || '').join('') || '';
+    const plan = planPruefen(JSON.parse(text));
+    Speicher.trainingSetzen(plan);
+    keyAnzeigen('verbunden · ' + modell);
+    coachZeichnen();
+    meldung('Plan steht');
+  } catch (e) {
+    $('planStatus').textContent = e instanceof SyntaxError ? 'Antwort kaputt, nochmal' : e.message;
+  }
+  k.disabled = false; k.classList.remove('dreht');
+}
+$('planKnopf').addEventListener('click', planErstellen);
+$('planWeg').addEventListener('click', () => {
+  if (!confirm('Plan löschen? Heute zeigt dann wieder die Standard-Übungen.')) return;
+  Speicher.trainingSetzen(null);
+  coachZeichnen();
+});
+
+let offenerTag = null;
+function coachZeichnen() {
+  keyAnzeigen($('keyStatus').textContent.startsWith('verbunden') ? $('keyStatus').textContent : '');
+  const plan = Speicher.daten.training;
+  $('planTabelle').hidden = !plan;
+  $('planWeg').hidden = !plan;
+  $('planTipp').textContent = plan?.tipp || '';
+  $('planAktion').textContent = plan ? 'neu erstellen' : 'erstellen';
+  $('planStatus').textContent = plan ? 'erstellt ' + new Date(plan.erstellt).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) : 'noch keiner';
+  if (!plan) return;
+  $('planTage').innerHTML = plan.tage.map(t => {
+    const info = t.pause ? 'Pause' : `${t.uebungen.length} Übungen${t.laufKm ? ` · ${zahl(t.laufKm, 1)} km` : ''}`;
+    const zeile = `<tr class="plantag${t.tag === heuteKurz ? ' heute-tag' : ''}${t.pause ? ' pause' : ''}" data-tag="${t.tag}">
+      <td class="name">${t.tag}<span class="unter">${esc(t.fokus)}</span></td><td class="ziel" colspan="2">${info}</td></tr>`;
+    const details = t.tag === offenerTag && !t.pause ? t.uebungen.map(u =>
+      `<tr class="uebung"><td class="name">${esc(u.name)}</td><td class="ziel" colspan="2">${u.saetze} × ${esc(u.wdh)}</td></tr>`).join('') : '';
+    return zeile + details;
+  }).join('');
+}
+$('planTage').addEventListener('click', e => {
+  const z = e.target.closest('tr.plantag');
+  if (!z) return;
+  offenerTag = offenerTag === z.dataset.tag ? null : z.dataset.tag;
+  coachZeichnen();
 });
 
 /* ================= START ================= */
 listeZeichnen();
 planZeigen(false);
 const start = location.hash.slice(1);
-if (['heute', 'map', 'habits'].includes(start)) tabZeigen(start);
+if (['heute', 'map', 'coach', 'habits'].includes(start)) tabZeigen(start);
 </script>
 </body>
 </html>
