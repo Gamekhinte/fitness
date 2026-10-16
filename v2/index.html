@@ -94,7 +94,28 @@ tr.habit.offen td{border-bottom-color:transparent}
 .nav button{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;color:var(--mut);font-size:10px;font-weight:800;letter-spacing:.4px;padding:11px 0 9px;border-radius:15px;border:1.5px solid transparent;cursor:pointer}
 .nav button.aktiv{background:var(--card);color:var(--volt);border-color:var(--volt)}
 .nav svg{width:22px;height:22px}
-.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe));transform:translate(-50%,10px);background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:1001;max-width:calc(100% - 40px);text-align:center}
+.tbl td.name .cam{background:transparent;border:0;color:var(--mut);width:28px;height:24px;margin-left:6px;vertical-align:-5px;cursor:pointer;padding:0}
+.tbl td.name .cam svg{width:20px;height:20px}
+.tbl td.name .cam:active{color:var(--volt)}
+.kamera{position:fixed;inset:0;background:#000;z-index:2000;overflow:hidden}
+.kamera[hidden]{display:none}
+.kamera video,.kamera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.kamera.spiegel video,.kamera.spiegel canvas{transform:scaleX(-1)}
+.k-oben{position:absolute;left:14px;right:14px;top:calc(14px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;background:rgba(18,19,24,.82);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.k-oben b{display:block;font-size:18px;font-weight:900;margin-top:2px}
+.k-knoepfe{display:flex;gap:10px}
+.k-knoepfe .kreis{width:38px;height:38px;background:var(--bg)}
+.k-knoepfe .kreis svg{width:18px;height:18px}
+.k-unten{position:absolute;left:14px;right:14px;bottom:calc(14px + var(--safe));background:rgba(18,19,24,.86);border:1px solid var(--line);border-radius:18px;padding:14px 16px 16px}
+.k-zahl{display:flex;align-items:baseline;gap:8px}
+.k-zahl b{font-size:64px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.k-zahl span{color:var(--mut);font-size:22px;font-weight:800}
+.k-status{font-size:17px;font-weight:900;margin-top:6px;color:var(--mut)}
+.k-status.gut{color:var(--volt)}
+.k-status.schlecht{color:var(--rot)}
+.k-unten .balken{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:12px}
+.k-unten .balken i{display:block;height:100%;width:0;background:var(--volt);transition:width .2s}
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe));transform:translate(-50%,10px);background:var(--card);border:1px solid var(--line);color:var(--txt);font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:2001;max-width:calc(100% - 40px);text-align:center}
 .toast.zeigen{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
@@ -108,6 +129,9 @@ tr.habit.offen td{border-bottom-color:transparent}
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
   <symbol id="i-stopp" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
   <symbol id="i-nav" viewBox="0 0 24 24"><path d="M12 3l7 18-7-4-7 4z" fill="currentColor"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-zu" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-drehen" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
 </svg>
 
@@ -129,7 +153,7 @@ tr.habit.offen td{border-bottom-color:transparent}
     <button class="leise" id="backupRein">Backup laden</button>
     <input type="file" id="backupDatei" accept="application/json,.json" hidden>
   </div>
-  <p class="version">Version 4.2</p>
+  <p class="version">Version 5.0</p>
 </main>
 
 <!-- MAP -->
@@ -207,6 +231,22 @@ tr.habit.offen td{border-bottom-color:transparent}
   <button data-tab="map"><svg><use href="#i-pin"/></svg>MAP</button>
   <button data-tab="habits"><svg><use href="#i-shield"/></svg>HABITS</button>
 </nav>
+<div class="kamera" id="kamera" hidden>
+  <video id="kVideo" playsinline muted autoplay></video>
+  <canvas id="kBild"></canvas>
+  <div class="k-oben">
+    <div><span class="label" id="kSatz">Satz 1 / 3</span><b id="kName">Liegestütze</b></div>
+    <div class="k-knoepfe">
+      <button class="kreis symbol" id="kDrehen" aria-label="Kamera wechseln"><svg><use href="#i-drehen"/></svg></button>
+      <button class="kreis symbol" id="kZu" aria-label="Schließen"><svg><use href="#i-zu"/></svg></button>
+    </div>
+  </div>
+  <div class="k-unten">
+    <div class="k-zahl"><b id="kWdh">0</b><span id="kZiel">/ 10</span></div>
+    <div class="k-status" id="kStatus">Lädt</div>
+    <div class="balken"><i id="kBalken"></i></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -284,13 +324,13 @@ document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click'
 
 /* ================= HEUTE ================= */
 const AUFGABEN = [
-  { id: 'liegestuetze', name: 'Liegestütze', art: 'sets', ziel: 3 },
-  { id: 'squats',       name: 'Squats',      art: 'sets', ziel: 3 },
-  { id: 'plank',        name: 'Plank',       art: 'sets', ziel: 3 },
+  { id: 'liegestuetze', name: 'Liegestütze', art: 'sets', ziel: 3, wdh: 10, modus: 'arm' },
+  { id: 'squats',       name: 'Squats',      art: 'sets', ziel: 3, wdh: 15, modus: 'knie' },
+  { id: 'plank',        name: 'Plank',       art: 'sets', ziel: 3, wdh: 30, modus: 'halten' },
   { id: 'lauf',         name: 'Lauf',        art: 'km',   ziel: 2 },
   { id: 'schritte',     name: 'Schritte',    art: 'zahl', ziel: 10000 },
 ];
-const zielText = a => a.art === 'sets' ? a.ziel + ' Sets' : a.art === 'km' ? zahl(a.ziel, 1) + ' km' : zahl(a.ziel);
+const zielText = a => a.art === 'sets' ? `${a.ziel} × ${a.wdh}${a.modus === 'halten' ? ' s' : ''}` : a.art === 'km' ? zahl(a.ziel, 1) + ' km' : zahl(a.ziel);
 const standText = (a, wert) => a.art === 'sets' ? wert + '/' + a.ziel : a.art === 'km' ? zahl(wert, 1) + ' km' : zahl(wert);
 
 function heuteDaten() {
@@ -331,10 +371,11 @@ function listeZeichnen() {
     const standZelle = a.art === 'sets'
       ? `<td class="stand tippbar">${standText(a, wert)}</td>`
       : `<td class="stand"><input class="eingabe ${a.art}" inputmode="decimal" value="${wert ? zahl(wert, a.art === 'km' ? 2 : 0) : ''}" placeholder="0"><span class="einheit">${a.art === 'km' ? 'km' : ''}</span></td>`;
-    tr.innerHTML = `<td class="name">${a.name}</td><td class="ziel">${zielText(a)}</td>${standZelle}
+    tr.innerHTML = `<td class="name">${a.name}${a.modus ? `<button class="cam" aria-label="${a.name} mit Kamera"><svg><use href="#i-cam"/></svg></button>` : ''}</td><td class="ziel">${zielText(a)}</td>${standZelle}
       <td><button class="kreis" aria-label="${a.name} abhaken"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#121318" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></td>`;
     if (istFertig(a, d)) tr.classList.add('fertig');
 
+    tr.querySelector('.cam')?.addEventListener('click', () => kameraOeffnen(a));
     tr.querySelector('.tippbar')?.addEventListener('click', () => {
       d.werte[a.id] = wert >= a.ziel ? 0 : wert + 1;
       heuteSichern(d); listeZeichnen();
@@ -747,6 +788,248 @@ $('habitListe').addEventListener('click', e => {
     return habitsZeichnen();
   } else return;
   Speicher.habitsSichern(); habitsZeichnen();
+});
+
+/* ================= KAMERA: Wiederholungen zählen und Haltung prüfen =================
+   MediaPipe Pose erkennt 33 Körperpunkte. Gezählt wird über 3D-Winkel (Weltkoordinaten in Metern),
+   damit es egal ist, wie schräg das Handy steht:
+   arm    = Schulter-Ellbogen-Handgelenk (Liegestütze), dazu Körperlinie Schulter-Hüfte-Knöchel
+   knie   = Hüfte-Knie-Knöchel (Squats), dazu Oberkörper Schulter-Hüfte-Knie
+   halten = Körperlinie (Plank), die Zeit läuft nur bei gerader Linie */
+const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35';
+const MODELL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+const KNOCHEN = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
+const SEITE = { l: [11, 13, 15, 23, 25, 27], r: [12, 14, 16, 24, 26, 28] };   // Schulter, Ellbogen, Hand, Hüfte, Knie, Knöchel
+const STATUS = {
+  laden: ['Lädt', ''], bild: ['Ganzer Körper ins Bild', 'schlecht'], los: ['Los gehts', 'gut'], gut: ['Gut', 'gut'],
+  tiefer: ['Tiefer runter', 'schlecht'], huefte: ['Hüfte gerade', 'schlecht'], brust: ['Brust hoch', 'schlecht'],
+  position: ['In Plank-Position gehen', 'schlecht'], halten: ['Halten', 'gut'], satz: ['Satz geschafft', 'gut'], fertig: ['Fertig für heute', 'gut'],
+};
+
+function winkel3(a, b, c) {
+  const u = [a.x - b.x, a.y - b.y, a.z - b.z], v = [c.x - b.x, c.y - b.y, c.z - b.z];
+  const n = Math.hypot(...u) * Math.hypot(...v) || 1;
+  return Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) / n))) * 180 / Math.PI;
+}
+
+// Reine Zähl-Logik ohne Kamera, damit sie sich testen lässt. L = Bildpunkte (mit visibility), W = Weltpunkte.
+function neuerZaehler(modus) {
+  const z = { modus, wdh: 0, phase: 'oben', seite: null, glatt: {}, schlechtMs: 0, haltenMs: 0, letzteZeit: 0, letzteWdh: 0 };
+  const glaetten = (k, v) => (z.glatt[k] = z.glatt[k] == null ? v : z.glatt[k] + (v - z.glatt[k]) * 0.4);
+  z.schritt = (L, W, jetzt) => {
+    const dt = z.letzteZeit ? Math.min(200, jetzt - z.letzteZeit) : 0;
+    z.letzteZeit = jetzt;
+    if (!L || !W) return { status: 'bild' };
+    // Seite nehmen, die die Kamera besser sieht, mit etwas Trägheit gegen Flackern
+    const sicht = ix => ix.reduce((s, i) => s + (L[i].visibility || 0), 0);
+    const ls = sicht(SEITE.l), rs = sicht(SEITE.r);
+    if (!z.seite) z.seite = ls >= rs ? 'l' : 'r';
+    else if (z.seite === 'l' && rs > ls + 0.8) z.seite = 'r';
+    else if (z.seite === 'r' && ls > rs + 0.8) z.seite = 'l';
+    const [S, E, Hd, Hu, K, A] = SEITE[z.seite];
+    const brauch = modus === 'arm' ? [S, E, Hd, Hu, A] : modus === 'knie' ? [S, Hu, K, A] : [S, Hu, A];
+    if (Math.min(...brauch.map(i => L[i].visibility || 0)) < 0.5) return { status: 'bild' };
+
+    const linie = glaetten('linie', winkel3(W[S], W[Hu], W[A]));
+    if (modus === 'halten') {
+      // liegt der Körper? Schulter und Knöchel ungefähr auf gleicher Höhe
+      const lang = Math.hypot(W[S].x - W[A].x, W[S].y - W[A].y, W[S].z - W[A].z) || 1;
+      if (Math.abs(W[S].y - W[A].y) / lang > 0.5) return { status: 'position', winkel: linie, gelenk: Hu };
+      if (linie < 160) return { status: 'huefte', winkel: linie, gelenk: Hu };
+      z.haltenMs += dt;
+      const sek = Math.floor(z.haltenMs / 1000);
+      const neu = sek > z.wdh;
+      z.wdh = sek;
+      return { status: 'halten', winkel: linie, gelenk: Hu, neu };
+    }
+
+    const w = modus === 'arm' ? glaetten('arm', winkel3(W[S], W[E], W[Hd])) : glaetten('knie', winkel3(W[Hu], W[K], W[A]));
+    const gelenk = modus === 'arm' ? E : K;
+    const OBEN = modus === 'arm' ? 150 : 160, START = modus === 'arm' ? 130 : 140, UNTEN = 100;
+    // Haltung während der Wiederholung
+    let fehler = null;
+    if (modus === 'arm' && linie < 155) fehler = 'huefte';
+    if (modus === 'knie' && glaetten('rumpf', winkel3(W[S], W[Hu], W[K])) < 40) fehler = 'brust';
+    if (z.phase !== 'oben' && fehler) z.schlechtMs += dt;
+
+    let status = fehler || 'gut', neu = false;
+    if (z.phase === 'oben' && w < START) { z.phase = 'runter'; z.schlechtMs = 0; }
+    else if (z.phase === 'runter' && w < UNTEN) z.phase = 'unten';
+    else if (z.phase === 'runter' && w > OBEN) { z.phase = 'oben'; status = 'tiefer'; }
+    else if (z.phase === 'unten' && w > OBEN) {
+      z.phase = 'oben';
+      if (z.schlechtMs > 400) status = modus === 'arm' ? 'huefte' : 'brust';
+      else if (jetzt - z.letzteWdh > 400) { z.wdh++; z.letzteWdh = jetzt; neu = true; status = 'gut'; }
+    }
+    return { status, winkel: w, gelenk, neu };
+  };
+  return z;
+}
+
+const kam = { aufgabe: null, zaehler: null, satz: 1, strom: null, an: false, landmarker: null, vorne: true, zuletzt: '', zuletztT: 0, fertig: false, festStatus: null };
+
+function sagen(text, immer) {
+  if (!('speechSynthesis' in window)) return;
+  const jetzt = Date.now();
+  if (!immer && text === kam.zuletzt && jetzt - kam.zuletztT < 3500) return;
+  kam.zuletzt = text; kam.zuletztT = jetzt;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE'; u.rate = 1.1;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+function kameraStatus(code) {
+  const [text, art] = STATUS[code] || STATUS.gut;
+  const el = $('kStatus');
+  el.textContent = text;
+  el.className = 'k-status ' + art;
+}
+
+function kameraZahlen() {
+  const a = kam.aufgabe;
+  $('kName').textContent = a.name;
+  $('kSatz').textContent = `Satz ${Math.min(kam.satz, a.ziel)} / ${a.ziel}`;
+  $('kWdh').textContent = kam.zaehler.wdh;
+  $('kZiel').textContent = `/ ${a.wdh}${a.modus === 'halten' ? ' s' : ''}`;
+  $('kBalken').style.width = Math.min(100, kam.zaehler.wdh / a.wdh * 100) + '%';
+}
+
+async function landmarkerLaden() {
+  if (kam.landmarker) return kam.landmarker;
+  const { FilesetResolver, PoseLandmarker } = await import(MP + '/vision_bundle.mjs');
+  const dateien = await FilesetResolver.forVisionTasks(MP + '/wasm');
+  const optionen = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
+    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
+  try { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('GPU')); }
+  catch { kam.landmarker = await PoseLandmarker.createFromOptions(dateien, optionen('CPU')); }
+  return kam.landmarker;
+}
+
+async function kameraOeffnen(a) {
+  const d = heuteDaten();
+  kam.aufgabe = a;
+  kam.satz = Math.min(a.ziel, (d.werte[a.id] || 0) + 1);
+  kam.fertig = (d.werte[a.id] || 0) >= a.ziel;
+  kam.zaehler = neuerZaehler(a.modus);
+  kam.festStatus = null;
+  $('kamera').hidden = false;
+  kameraZahlen();
+  kameraStatus(kam.fertig ? 'fertig' : 'laden');
+  sagen(' ', true);                              // iPhone: Sprache muss nach einem Tipp einmal starten
+  try {
+    await kameraStarten();
+    await landmarkerLaden();
+    if (!kam.an) return;
+    if (!kam.fertig) { kameraStatus('los'); sagen('Los gehts', true); }
+    kameraSchleife();
+  } catch (e) {
+    kameraStatus('bild');
+    $('kStatus').textContent = e && e.name === 'NotAllowedError' ? 'Kamera nicht erlaubt' : 'Kamera startet nicht';
+  }
+}
+
+async function kameraStarten() {
+  kam.strom?.getTracks().forEach(t => t.stop());
+  kam.strom = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: kam.vorne ? 'user' : 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  const v = $('kVideo');
+  v.srcObject = kam.strom;
+  await v.play();
+  $('kamera').classList.toggle('spiegel', kam.vorne);
+  kam.an = true;
+}
+
+function kameraSchliessen() {
+  kam.an = false;
+  kam.strom?.getTracks().forEach(t => t.stop());
+  kam.strom = null;
+  $('kamera').hidden = true;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  listeZeichnen();
+}
+
+function skelettZeichnen(L, gelenk, winkel, gut) {
+  const v = $('kVideo'), c = $('kBild');
+  if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, c.width, c.height);
+  if (!L) return;
+  const p = i => [L[i].x * c.width, L[i].y * c.height];
+  const dick = Math.max(4, c.width / 160);
+  const farbe = gut ? '#CCFF00' : '#FF4D4D';
+  g.lineCap = 'round';
+  g.strokeStyle = farbe;
+  g.lineWidth = dick;
+  KNOCHEN.forEach(([a, b]) => {
+    if ((L[a].visibility || 0) < 0.4 || (L[b].visibility || 0) < 0.4) return;
+    g.beginPath(); g.moveTo(...p(a)); g.lineTo(...p(b)); g.stroke();
+  });
+  g.fillStyle = '#FFFFFF';
+  [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => {
+    if ((L[i].visibility || 0) < 0.4) return;
+    g.beginPath(); g.arc(...p(i), dick * 1.1, 0, 7); g.fill();
+  });
+  if (gelenk != null && winkel != null) {
+    const [x, y] = p(gelenk);
+    g.beginPath(); g.arc(x, y, dick * 4, 0, 7);
+    g.strokeStyle = farbe; g.lineWidth = dick * 0.8; g.stroke();
+    // Zahl nicht spiegeln: bei der Frontkamera ist das ganze Bild per CSS gespiegelt
+    g.save();
+    g.translate(x, y - dick * 7);
+    if (kam.vorne) g.scale(-1, 1);
+    g.font = `900 ${Math.round(dick * 6)}px -apple-system, Segoe UI, Roboto, sans-serif`;
+    g.textAlign = 'center';
+    g.lineWidth = dick; g.strokeStyle = '#121318'; g.strokeText(Math.round(winkel) + '°', 0, 0);
+    g.fillStyle = '#FFFFFF'; g.fillText(Math.round(winkel) + '°', 0, 0);
+    g.restore();
+  }
+}
+
+function satzFertig() {
+  const a = kam.aufgabe, d = heuteDaten();
+  d.werte[a.id] = Math.min(a.ziel, (d.werte[a.id] || 0) + 1);
+  heuteSichern(d);
+  if (d.werte[a.id] >= a.ziel) {
+    kam.fertig = true;
+    kameraStatus('fertig'); sagen('Fertig für heute. Stark.', true);
+  } else {
+    kam.satz = d.werte[a.id] + 1;
+    kameraStatus('satz'); sagen(`Satz geschafft. Kurz Pause, dann Satz ${kam.satz}.`, true);
+    kam.zaehler = neuerZaehler(a.modus);
+  }
+  kam.festStatus = Date.now() + 2500;           // Meldung kurz stehen lassen
+  kameraZahlen();
+}
+
+function kameraSchleife() {
+  const v = $('kVideo');
+  let letzteVideoZeit = -1;
+  const schritt = () => {
+    if (!kam.an) return;
+    if (v.currentTime !== letzteVideoZeit && v.readyState >= 2) {
+      letzteVideoZeit = v.currentTime;
+      const jetzt = performance.now();
+      const r = kam.landmarker.detectForVideo(v, jetzt);
+      const L = r.landmarks?.[0], W = r.worldLandmarks?.[0];
+      const e = kam.fertig ? { status: 'fertig' } : kam.zaehler.schritt(L, W, jetzt);
+      const gut = !STATUS[e.status] || STATUS[e.status][1] !== 'schlecht';
+      skelettZeichnen(L, e.gelenk, e.winkel, gut);
+      if (!kam.festStatus || Date.now() > kam.festStatus) { kam.festStatus = null; kameraStatus(e.status); }
+      if (e.neu) {
+        kameraZahlen();
+        if (kam.aufgabe.modus !== 'halten' || kam.zaehler.wdh % 10 === 0) sagen(String(kam.zaehler.wdh), true);
+        if (kam.zaehler.wdh >= kam.aufgabe.wdh) satzFertig();
+      } else if (!gut && e.status !== 'bild') sagen(STATUS[e.status][0]);
+    }
+    requestAnimationFrame(schritt);
+  };
+  requestAnimationFrame(schritt);
+}
+
+$('kZu').addEventListener('click', kameraSchliessen);
+$('kDrehen').addEventListener('click', async () => {
+  kam.vorne = !kam.vorne;
+  try { await kameraStarten(); } catch { meldung('Kamera startet nicht'); }
 });
 
 /* ================= START ================= */
