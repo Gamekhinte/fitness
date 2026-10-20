@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#121318">
+<meta name="theme-color" content="#0A1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>LockedIn Fit</title>
+<title>Winterform</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="LockedIn">
+<meta name="apple-mobile-web-app-title" content="Winterform">
 <link rel="stylesheet" href="styles.css?v=12">
 <style>
 .tick,.pchk{background:transparent;padding:8px;margin:-8px -8px -8px auto;display:block;color:var(--mut)}
@@ -48,7 +48,7 @@ body[data-dir="l"]{--dx:-26px}
 button,.chip,.tile,.ex{transition:transform .18s var(--ease),background-color .25s ease,color .25s ease,border-color .25s ease,opacity .25s ease,box-shadow .25s ease}
 button:active:not(:disabled){transform:scale(.96)}
 .nav button:active{transform:scale(.92)}
-.chip.on{box-shadow:0 0 0 3px rgba(204,255,0,.12)}
+.chip.on{box-shadow:0 0 0 3px rgba(124,212,255,.14)}
 .tick:active .chk,.pchk:active .chk{transform:scale(.75)}
 .chk{transition:transform .25s var(--spring),color .25s ease}
 .bar i{transition:width .7s var(--ease)}
@@ -98,7 +98,7 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
     <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="13" r="1.4" fill="currentColor"/><circle cx="15" cy="13" r="1.4" fill="currentColor"/><path d="M12 7V4M9 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#CCFF00"/><path d="M8 12.5l3 3 5-6" fill="none" stroke="#121318" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#7CD4FF"/><path d="M8 12.5l3 3 5-6" fill="none" stroke="#0A1220" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#94A3B8" stroke-width="2"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
@@ -110,7 +110,7 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 </svg>
 
 <header class="top">
-  <div class="logo">LOCKED<span>IN</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v16</small></div>
+  <div class="logo">WINTER<span>FORM</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v17</small></div>
   <button class="pill" id="profileBtn">PROFIL</button>
 </header>
 
@@ -540,18 +540,18 @@ function drawAll(poses,W=220,Hh=140){
   const ox=(W-(x1+x0)*s)/2,gy=Hh-pad+2-(Hh-2*pad-6-h*s)/2-2;
   const X=q=>(q[0]*s+ox).toFixed(1),Y=q=>(gy-q[1]*s).toFixed(1);
   return fs.map(f=>{
-    const col=k=>`style="stroke:${f.hl.includes(k)?'var(--volt)':'#E8EAF0'}"`;
+    const col=k=>`style="stroke:${f.hl.includes(k)?'var(--volt)':'#EAF6FF'}"`;
     const ln=(pp,k,al,wd)=>`<polyline points="${pp.map(q=>X(q)+','+Y(q)).join(' ')}" fill="none" ${col(k)} stroke-width="${wd||4.5}" stroke-linecap="round" stroke-linejoin="round" opacity="${al}"/>`;
     const foot=(l,al)=>{if(!f.ft)return '';const dir=f.ft===2?(l.e[0]>=f.H[0]?1:-1):1;return ln([l.e,[l.e[0]+7*dir,l.e[1]]],'l',al,4)};
     let o=`<svg viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg" role="img">`;
-    o+=`<line x1="8" y1="${Y([0,0])}" x2="${W-8}" y2="${Y([0,0])}" style="stroke:#3A3F52" stroke-width="2" stroke-dasharray="4 4"/>`;
-    f.props.forEach(r=>{const xx=Math.min(r[0],r[2]),yy=Math.max(r[1],r[3]);o+=`<rect x="${(xx*s+ox).toFixed(1)}" y="${(gy-yy*s).toFixed(1)}" width="${(Math.abs(r[2]-r[0])*s).toFixed(1)}" height="${(Math.abs(r[3]-r[1])*s).toFixed(1)}" rx="2" fill="#2A2D3A" style="stroke:#94A3B8" stroke-width="1.5"/>`});
+    o+=`<line x1="8" y1="${Y([0,0])}" x2="${W-8}" y2="${Y([0,0])}" style="stroke:#2A3A55" stroke-width="2" stroke-dasharray="4 4"/>`;
+    f.props.forEach(r=>{const xx=Math.min(r[0],r[2]),yy=Math.max(r[1],r[3]);o+=`<rect x="${(xx*s+ox).toFixed(1)}" y="${(gy-yy*s).toFixed(1)}" width="${(Math.abs(r[2]-r[0])*s).toFixed(1)}" height="${(Math.abs(r[3]-r[1])*s).toFixed(1)}" rx="2" fill="#1F2D45" style="stroke:#94A3B8" stroke-width="1.5"/>`});
     f.L.forEach((l,i)=>{if(i>=1)o+=ln([l.r,l.m,l.e],'l',f.la)+foot(l,f.la)});
     f.A.forEach((l,i)=>{if(i>=1&&f.A.length>1&&!f.armsAll)o+=ln([l.r,l.m,l.e],'a',.55)});
     o+=ln([f.H,f.S],'c',1,5.5);
     if(f.L[0])o+=ln([f.L[0].r,f.L[0].m,f.L[0].e],'l',1)+foot(f.L[0],1);
     if(f.A[0])o+=ln([f.A[0].r,f.A[0].m,f.A[0].e],'a',1);
-    o+=`<circle cx="${X(f.head)}" cy="${Y(f.head)}" r="${(7*s).toFixed(1)}" fill="#1E2029" style="stroke:#E8EAF0" stroke-width="3.5"/>`;
+    o+=`<circle cx="${X(f.head)}" cy="${Y(f.head)}" r="${(7*s).toFixed(1)}" fill="#111C2E" style="stroke:#EAF6FF" stroke-width="3.5"/>`;
     f.arrows.forEach(r=>{const a=[+X([r[0],r[1]]),+Y([r[0],r[1]])],b=[+X([r[2],r[3]]),+Y([r[2],r[3]])],an=Math.atan2(b[1]-a[1],b[0]-a[0]),hd=(d)=>`${(b[0]-8*Math.cos(an+d)).toFixed(1)},${(b[1]-8*Math.sin(an+d)).toFixed(1)}`;
       o+=`<polyline points="${a.join(',')} ${b.join(',')}" fill="none" style="stroke:var(--volt)" stroke-width="3" stroke-linecap="round"/><polyline points="${hd(.5)} ${b.join(',')} ${hd(-.5)}" fill="none" style="stroke:var(--volt)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`});
     return o+'</svg>';
@@ -669,9 +669,9 @@ function onResults(res){
   const L=res.poseLandmarks;
   if(!L){setForm('KEINE PERSON ERKANNT: GANZEN KÖRPER INS BILD',true);return}
   const Wd=res.poseWorldLandmarks||L;
-  ctx.lineWidth=4;ctx.strokeStyle='#CCFF00';
+  ctx.lineWidth=4;ctx.strokeStyle='#7CD4FF';
   LINKS.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(L[a].x*cv.width,L[a].y*cv.height);ctx.lineTo(L[b].x*cv.width,L[b].y*cv.height);ctx.stroke()});
-  ctx.fillStyle='#00F0FF';
+  ctx.fillStyle='#EAF6FF';
   [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i=>{ctx.beginPath();ctx.arc(L[i].x*cv.width,L[i].y*cv.height,6,0,7);ctx.fill()});
   // Körperseite mit Verzögerung wechseln, damit nichts flackert
   const vis=ix=>ix.reduce((s,i)=>s+(L[i].visibility||0),0);
@@ -708,8 +708,8 @@ function onResults(res){
     if(s!==reps){reps=s;updCam();if(s&&s%10===0)say(s+' Sekunden');if(reps>=exercise.target){holdMs=0;completeSet()}}
   }
   if(!backOk){setForm('FORM CHECK: RÜCKEN GERADE HALTEN',true);say('Rücken gerade halten')}
-  else if(plankLike)setForm(`FORM CHECK: <span style="color:#CCFF00">KÖRPERLINIE OK (${Math.round(emaB)}°)</span>`);
-  else setForm('FORM CHECK: <span style="color:#CCFF00">TRACKING AKTIV</span>');
+  else if(plankLike)setForm(`FORM CHECK: <span style="color:#7CD4FF">KÖRPERLINIE OK (${Math.round(emaB)}°)</span>`);
+  else setForm('FORM CHECK: <span style="color:#7CD4FF">TRACKING AKTIV</span>');
 }
 function setForm(t,bad){const f=$('formBanner');f.innerHTML=t;f.classList.toggle('bad',!!bad)}
 async function startCam(){
@@ -782,7 +782,7 @@ async function routeVia(list){
 function drawRoute(res,note){
   lastRoute=res;
   if(routeLine)routeLine.remove();
-  routeLine=L.polyline(res.coords,{color:'#CCFF00',weight:5,opacity:.95}).addTo(map);
+  routeLine=L.polyline(res.coords,{color:'#7CD4FF',weight:5,opacity:.95}).addTo(map);
   map.fitBounds(routeLine.getBounds(),{padding:[24,24]});
   const pc=paceAdvice().pace;
   info(`Route: ${res.km.toFixed(1)} km${note||' zu Fuß'}, ca. ${Math.round(res.km*pc)} min bei deiner Ziel-Pace von ${fmtPace(pc)} min/km.`);
@@ -886,7 +886,7 @@ const showQuote=()=>$('quote').textContent=QUOTES[qi];
 $('nextQuote').onclick=()=>{qi=(qi+1)%QUOTES.length;showQuote()};
 
 function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('chatLog').appendChild(d);$('chatLog').scrollTop=1e6;return d}
-const COACH_SYS='Du bist der LockedIn Coach, ein direkter, motivierender Fitness-Coach. Antworte auf Deutsch, kurz (maximal 120 Wörter), konkret und ohne Markdown-Sternchen. Keine Diagnosen; bei Beschwerden zum Arzt raten.';
+const COACH_SYS='Du bist der Winterform Coach, ein direkter, motivierender Fitness-Coach. Antworte auf Deutsch, kurz (maximal 120 Wörter), konkret und ohne Markdown-Sternchen. Keine Diagnosen; bei Beschwerden zum Arzt raten.';
 let chatHist=[];
 async function coachAI(msg){
   const t=await gemini([{text:msg}],{system:COACH_SYS,history:chatHist.slice(-8)});

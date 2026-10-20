@@ -1,4 +1,4 @@
-:root{--bg:#121318;--card:#1E2029;--line:#2A2D3A;--volt:#CCFF00;--txt:#fff;--mut:#94A3B8;--safe:env(safe-area-inset-bottom,0px)}
+:root{--bg:#0A1220;--card:#111C2E;--line:#1F2D45;--volt:#7CD4FF;--txt:#EAF6FF;--mut:#8EA3C0;--safe:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 body{padding:env(safe-area-inset-top,0px) 0 0}
@@ -30,11 +30,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .add svg{width:14px;height:14px}
 /* cam */
 .cam-card{padding:10px}
-.cam-wrap{position:relative;aspect-ratio:3/4;background:#15171E;border-radius:18px;overflow:hidden}
+.cam-wrap{position:relative;aspect-ratio:3/4;background:#0E1828;border-radius:18px;overflow:hidden}
 .cam-wrap video,.cam-wrap canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hud{position:absolute;top:10px;left:10px;background:rgba(18,19,24,.9);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.hud{position:absolute;top:10px;left:10px;background:rgba(10,18,32,.9);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
 .hud b{display:block;color:var(--volt);font-size:24px;font-weight:900}
-.angle{position:absolute;top:10px;right:10px;background:rgba(18,19,24,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-weight:800;font-size:14px}
+.angle{position:absolute;top:10px;right:10px;background:rgba(10,18,32,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-weight:800;font-size:14px}
 .form{position:absolute;left:10px;right:10px;bottom:10px;background:var(--bg);border:1px solid var(--volt);border-radius:12px;padding:12px;font-size:11px;font-weight:800;letter-spacing:.5px}
 .form.bad{border-color:#FF4D4D;color:#FF4D4D}
 .voice{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:14px;color:var(--mut);font-size:10px;font-weight:700;letter-spacing:.5px}
@@ -45,7 +45,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 /* lung */
 .breath{width:170px;height:170px;border-radius:50%;background:var(--bg);border:3px solid var(--volt);color:var(--volt);margin:18px auto 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:13px;letter-spacing:1px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .breath svg{width:32px;height:32px}
-.breath.on{background:var(--volt);color:var(--bg);box-shadow:0 0 0 10px rgba(204,255,0,.15)}
+.breath.on{background:var(--volt);color:var(--bg);box-shadow:0 0 0 10px rgba(124,212,255,.16)}
 .fields{display:flex;gap:10px;margin:12px 0 4px}
 input,select{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);color:var(--txt);font:inherit;font-size:16px;padding:13px 14px;border-radius:16px}
 #map{height:240px;border-radius:18px;margin-top:12px;border:1px solid var(--line);z-index:0}
@@ -131,7 +131,7 @@ button:disabled{opacity:.5}
 #map{height:360px}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px}
 input[type=search]{-webkit-appearance:none;appearance:none}
-.leaflet-container{background:#15171E;font-family:inherit}
+.leaflet-container{background:#0E1828;font-family:inherit}
 
 #stepCard .big{margin-bottom:2px}
 
