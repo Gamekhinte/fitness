@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Winterform">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 <style>
 .tick,.pchk{background:transparent;padding:8px;margin:-8px -8px -8px auto;display:block;color:var(--mut)}
 .pchk{margin:0 8px 0 -6px;flex:none}
@@ -23,50 +23,12 @@
 .pe.ok span{opacity:.55;text-decoration:line-through}
 </style>
 <style id="anim">
-:root{--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)}
-/* Tab-Wechsel: Seite gleitet in Richtung des Tabs, Karten blenden gestaffelt ein */
-@keyframes tabIn{from{opacity:0;transform:translateX(var(--dx,26px))}}
-@keyframes rise{from{opacity:0;transform:translateY(12px)}}
-.tab.active{animation:tabIn .38s var(--ease) backwards}
-body[data-dir="l"]{--dx:-26px}
-.tab.active>*{animation:rise .5s var(--ease) backwards}
-.tab.active>*:nth-child(2){animation-delay:.04s}
-.tab.active>*:nth-child(3){animation-delay:.08s}
-.tab.active>*:nth-child(4){animation-delay:.12s}
-.tab.active>*:nth-child(5){animation-delay:.16s}
-.tab.active>*:nth-child(n+6){animation-delay:.2s}
-/* Navigation: gleitender Indikator + federnde Icons */
-.nav button{position:relative;z-index:1;transition:color .25s ease,transform .15s ease}
-.nav button.active{background:transparent;border-color:transparent}
-.nav button:active{transform:scale(.92)}
-.nav-ind{position:absolute;left:0;top:0;width:0;height:0;border-radius:20px;background:var(--card);border:1px solid var(--volt);pointer-events:none;opacity:0;z-index:0;transition:opacity .3s ease}
-.nav-ind.ready{opacity:1;transition:opacity .3s ease,transform .5s cubic-bezier(.34,1.25,.5,1),width .5s cubic-bezier(.34,1.25,.5,1),height .3s ease}
-.nav button svg{transition:transform .35s var(--spring)}
-@keyframes iconPop{0%{transform:scale(.65) translateY(3px)}60%{transform:scale(1.28) translateY(-3px)}100%{transform:scale(1.15) translateY(-1px)}}
-.nav button.active svg{transform:scale(1.15) translateY(-1px);animation:iconPop .5s var(--spring)}
-/* Buttons, Chips, Karten */
-button,.chip,.tile,.ex{transition:transform .18s var(--ease),background-color .25s ease,color .25s ease,border-color .25s ease,opacity .25s ease,box-shadow .25s ease}
-button:active:not(:disabled){transform:scale(.96)}
-.nav button:active{transform:scale(.92)}
-.chip.on{box-shadow:0 0 0 3px rgba(124,212,255,.14)}
-.tick:active .chk,.pchk:active .chk{transform:scale(.75)}
-.chk{transition:transform .25s var(--spring),color .25s ease}
-.bar i{transition:width .7s var(--ease)}
-/* Akkordeon */
-@keyframes accIn{from{opacity:0;transform:translateY(-8px)}}
-details[open]>.acc-body{animation:accIn .32s var(--ease)}
-.acc{transition:border-color .3s ease}
-.acc .chev{transition:transform .35s var(--spring),color .25s ease}
-/* Chat, Toast, Modal */
-@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.97)}}
-.msg{animation:msgIn .3s var(--ease)}
-@keyframes toastIn{from{opacity:0;transform:translateY(-18px) scale(.97)}}
-.toast{animation:toastIn .4s var(--spring)}
+/* bewusst ruhig: kein Gleiten, kein Federn, keine gestaffelten Karten */
 @keyframes fade{from{opacity:0}}
-@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.96)}}
-.modal{animation:fade .25s ease}.modal-card{animation:pop .4s var(--spring)}
-.breath{transition:background-color .25s ease,color .25s ease,box-shadow .35s ease,transform .2s ease}
-.breath.on{transform:scale(1.04)}
+.tab.active{animation:fade .18s ease}
+.nav-ind{display:none}
+button{transition:background-color .2s ease,color .2s ease,border-color .2s ease,opacity .2s ease}
+.modal{animation:fade .2s ease}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <style id="exstyle">
@@ -110,49 +72,48 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 </svg>
 
 <header class="top">
-  <div class="logo">WINTER<span>FORM</span> <small style="font-size:9px;color:var(--mut);letter-spacing:0">v17</small></div>
-  <button class="pill" id="profileBtn">PROFIL</button>
+  <div class="logo">WINTER<span>FORM</span> </div>
+  <button class="pill" id="profileBtn">Profil</button>
 </header>
 
 <main>
   <!-- FOOD -->
   <section id="tab-today" class="tab active">
     <div class="card">
-      <div class="row between"><span class="label">HEUTE</span><span class="label" id="todayDate"></span></div>
+      <div class="row between"><span class="label">Heute</span><span class="label" id="todayDate"></span></div>
       <div class="week" id="weekStrip"></div>
       <p class="kmline" id="todayFocus"></p>
       <table class="tbl"><thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead><tbody id="todayRows"></tbody></table>
       <p class="kmline" id="todayHint"></p>
-      <p class="muted small">Sätze hakt die AI Cam automatisch ab, Kilometer der GPS-Tracker. Schritte und Kalorien kommen aus den anderen Tabs. Neue Aufgaben entstehen, wenn du im Coach-Tab einen Plan annimmst.</p>
     </div>
     <div class="card">
-      <span class="label">LAUF-TRACKER (GPS)</span>
+      <span class="label">Lauf</span>
       <div class="big"><span id="runKm">0,00</span><small> km</small></div>
       <p class="muted" id="runInfo">Zeit 00:00 • Pace –</p>
       <p class="kmline" id="paceTip"></p>
-      <button class="primary" id="runBtn">LAUF STARTEN</button>
+      <button class="primary" id="runBtn">Lauf starten</button>
       <p class="muted small" id="runMsg"></p>
     </div>
     <div class="card">
-      <span class="label">BENACHRICHTIGUNGEN</span>
+      <span class="label">Erinnerungen</span>
       <p class="muted" id="notifState"></p>
       <button class="ghost" id="notifBtn">Aktivieren</button>
     </div>
   </section>
 
-  <section id="tab-food" class="tab">
+  <section id="tab-food" class="tab" hidden>
     <div class="card">
-      <div class="row between"><span class="label">TAGESKALORIEN</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
+      <div class="row between"><span class="label">Kalorien</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
       <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
       <div class="bar"><i id="kcalBar"></i></div>
       <div class="bar thin"><i id="protBar"></i></div>
       <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
     </div>
     <div class="card" id="scanCard">
-      <span class="label">KI-FOODSCAN</span>
+      <span class="label">Essen scannen</span>
       <p class="muted">Foto von deinem Essen machen, die KI schätzt Kalorien und Eiweiß.</p>
       <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
-      <button class="primary" id="scanBtn">ESSEN FOTOGRAFIEREN</button>
+      <button class="primary" id="scanBtn">Foto machen</button>
       <img id="scanImg" class="scan-img" alt="" hidden>
       <div id="scanOut"></div>
     </div>
@@ -165,80 +126,80 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 
   <!-- CATALOG -->
   <section id="tab-catalog" class="tab">
-    <details class="acc" id="camAcc"><summary><span>AI CAM – Live Zähler &amp; Formcheck</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">
+    <details class="acc" id="camAcc"><summary><span>Kamera zählt mit</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">
     <div class="card cam-card" id="camPrev" hidden>
       <div class="cam-wrap">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
-        <div class="hud"><span class="label">REPETITIONS</span><b id="repCount">000</b></div>
+        <div class="hud"><span class="label">Wdh</span><b id="repCount">000</b></div>
         <div class="angle" id="angleTxt">--°</div>
-        <div class="form" id="formBanner">FORM CHECK: KAMERA STARTEN</div>
+        <div class="form" id="formBanner">Kamera starten</div>
       </div>
     </div>
     <div class="card">
-      <span class="label">CURRENT EXERCISE</span>
+      <span class="label">Übung</span>
       <h2 id="camExercise">Klassische Liegestütze</h2>
       <p class="muted" id="camSets">Satz 1 von 4 • Ziel: 15 WDH</p>
       <div class="bar"><i id="repBar"></i></div>
-      <button class="primary" id="camBtn">KAMERA STARTEN</button>
+      <button class="primary" id="camBtn">Kamera starten</button>
       <button class="ghost" id="camFlip">Kamera wechseln</button>
       <button class="ghost" id="resetReps"><svg><use href="#i-refresh"/></svg>Zähler zurücksetzen</button>
-      <div class="voice"><svg><use href="#i-sound"/></svg><span id="voiceTxt">LIVE VOICE COACH BEREIT</span></div>
+      <div class="voice"><svg><use href="#i-sound"/></svg><span id="voiceTxt">Ansage bereit</span></div>
     </div>
   </div></details>
-    <div id="catalogList"><details class="acc" open><summary><span>Arme, Schultern & Brust</span><em>8</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Liegestütze</b><span>Empfehlung: 4 × 15</span><span class="tip">Brust und Trizeps. Körper bleibt eine gerade Linie.</span></div><button class="launch" data-n="Klassische Liegestütze" data-m="elbow" data-s="4 × 15">CAM LAUNCH</button></div><div class="ex"><div><b>Frauen-Liegestütze</b><span>Empfehlung: 4 × 12</span><span class="tip">Knie am Boden, Rumpf bleibt gespannt.</span></div><button class="launch" data-n="Frauen-Liegestütze" data-m="elbow" data-s="4 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Diamond Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Trizeps. Hände bilden eine Raute unter der Brust.</span></div><button class="launch" data-n="Diamond Push-ups" data-m="elbow" data-s="3 × 10">CAM LAUNCH</button></div><div class="ex"><div><b>Trizeps-Dips</b><span>Empfehlung: 3 × 12</span><span class="tip">Stuhlkante, Ellbogen zeigen nach hinten.</span></div><button class="launch" data-n="Trizeps-Dips" data-m="elbow" data-s="3 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Pike Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Schultern. Hüfte hoch, Kopf zwischen die Arme.</span></div><button class="launch" data-n="Pike Push-ups" data-m="elbow" data-s="3 × 10">CAM LAUNCH</button></div><div class="ex"><div><b>Decline Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Füße erhöht, trainiert die obere Brust.</span></div><button class="launch" data-n="Decline Push-ups" data-m="elbow" data-s="3 × 10">CAM LAUNCH</button></div><div class="ex"><div><b>Incline Push-ups</b><span>Empfehlung: 4 × 15</span><span class="tip">Hände erhöht, ideal für den Einstieg.</span></div><button class="launch" data-n="Incline Push-ups" data-m="elbow" data-s="4 × 15">CAM LAUNCH</button></div><div class="ex"><div><b>Plank-to-Push-up</b><span>Empfehlung: 3 × 8</span><span class="tip">Wechsel von Unterarmen auf Hände, Hüfte ruhig.</span></div><button class="launch" data-n="Plank-to-Push-up" data-m="elbow" data-s="3 × 8">CAM LAUNCH</button></div></div></details><details class="acc"><summary><span>Bauch & Rumpf</span><em>9</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Plank</b><span>Empfehlung: 3 × 45 s</span><span class="tip">Schultern über Ellbogen, Po nicht hochschieben.</span></div><button class="launch" data-n="Klassische Plank" data-m="hold" data-s="3 × 45 s">CAM LAUNCH</button></div><div class="ex"><div><b>Side Plank</b><span>Empfehlung: 3 × 30 s</span><span class="tip">Hüfte oben halten, Körper in einer Linie.</span></div><button class="launch" data-n="Side Plank" data-m="hold" data-s="3 × 30 s">CAM LAUNCH</button></div><div class="ex"><div><b>Crunches</b><span>Empfehlung: 4 × 20</span><span class="tip">Nur die Schultern anheben, Nacken locker.</span></div><button class="launch" data-n="Crunches" data-m="hold" data-s="4 × 20">CAM LAUNCH</button></div><div class="ex"><div><b>Reverse Crunches</b><span>Empfehlung: 3 × 15</span><span class="tip">Becken einrollen, Beine kontrolliert heben.</span></div><button class="launch" data-n="Reverse Crunches" data-m="hold" data-s="3 × 15">CAM LAUNCH</button></div><div class="ex"><div><b>Bicycle Crunches</b><span>Empfehlung: 3 × 30</span><span class="tip">Ellbogen zum Gegenknie, langsam drehen.</span></div><button class="launch" data-n="Bicycle Crunches" data-m="hold" data-s="3 × 30">CAM LAUNCH</button></div><div class="ex"><div><b>Mountain Climbers</b><span>Empfehlung: 4 × 40 s</span><span class="tip">Hüfte tief, Knie schnell zur Brust.</span></div><button class="launch" data-n="Mountain Climbers" data-m="hold" data-s="4 × 40 s">CAM LAUNCH</button></div><div class="ex"><div><b>Flutter Kicks</b><span>Empfehlung: 3 × 30 s</span><span class="tip">Beine knapp über dem Boden, Rücken flach.</span></div><button class="launch" data-n="Flutter Kicks" data-m="hold" data-s="3 × 30 s">CAM LAUNCH</button></div><div class="ex"><div><b>Russian Twist</b><span>Empfehlung: 3 × 24</span><span class="tip">Oberkörper leicht zurück, Drehung aus der Mitte.</span></div><button class="launch" data-n="Russian Twist" data-m="hold" data-s="3 × 24">CAM LAUNCH</button></div><div class="ex"><div><b>Superman</b><span>Empfehlung: 3 × 15</span><span class="tip">Rücken strecken, oben kurz halten.</span></div><button class="launch" data-n="Superman" data-m="hold" data-s="3 × 15">CAM LAUNCH</button></div></div></details><details class="acc"><summary><span>Beine & Gesäß</span><em>8</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Squats</b><span>Empfehlung: 4 × 20</span><span class="tip">Knie nach außen, Rücken gerade, Fersen am Boden.</span></div><button class="launch" data-n="Klassische Squats" data-m="knee" data-s="4 × 20">CAM LAUNCH</button></div><div class="ex"><div><b>Sumo Squats</b><span>Empfehlung: 4 × 15</span><span class="tip">Breiter Stand, trainiert die Innenseiten.</span></div><button class="launch" data-n="Sumo Squats" data-m="knee" data-s="4 × 15">CAM LAUNCH</button></div><div class="ex"><div><b>Jump Squats</b><span>Empfehlung: 3 × 12</span><span class="tip">Explosiv hoch, weich landen.</span></div><button class="launch" data-n="Jump Squats" data-m="knee" data-s="3 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Ausfallschritte</b><span>Empfehlung: 3 × 12</span><span class="tip">Knie über dem Fuß, Oberkörper aufrecht.</span></div><button class="launch" data-n="Ausfallschritte" data-m="knee" data-s="3 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Backward Lunges</b><span>Empfehlung: 3 × 12</span><span class="tip">Schritt nach hinten, schonender für die Knie.</span></div><button class="launch" data-n="Backward Lunges" data-m="knee" data-s="3 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Glute Bridges</b><span>Empfehlung: 4 × 15</span><span class="tip">Oben den Po kurz anspannen.</span></div><button class="launch" data-n="Glute Bridges" data-m="knee" data-s="4 × 15">CAM LAUNCH</button></div><div class="ex"><div><b>Single-Leg Glute Bridges</b><span>Empfehlung: 3 × 12</span><span class="tip">Ein Bein gestreckt, Becken bleibt gerade.</span></div><button class="launch" data-n="Single-Leg Glute Bridges" data-m="knee" data-s="3 × 12">CAM LAUNCH</button></div><div class="ex"><div><b>Wall Sit</b><span>Empfehlung: 3 × 45 s</span><span class="tip">Oberschenkel waagerecht, Rücken an der Wand.</span></div><button class="launch" data-n="Wall Sit" data-m="knee" data-s="3 × 45 s">CAM LAUNCH</button></div></div></details></div></section>
+    <div id="catalogList"><details class="acc" open><summary><span>Arme, Schultern & Brust</span><em>8</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Liegestütze</b><span>Empfehlung: 4 × 15</span><span class="tip">Brust und Trizeps. Körper bleibt eine gerade Linie.</span></div><button class="launch" data-n="Klassische Liegestütze" data-m="elbow" data-s="4 × 15">Kamera</button></div><div class="ex"><div><b>Frauen-Liegestütze</b><span>Empfehlung: 4 × 12</span><span class="tip">Knie am Boden, Rumpf bleibt gespannt.</span></div><button class="launch" data-n="Frauen-Liegestütze" data-m="elbow" data-s="4 × 12">Kamera</button></div><div class="ex"><div><b>Diamond Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Trizeps. Hände bilden eine Raute unter der Brust.</span></div><button class="launch" data-n="Diamond Push-ups" data-m="elbow" data-s="3 × 10">Kamera</button></div><div class="ex"><div><b>Trizeps-Dips</b><span>Empfehlung: 3 × 12</span><span class="tip">Stuhlkante, Ellbogen zeigen nach hinten.</span></div><button class="launch" data-n="Trizeps-Dips" data-m="elbow" data-s="3 × 12">Kamera</button></div><div class="ex"><div><b>Pike Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Schultern. Hüfte hoch, Kopf zwischen die Arme.</span></div><button class="launch" data-n="Pike Push-ups" data-m="elbow" data-s="3 × 10">Kamera</button></div><div class="ex"><div><b>Decline Push-ups</b><span>Empfehlung: 3 × 10</span><span class="tip">Füße erhöht, trainiert die obere Brust.</span></div><button class="launch" data-n="Decline Push-ups" data-m="elbow" data-s="3 × 10">Kamera</button></div><div class="ex"><div><b>Incline Push-ups</b><span>Empfehlung: 4 × 15</span><span class="tip">Hände erhöht, ideal für den Einstieg.</span></div><button class="launch" data-n="Incline Push-ups" data-m="elbow" data-s="4 × 15">Kamera</button></div><div class="ex"><div><b>Plank-to-Push-up</b><span>Empfehlung: 3 × 8</span><span class="tip">Wechsel von Unterarmen auf Hände, Hüfte ruhig.</span></div><button class="launch" data-n="Plank-to-Push-up" data-m="elbow" data-s="3 × 8">Kamera</button></div></div></details><details class="acc"><summary><span>Bauch & Rumpf</span><em>9</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Plank</b><span>Empfehlung: 3 × 45 s</span><span class="tip">Schultern über Ellbogen, Po nicht hochschieben.</span></div><button class="launch" data-n="Klassische Plank" data-m="hold" data-s="3 × 45 s">Kamera</button></div><div class="ex"><div><b>Side Plank</b><span>Empfehlung: 3 × 30 s</span><span class="tip">Hüfte oben halten, Körper in einer Linie.</span></div><button class="launch" data-n="Side Plank" data-m="hold" data-s="3 × 30 s">Kamera</button></div><div class="ex"><div><b>Crunches</b><span>Empfehlung: 4 × 20</span><span class="tip">Nur die Schultern anheben, Nacken locker.</span></div><button class="launch" data-n="Crunches" data-m="hold" data-s="4 × 20">Kamera</button></div><div class="ex"><div><b>Reverse Crunches</b><span>Empfehlung: 3 × 15</span><span class="tip">Becken einrollen, Beine kontrolliert heben.</span></div><button class="launch" data-n="Reverse Crunches" data-m="hold" data-s="3 × 15">Kamera</button></div><div class="ex"><div><b>Bicycle Crunches</b><span>Empfehlung: 3 × 30</span><span class="tip">Ellbogen zum Gegenknie, langsam drehen.</span></div><button class="launch" data-n="Bicycle Crunches" data-m="hold" data-s="3 × 30">Kamera</button></div><div class="ex"><div><b>Mountain Climbers</b><span>Empfehlung: 4 × 40 s</span><span class="tip">Hüfte tief, Knie schnell zur Brust.</span></div><button class="launch" data-n="Mountain Climbers" data-m="hold" data-s="4 × 40 s">Kamera</button></div><div class="ex"><div><b>Flutter Kicks</b><span>Empfehlung: 3 × 30 s</span><span class="tip">Beine knapp über dem Boden, Rücken flach.</span></div><button class="launch" data-n="Flutter Kicks" data-m="hold" data-s="3 × 30 s">Kamera</button></div><div class="ex"><div><b>Russian Twist</b><span>Empfehlung: 3 × 24</span><span class="tip">Oberkörper leicht zurück, Drehung aus der Mitte.</span></div><button class="launch" data-n="Russian Twist" data-m="hold" data-s="3 × 24">Kamera</button></div><div class="ex"><div><b>Superman</b><span>Empfehlung: 3 × 15</span><span class="tip">Rücken strecken, oben kurz halten.</span></div><button class="launch" data-n="Superman" data-m="hold" data-s="3 × 15">Kamera</button></div></div></details><details class="acc"><summary><span>Beine & Gesäß</span><em>8</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><div class="ex"><div><b>Klassische Squats</b><span>Empfehlung: 4 × 20</span><span class="tip">Knie nach außen, Rücken gerade, Fersen am Boden.</span></div><button class="launch" data-n="Klassische Squats" data-m="knee" data-s="4 × 20">Kamera</button></div><div class="ex"><div><b>Sumo Squats</b><span>Empfehlung: 4 × 15</span><span class="tip">Breiter Stand, trainiert die Innenseiten.</span></div><button class="launch" data-n="Sumo Squats" data-m="knee" data-s="4 × 15">Kamera</button></div><div class="ex"><div><b>Jump Squats</b><span>Empfehlung: 3 × 12</span><span class="tip">Explosiv hoch, weich landen.</span></div><button class="launch" data-n="Jump Squats" data-m="knee" data-s="3 × 12">Kamera</button></div><div class="ex"><div><b>Ausfallschritte</b><span>Empfehlung: 3 × 12</span><span class="tip">Knie über dem Fuß, Oberkörper aufrecht.</span></div><button class="launch" data-n="Ausfallschritte" data-m="knee" data-s="3 × 12">Kamera</button></div><div class="ex"><div><b>Backward Lunges</b><span>Empfehlung: 3 × 12</span><span class="tip">Schritt nach hinten, schonender für die Knie.</span></div><button class="launch" data-n="Backward Lunges" data-m="knee" data-s="3 × 12">Kamera</button></div><div class="ex"><div><b>Glute Bridges</b><span>Empfehlung: 4 × 15</span><span class="tip">Oben den Po kurz anspannen.</span></div><button class="launch" data-n="Glute Bridges" data-m="knee" data-s="4 × 15">Kamera</button></div><div class="ex"><div><b>Single-Leg Glute Bridges</b><span>Empfehlung: 3 × 12</span><span class="tip">Ein Bein gestreckt, Becken bleibt gerade.</span></div><button class="launch" data-n="Single-Leg Glute Bridges" data-m="knee" data-s="3 × 12">Kamera</button></div><div class="ex"><div><b>Wall Sit</b><span>Empfehlung: 3 × 45 s</span><span class="tip">Oberschenkel waagerecht, Rücken an der Wand.</span></div><button class="launch" data-n="Wall Sit" data-m="knee" data-s="3 × 45 s">Kamera</button></div></div></details></div></section>
 
   <!-- LUNG / MAP -->
   <section id="tab-lung" class="tab">
     <div class="card" id="stepCard">
-      <span class="label">SCHRITTZÄHLER</span>
+      <span class="label">Schritte</span>
       <div class="big"><span id="stepCount">0</span><small> Schritte heute</small></div>
       <div class="bar"><i id="stepBar"></i></div>
       <p class="muted" id="stepInfo"></p>
-      <button class="primary" id="stepBtn">ZÄHLER STARTEN</button>
-      <p class="muted small" id="stepMsg">Nutzt den Bewegungssensor deines Handys. Zählt nur bei geöffneter App und eingeschaltetem Display (iOS erlaubt Web-Apps keinen Hintergrund-Zugriff auf die Sensoren). Für Zählen im Hintergrund: Apple-Health-Kurzbefehl, der diese App mit ?steps=ANZAHL öffnet.</p>
+      <button class="primary" id="stepBtn">Zähler starten</button>
+      <p class="muted small" id="stepMsg">Zählt, solange die App offen ist.</p>
       <button class="ghost" id="stepReset"><svg><use href="#i-refresh"/></svg>Heute zurücksetzen</button>
     </div>
-    <div class="card center">
-      <span class="label">STAMINA HOLD-BREATH TEST</span>
-      <button id="breathBtn" class="breath"><svg><use href="#i-wind"/></svg><span>HOLD BREATH</span></button>
+    <div class="card center" hidden>
+      <span class="label">Atemtest</span>
+      <button id="breathBtn" class="breath"><svg><use href="#i-wind"/></svg><span>Halten</span></button>
       <div class="big" id="breathTime">0.0<small> s</small></div>
       <p id="breathResult" class="muted">Tief einatmen, Button gedrückt halten, loslassen wenn du Luft brauchst.</p>
     </div>
     <div class="card">
-      <span class="label">LAUF-PLANER</span>
+      <span class="label">Laufrunde planen</span>
       <div class="fields">
         <select id="runGoal"><option value="lose">Cardio Fettverbrennung</option><option value="endurance">Ausdauer</option><option value="gain">Muskelaufbau (leichtes Cardio)</option><option value="maintain">Fit bleiben</option></select>
         <input id="runWeight" type="number" inputmode="numeric" placeholder="Gewicht (kg)" value="75">
       </div>
-      <button class="primary" id="runCalc">KILOMETER BERECHNEN</button>
+      <button class="primary" id="runCalc">Kilometer berechnen</button>
       <p id="runResult" class="muted"></p>
       <p class="kmline" id="paceTip2"></p>
       <div class="fields"><input id="placeQ" type="search" placeholder="Ort oder Adresse suchen"><button class="send" id="placeGo" aria-label="Suchen"><svg><use href="#i-pin"/></svg></button></div>
       <div id="map"></div>
       <div class="btnrow"><button class="ghost" id="locBtn">Mein Standort</button><button class="ghost" id="loopBtn">Rundkurs vom Coach</button><button class="ghost" id="clearMarks">Leeren</button></div>
-      <p id="routeInfo" class="muted">Tippe auf die Karte für Punkte oder starte einen Rundkurs mit deiner Coach-Distanz.</p>
-      <div class="btnrow"><button class="primary" id="gmapsBtn">ROUTE IN GOOGLE MAPS STARTEN</button><button class="ghost" id="amapsBtn">In Apple Karten öffnen</button></div>
+      <p id="routeInfo" class="muted"></p>
+      <div class="btnrow"><button class="primary" id="gmapsBtn">In Google Maps starten</button><button class="ghost" id="amapsBtn">In Apple Karten öffnen</button></div>
     </div>
   </section>
 
   <!-- COACH -->
   <section id="tab-coach" class="tab">
-    <div class="card">
-      <span class="label">MINDSET</span>
+    <div class="card" hidden>
+      <span class="label">Mindset</span>
       <p class="quote" id="quote"></p>
       <button class="ghost" id="nextQuote"><svg><use href="#i-refresh"/></svg>Nächstes Zitat</button>
     </div>
     <div class="card" id="keyCard">
-      <span class="label">DEIN GEMINI API KEY</span>
-      <p class="muted" id="keyState">Kein Key hinterlegt. Hol dir kostenlos einen auf aistudio.google.com/apikey und trag ihn hier ein.</p>
+      <span class="label">Gemini-Key</span>
+      <p class="muted" id="keyState">Kostenlos bei aistudio.google.com/apikey.</p>
       <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="primary" id="keySave">KEY SPEICHERN</button>
+      <button class="primary" id="keySave">Speichern</button>
       <button class="ghost" id="keyDel" hidden>Key entfernen</button>
       <p class="muted small" id="keyMsg"></p>
     </div>
     <div class="card" id="planCard">
-      <span class="label">WOCHENPLAN VOM COACH</span>
+      <span class="label">Wochenplan</span>
       <div class="grid2">
         <label>Ziel<select id="pGoal"><option>Muskelaufbau</option><option>Fett verlieren</option><option>Ausdauer</option><option>Kraft</option><option>Allround-Fitness</option></select></label>
         <label>Level<select id="pLevel"><option>Anfänger</option><option>Fortgeschritten</option><option>Profi</option></select></label>
@@ -248,17 +209,17 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
         <label>Erinnerung um<input id="pTime" type="time" value="18:00"></label>
       </div>
       <label class="full">Verletzungen / Wünsche<input id="pNotes" type="text" placeholder="z. B. Knie-Probleme, Fokus Brust"></label>
-      <button class="primary" id="planBtn">PLAN ERSTELLEN</button>
+      <button class="primary" id="planBtn">Plan erstellen</button>
       <p class="muted" id="planMsg"></p>
       <div id="planDraft"></div>
     </div>
     <div class="card" id="activeCard" hidden>
-      <span class="label">AKTIVER PLAN</span>
+      <span class="label">Aktiver Plan</span>
       <div id="activePlan"></div>
       <button class="ghost" id="cancelPlan">Plan beenden</button>
     </div>
     <div class="card chat">
-      <span class="label">AI COACH</span>
+      <span class="label">Coach fragen</span>
       <div id="chatChips" class="chips in"></div>
       <div id="chatLog" class="chat-log"></div>
       <div class="chat-in">
@@ -270,13 +231,13 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
   <!-- HABITS -->
   <section id="tab-habits" class="tab">
     <div class="card">
-      <span class="label">NEUE GEWOHNHEIT ABLEGEN</span>
+      <span class="label">Gewohnheit loswerden</span>
       <div class="grid2">
         <label>Was willst du loswerden?<select id="habitType"><option>Rauchen</option><option>Alkohol</option><option>Fluchen</option><option>Porno</option><option>Eigene</option></select></label>
         <label>Kosten pro Tag (€)<input id="habitCost" type="text" inputmode="decimal" placeholder="optional"></label>
       </div>
       <input id="habitCustom" type="text" placeholder="Name der Gewohnheit" hidden>
-      <button class="primary" id="habitAdd">ZÄHLER STARTEN</button>
+      <button class="primary" id="habitAdd">Zähler starten</button>
       <p class="muted" id="habitMsg"></p>
     </div>
     <div id="habitList"></div>
@@ -285,9 +246,8 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
 </main>
 
 <div id="onb" class="modal" hidden><div class="card modal-card">
-  <span class="label">DEIN PROFIL</span>
+  <span class="label">Profil</span>
   <h2>Wer trainiert hier?</h2>
-  <p class="muted">Daraus berechne ich deinen Kalorienbedarf, dein Eiweißziel und deine Lauf-Kilometer.</p>
   <div class="grid2">
     <label>Geschlecht<select id="oSex"><option value="m">Männlich</option><option value="f">Weiblich</option></select></label>
     <label>Alter<input id="oAge" type="number" inputmode="numeric" placeholder="z. B. 25"></label>
@@ -298,17 +258,16 @@ details[open]>.acc-body{animation:accIn .32s var(--ease)}
   </div>
   <label class="full">Ziel<select id="oGoal"><option value="lose">Abnehmen</option><option value="maintain">Fit bleiben</option><option value="gain" selected>Muskelaufbau</option><option value="endurance">Ausdauer</option></select></label>
   <p class="muted" id="oInfo"></p>
-  <button class="primary" id="oSave">PROFIL SPEICHERN</button>
+  <button class="primary" id="oSave">Speichern</button>
   <button class="ghost" id="oClose" hidden>Schließen</button>
 </div></div>
 
 <nav class="nav"><span class="nav-ind"></span>
-  <button data-tab="today" class="active"><svg><use href="#i-list"/></svg>HEUTE</button>
-  <button data-tab="food"><svg><use href="#i-food"/></svg>FOOD</button>
-  <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>CATALOG</button>
-  <button data-tab="lung"><svg><use href="#i-pin"/></svg>LUNG/MAP</button>
-  <button data-tab="coach"><svg><use href="#i-bot"/></svg>COACH</button>
-  <button data-tab="habits"><svg><use href="#i-shield"/></svg>HABITS</button>
+  <button data-tab="today" class="active"><svg><use href="#i-list"/></svg>Heute</button>
+  <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>Training</button>
+  <button data-tab="lung"><svg><use href="#i-pin"/></svg>Laufen</button>
+  <button data-tab="coach"><svg><use href="#i-bot"/></svg>Coach</button>
+  <button data-tab="habits"><svg><use href="#i-shield"/></svg>Habits</button>
 </nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -322,7 +281,7 @@ const store = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}ca
 
 /* ---------- Tabs ---------- */
 let map = null;
-const TABORDER=['today','food','catalog','lung','coach','habits'];
+const TABORDER=['today','catalog','lung','coach','habits'];
 let curTab='today';
 function showTab(t){
   if(t!==curTab)document.body.dataset.dir=TABORDER.indexOf(t)<TABORDER.indexOf(curTab)?'l':'r';
@@ -456,7 +415,7 @@ function renderFood(){
 }
 function renderBread(){
   const opts='<option value="">– keiner –</option>'+Object.entries(TOPS).map(([g,a])=>`<optgroup label="${g}">`+a.map(([n,k])=>`<option value="${g}|${n}">${n} (${k} kcal)</option>`).join('')+'</optgroup>').join('');
-  $('foodList').innerHTML=`<div class="card"><span class="label">BROT-BUILDER</span><div class="grid2"><label>Brotsorte<select id="bBread">${BREADS.map((b,i)=>`<option value="${i}">${b[0]} (${b[1]} kcal)</option>`).join('')}</select></label><label>Scheiben<div class="qty"><button id="bm" aria-label="Weniger">−</button><input id="bQty" class="q" type="number" inputmode="numeric" min="1" step="1" value="2"><button id="bp" aria-label="Mehr">+</button></div></label><label>Belag 1<select id="bT1">${opts}</select></label><label>Belag 2<select id="bT2">${opts}</select></label></div><p class="sum" id="bSum"></p><button class="primary" id="bAdd">HINZUFÜGEN</button></div>`;
+  $('foodList').innerHTML=`<div class="card"><span class="label">Brot</span><div class="grid2"><label>Brotsorte<select id="bBread">${BREADS.map((b,i)=>`<option value="${i}">${b[0]} (${b[1]} kcal)</option>`).join('')}</select></label><label>Scheiben<div class="qty"><button id="bm" aria-label="Weniger">−</button><input id="bQty" class="q" type="number" inputmode="numeric" min="1" step="1" value="2"><button id="bp" aria-label="Mehr">+</button></div></label><label>Belag 1<select id="bT1">${opts}</select></label><label>Belag 2<select id="bT2">${opts}</select></label></div><p class="sum" id="bSum"></p><button class="primary" id="bAdd">Hinzufügen</button></div>`;
   breadCalc();updFood();
 }
 function breadCalc(){
@@ -613,7 +572,7 @@ const INFO={
 return {INFO,drawAll,svgs:n=>INFO[n]?drawAll(INFO[n].f.map(x=>x.p)):[]};
 })();
 
-const catItem=([n,s,t],m)=>`<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><div class="exbtns"><button class="launch" data-n="${n}" data-m="${m}" data-s="${s}">CAM LAUNCH</button>${EXH.INFO[n]?`<button class="explain" data-n="${n}">ERKLÄREN</button>`:''}</div></div>`;
+const catItem=([n,s,t],m)=>`<div class="ex"><div><b>${n}</b><span>Empfehlung: ${s}</span><span class="tip">${t}</span></div><div class="exbtns"><button class="launch" data-n="${n}" data-m="${m}" data-s="${s}">Kamera</button>${EXH.INFO[n]?`<button class="explain" data-n="${n}">Erklären</button>`:''}</div></div>`;
 const catHtml=()=>Object.entries(CATALOG).map(([cat,c],ci)=>`<details class="acc"${ci===0?' open':''}><summary><span>${cat}</span><em>${c.items.length}</em><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body">${c.items.map(i=>catItem(i,c.mode)).join('')}</div></details>`).join('');
 function renderCatalog(){ $('catalogList').innerHTML=catHtml() }
 document.addEventListener('click',e=>{
@@ -641,7 +600,7 @@ function say(t,force){
   lastSpoken=t;lastSpeakT=n;
   const u=new SpeechSynthesisUtterance(t);u.lang='de-DE';u.rate=1.05;
   speechSynthesis.cancel();speechSynthesis.speak(u);
-  $('voiceTxt').textContent='LIVE VOICE COACH AKTIV';
+  $('voiceTxt').textContent='Ansage an';
 }
 function angle(a,b,c){
   const r=Math.atan2(c.y-b.y,c.x-b.x)-Math.atan2(a.y-b.y,a.x-b.x);
@@ -667,7 +626,7 @@ function onResults(res){
   cv.width=v.videoWidth;cv.height=v.videoHeight;
   const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);
   const L=res.poseLandmarks;
-  if(!L){setForm('KEINE PERSON ERKANNT: GANZEN KÖRPER INS BILD',true);return}
+  if(!L){setForm('Ganzen Körper ins Bild',true);return}
   const Wd=res.poseWorldLandmarks||L;
   ctx.lineWidth=4;ctx.strokeStyle='#7CD4FF';
   LINKS.forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(L[a].x*cv.width,L[a].y*cv.height);ctx.lineTo(L[b].x*cv.width,L[b].y*cv.height);ctx.stroke()});
@@ -679,7 +638,7 @@ function onResults(res){
   if(!side)side=lv>=rv?'l':'r';else if(side==='l'&&rv>lv+0.8)side='r';else if(side==='r'&&lv>rv+0.8)side='l';
   const [iS,iE,iW,iH,iK,iA]=side==='l'?[11,13,15,23,25,27]:[12,14,16,24,26,28];
   const m=exercise.mode,need=m==='elbow'?[iS,iE,iW]:m==='knee'?[iH,iK,iA]:[iS,iH,iA];
-  if(Math.min(...need.map(i=>L[i].visibility||0))<0.55){setForm('KAMERA: SEITLICH STELLEN, GANZER KÖRPER IM BILD',true);return}
+  if(Math.min(...need.map(i=>L[i].visibility||0))<0.55){setForm('Seitlich stellen, ganzer Körper ins Bild',true);return}
   const now=performance.now(),dt=lastT?now-lastT:0;lastT=now;
   emaB=ema(emaB,ang3(Wd[iS],Wd[iH],Wd[iA]));
   const plankLike=/Liegestütze|Push-up|Plank/.test(exercise.name)&&!/Pike|Dips/.test(exercise.name);
@@ -694,7 +653,7 @@ function onResults(res){
     if(phase==='up'&&a<130){phase='going';minA=a}
     if(phase!=='up')minA=Math.min(minA,a);
     if(phase==='going'&&a<DOWN)phase='down';
-    else if(phase==='going'&&a>UP){phase='up';say(m==='knee'?'Tiefer gehen':'Tiefer runter');setForm('FORM CHECK: NICHT TIEF GENUG, ZÄHLT NICHT',true);return}
+    else if(phase==='going'&&a>UP){phase='up';say(m==='knee'?'Tiefer gehen':'Tiefer runter');setForm('Nicht tief genug, zählt nicht',true);return}
     else if(phase==='down'&&a>UP&&Date.now()-lastRep>500){
       phase='up';lastRep=Date.now();
       if(!backOk){say('Rücken gerade, zählt nicht')}
@@ -707,9 +666,9 @@ function onResults(res){
     const s=Math.floor(holdMs/1000);
     if(s!==reps){reps=s;updCam();if(s&&s%10===0)say(s+' Sekunden');if(reps>=exercise.target){holdMs=0;completeSet()}}
   }
-  if(!backOk){setForm('FORM CHECK: RÜCKEN GERADE HALTEN',true);say('Rücken gerade halten')}
-  else if(plankLike)setForm(`FORM CHECK: <span style="color:#7CD4FF">KÖRPERLINIE OK (${Math.round(emaB)}°)</span>`);
-  else setForm('FORM CHECK: <span style="color:#7CD4FF">TRACKING AKTIV</span>');
+  if(!backOk){setForm('Rücken gerade halten',true);say('Rücken gerade halten')}
+  else if(plankLike)setForm(`<span style="color:#7CD4FF">Körperlinie ok (${Math.round(emaB)}°)</span>`);
+  else setForm('<span style="color:#7CD4FF">Läuft</span>');
 }
 function setForm(t,bad){const f=$('formBanner');f.innerHTML=t;f.classList.toggle('bad',!!bad)}
 async function startCam(){
@@ -721,12 +680,12 @@ async function startCam(){
       pose.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.6,minTrackingConfidence:.6});
       pose.onResults(onResults);
     }
-    camOn=true;$('camBtn').textContent='KAMERA STOPPEN';setForm('FORM CHECK: ANALYSE LÄUFT');
+    camOn=true;$('camBtn').textContent='Kamera stoppen';setForm('Läuft');
     say('Kamera bereit. Los geht\'s.',true);
     (async function loop(){if(!camOn)return;try{await pose.send({image:v})}catch(e){}requestAnimationFrame(loop)})();
-  }catch(e){setForm('KAMERA-ZUGRIFF VERWEIGERT',true)}
+  }catch(e){setForm('Kamera nicht erlaubt',true)}
 }
-function stopCam(){camOn=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('camPrev').hidden=true;$('camBtn').textContent='KAMERA STARTEN';setForm('FORM CHECK: KAMERA GESTOPPT')}
+function stopCam(){camOn=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('camPrev').hidden=true;$('camBtn').textContent='Kamera starten';setForm('Gestoppt')}
 $('camBtn').onclick=()=>camOn?stopCam():startCam();
 $('resetReps').onclick=()=>{reps=0;resetTrack();exercise.set=1;updCam()};
 $('camFlip').onclick=()=>{facing=facing==='user'?'environment':'user';if(camOn){stopCam();startCam()}};
@@ -898,7 +857,7 @@ async function ask(pre){
   const q=(typeof pre==='string'?pre:$('chatInput').value).trim();if(!q)return;
   $('chatInput').value='';addMsg(q,'me');
   if(/plan/i.test(q)&&/(mach|erstell|bau|schreib|brauch|will|gib|generier)/i.test(q)){
-    addMsg('Ich baue dir jetzt einen Wochenplan mit deinen Profil-Daten. Er erscheint im Planbereich oben, dort tippst du auf PLAN ANNEHMEN.','ai');
+    addMsg('Ich baue dir jetzt einen Wochenplan mit deinen Profil-Daten. Er erscheint im Planbereich oben, dort tippst du auf Plan annehmen.','ai');
     $('planCard').scrollIntoView({behavior:'smooth'});await createPlan();return;
   }
   const wait=addMsg('…','ai');
@@ -991,9 +950,9 @@ let pdone=store.get('pdone',{});
 (function(){const lim=Date.now()-30*864e5;Object.keys(pdone).forEach(k=>{if(new Date(k.split('|')[0]).getTime()<lim)delete pdone[k]})})();
 const exKey=(dn,name)=>weekDate(dn)+'|'+name;
 const exDone=(dn,x)=>!!pdone[exKey(dn,x.name)]||(dn===todayName()&&(prog.sets['ex:'+x.name]||0)>=Math.max(1,+x.sets||1));
-const planHtml=(p,act)=>p.days.map(d=>`<div class="pd${d.rest?' rest':''}"><b>${esc(d.day)}</b><em>${d.rest?'RUHETAG':esc(d.focus)}</em>${d.rest?'':`<div class="pex">`+(d.exercises||[]).map(x=>{
+const planHtml=(p,act)=>p.days.map(d=>`<div class="pd${d.rest?' rest':''}"><b>${esc(d.day)}</b><em>${d.rest?'Ruhetag':esc(d.focus)}</em>${d.rest?'':`<div class="pex">`+(d.exercises||[]).map(x=>{
   const m=matchEx(x.name),sets=/^\d+$/.test(String(x.reps))?`${x.sets} × ${x.reps}`:(m?m.sets:`${x.sets} × 12`),ok=act&&exDone(d.day,x);
-  return `<div class="pe${ok?' ok':''}">${act?`<button class="pchk" data-day="${esc(d.day)}" data-ex="${esc(x.name)}" aria-label="Abhaken"><svg class="chk"><use href="#${ok?'i-check':'i-circle'}"/></svg></button>`:''}<span${m?` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}"`:''}>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span>${m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">ERKLÄREN</button>`:''}</div>`}).join('')+`</div>`}</div>`).join('');
+  return `<div class="pe${ok?' ok':''}">${act?`<button class="pchk" data-day="${esc(d.day)}" data-ex="${esc(x.name)}" aria-label="Abhaken"><svg class="chk"><use href="#${ok?'i-check':'i-circle'}"/></svg></button>`:''}<span${m?` class="go" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(sets)}"`:''}>${esc(x.name)} – ${esc(x.sets)} × ${esc(x.reps)}</span>${m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">Erklären</button>`:''}</div>`}).join('')+`</div>`}</div>`).join('');
 function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
 async function enablePush(){
   if(!('serviceWorker' in navigator)||!('PushManager' in window))throw new Error('Push ist hier nicht verfügbar. Auf dem iPhone: in Safari Teilen, dann "Zum Home-Bildschirm", und die App von dort öffnen.');
@@ -1019,15 +978,15 @@ function buildReminders(plan,time){
 }
 async function createPlan(){
   if(!keyOk()){$('planMsg').textContent='Trag zuerst einen funktionierenden Gemini-Key ein.';return}
-  const btn=$('planBtn');btn.disabled=true;btn.textContent='PLAN WIRD ERSTELLT…';$('planMsg').textContent='';$('planDraft').innerHTML='';
+  const btn=$('planBtn');btn.disabled=true;btn.textContent='Plan wird erstellt…';$('planMsg').textContent='';$('planDraft').innerHTML='';
   const names=' | Nutze bevorzugt diese Übungsnamen: Klassische Liegestütze, Diamond Push-ups, Pike Push-ups, Klassische Squats, Ausfallschritte, Glute Bridges, Klassische Plank, Crunches, Mountain Climbers, Wall Sit';
   const inputs={goal:$('pGoal').value,level:$('pLevel').value,days:+$('pDays').value,minutes:+$('pMin').value,equipment:$('pEquip').value,age:profile?profile.age:'',weight:profile?profile.weight:'',notes:$('pNotes').value.slice(0,100)+names};
   try{
     const plan=await genPlan(inputs);draft={plan,inputs,time:$('pTime').value||'18:00'};
-    $('planDraft').innerHTML=`<h2>${esc(plan.title)}</h2><p class="muted">${esc(plan.summary)}</p><p class="kmline">${esc(kmLine())}</p>${planHtml(plan)}<button class="primary" id="acceptPlan">PLAN ANNEHMEN</button>`;
+    $('planDraft').innerHTML=`<h2>${esc(plan.title)}</h2><p class="muted">${esc(plan.summary)}</p><p class="kmline">${esc(kmLine())}</p>${planHtml(plan)}<button class="primary" id="acceptPlan">Plan annehmen</button>`;
     $('acceptPlan').onclick=acceptPlan;
   }catch(e){$('planMsg').textContent='Fehler: '+aiErr(e)}
-  btn.textContent='PLAN ERSTELLEN';updLock();
+  btn.textContent='Plan erstellen';updLock();
 }
 $('planBtn').onclick=createPlan;
 async function acceptPlan(){
@@ -1056,7 +1015,7 @@ $('cancelPlan').onclick=async()=>{
 function showKey(){
   const has=!!getKey(),ok=keyOk();
   $('keyState').textContent=ok?'Key funktioniert und ist auf diesem Gerät gespeichert. Er wird direkt an Google gesendet.':has?'Der gespeicherte Key funktioniert nicht. Trag einen neuen ein.':'Kein Key hinterlegt. Ohne funktionierenden Key antwortet der Coach nicht. Hol dir kostenlos einen auf aistudio.google.com/apikey.';
-  $('keyDel').hidden=!has;$('keySave').textContent=has?'KEY ERSETZEN':'KEY SPEICHERN';updLock();
+  $('keyDel').hidden=!has;$('keySave').textContent=has?'Ersetzen':'Speichern';updLock();
 }
 $('keySave').onclick=async()=>{
   const k=$('keyInput').value.trim();if(!k){$('keyMsg').textContent='Bitte Key eintragen.';return}
@@ -1103,13 +1062,13 @@ async function toggleSteps(){
   if(stepOn){
     window.removeEventListener('devicemotion',onMotion);stepOn=false;store.set('steps',steps);
     if(wake){wake.release().catch(()=>{});wake=null}
-    $('stepBtn').textContent='ZÄHLER STARTEN';$('stepMsg').textContent='Zähler gestoppt.';return;
+    $('stepBtn').textContent='Zähler starten';$('stepMsg').textContent='Zähler gestoppt.';return;
   }
   try{
     if(typeof DeviceMotionEvent==='undefined')throw new Error('Bewegungssensor nicht verfügbar');
     if(typeof DeviceMotionEvent.requestPermission==='function'&&await DeviceMotionEvent.requestPermission()!=='granted')throw new Error('Zugriff auf Bewegungssensor wurde nicht erlaubt');
     window.addEventListener('devicemotion',onMotion);stepOn=true;await holdScreen();
-    $('stepBtn').textContent='ZÄHLER STOPPEN';$('stepMsg').textContent='Zähler läuft. Lass die App geöffnet und das Display an, sonst pausiert iOS die Sensoren.';
+    $('stepBtn').textContent='Zähler stoppen';$('stepMsg').textContent='Zähler läuft. Lass die App geöffnet und das Display an, sonst pausiert iOS die Sensoren.';
   }catch(e){$('stepMsg').textContent='Fehler: '+e.message}
 }
 $('stepBtn').onclick=toggleSteps;
@@ -1133,13 +1092,13 @@ function camBtn(t){
   if(t.type!=='ex')return '';
   const m=matchEx(t.name);if(!m)return '';
   const s=/^\d+$/.test(t.reps)?`${t.goal} × ${t.reps}`:m.sets;
-  return `<button class="launch mini" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(s)}">CAM STARTEN</button>`;
+  return `<button class="launch mini" data-n="${esc(m.name)}" data-m="${m.mode}" data-s="${esc(s)}">Kamera</button>`;
 }
 function todayFocus(){
   const a=store.get('activePlan',null),dn=DAYS[(new Date().getDay()+6)%7],d=a&&a.plan.days.find(x=>x.day===dn);
   if(!a)return 'Dein Workout heute: Starter-Workout. Erstelle im Coach-Tab einen Wochenplan, dann ersetzt er diese Übungen.';
   if(d&&d.rest)return 'Heute ist laut Plan Ruhetag. Erhol dich gut und iss genug Eiweiß.';
-  return `Dein Workout heute: ${d?d.focus:'Training'}. Tippe bei einer Übung auf CAM STARTEN, die Kamera zählt mit.`;
+  return `Dein Workout heute: ${d?d.focus:'Training'}. Tippe bei einer Übung auf Kamera, die Kamera zählt mit.`;
 }
 function todayTasks(){
   const a=store.get('activePlan',null),dn=DAYS[(new Date().getDay()+6)%7];
@@ -1147,7 +1106,7 @@ function todayTasks(){
   if(d&&!d.rest){(d.exercises||[]).forEach(x=>out.push({id:'ex:'+x.name,type:'ex',name:x.name,goal:Math.max(1,+x.sets||1),reps:String(x.reps),detail:repTxt(x.reps)}))}
   else if(!a){const n=profile&&profile.level==='Profi'?4:3;[['Klassische Liegestütze','12'],['Klassische Squats','15'],['Klassische Plank','30 s']].forEach(([nm,r])=>out.push({id:'ex:'+nm,type:'ex',name:nm,goal:n,reps:r,detail:repTxt(r)}))}
   if(!(d&&d.rest))out.push({id:'run',type:'run',name:'Lauf',goal:kmAdvice(profile?profile.goal:'maintain',profile?profile.weight:75,profile?profile.level:'Anfänger').km});
-  out.push({id:'steps',type:'steps',name:'Schritte',goal:STEP_GOAL,info:true},{id:'kcal',type:'kcal',name:'Kalorien',goal:goals().kcal,info:true});
+  out.push({id:'steps',type:'steps',name:'Schritte',goal:STEP_GOAL,info:true});
   return out;
 }
 const standOf=t=>t.type==='ex'?(prog.sets[t.id]||0):t.type==='run'?prog.km:t.type==='steps'?steps.n:eaten.kcal;
@@ -1187,19 +1146,19 @@ document.addEventListener('click',e=>{
   if(c=q('.explain,.exinfo')){showExplain(c.dataset.n);return}
   if(c=q('.go')){if(c.dataset.tab)showTab(c.dataset.tab);else if(c.dataset.n)launch(c.dataset.n,c.dataset.m,c.dataset.s)}
 });
-function exBtn(t){if(t.type!=='ex')return '';const m=matchEx(t.name);return m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">ERKLÄREN</button>`:''}
+function exBtn(t){if(t.type!=='ex')return '';const m=matchEx(t.name);return m&&EXH.INFO[m.name]?`<button class="exinfo" data-n="${esc(m.name)}">Erklären</button>`:''}
 function closeExplain(){const m=document.getElementById('exModal');if(m)m.remove()}
 function showExplain(name){
   const i=EXH.INFO[name];if(!i)return;closeExplain();
   const sv=EXH.svgs(name),ex=matchEx(name)||{};
   const m=document.createElement('div');m.className='modal';m.id='exModal';
-  m.innerHTML=`<div class="card modal-card ex-card"><div class="row between"><span class="label">ÜBUNG ERKLÄRT</span><button class="pill" id="exClose">SCHLIESSEN</button></div>
+  m.innerHTML=`<div class="card modal-card ex-card"><div class="row between"><span class="label">So geht's</span><button class="pill" id="exClose">Schließen</button></div>
   <h2>${esc(name)}</h2><p class="muted">Trainiert: ${esc(i.m)}</p>
   <div class="exfig">${i.f.map((f,k)=>`<figure>${sv[k]}<figcaption><b>${k+1}</b> ${esc(f.l)}</figcaption></figure>`).join('')}</div>
   <p class="muted small">Grün markiert: die Körperteile, die hier arbeiten.</p>
-  <h3>SO GEHT'S</h3><ol class="exsteps">${i.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
-  <h3>HÄUFIGE FEHLER</h3><ul class="exerr">${i.e.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-  <button class="primary" id="exCam">MIT KAMERA STARTEN</button></div>`;
+  <h3>So geht'S</h3><ol class="exsteps">${i.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+  <h3>Häufige Fehler</h3><ul class="exerr">${i.e.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+  <button class="primary" id="exCam">MIT Kamera starten</button></div>`;
   m.addEventListener('click',e=>{if(e.target===m||e.target.closest('#exClose'))closeExplain();else if(e.target.closest('#exCam')){closeExplain();if(ex.name)launch(ex.name,ex.mode,ex.sets)}});
   document.body.appendChild(m);m.scrollTop=0;
 }
@@ -1307,7 +1266,7 @@ async function toggleRun(){
   if(runOn){
     navigator.geolocation.clearWatch(runWatch);clearInterval(runTimer);runOn=false;runLast=null;saveProg();
     if(runWake){runWake.release().catch(()=>{});runWake=null}
-    $('runBtn').textContent='LAUF STARTEN';
+    $('runBtn').textContent='Lauf starten';
     const msg=finishRun(runMeters/1000,(Date.now()-runStart)/1000);
     $('runMsg').textContent=msg;addMsg(msg,'ai');say(msg.split('. ').slice(0,2).join('. '),true);updPace();return;
   }
@@ -1318,7 +1277,7 @@ async function toggleRun(){
   try{if('wakeLock' in navigator)runWake=await navigator.wakeLock.request('screen')}catch(e){}
   runWatch=navigator.geolocation.watchPosition(onPos,e=>{$('runMsg').textContent='Standort-Fehler: '+e.message},{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
   runTimer=setInterval(runPaint,1000);
-  $('runBtn').textContent='LAUF BEENDEN';$('runMsg').textContent=`Tracking läuft. Ziel-Pace ${fmtPace(runTarget)} min/km. Lass die App geöffnet und das Display an.`;
+  $('runBtn').textContent='Lauf beenden';$('runMsg').textContent=`Tracking läuft. Ziel-Pace ${fmtPace(runTarget)} min/km. Lass die App geöffnet und das Display an.`;
 }
 $('runBtn').onclick=toggleRun;
 
@@ -1340,7 +1299,7 @@ function renderHabits(){
   $('habitList').innerHTML=habits.length?habits.map(h=>`<div class="card habit" data-id="${h.id}">
     <div class="row between"><span class="label">${esc(h.name)}</span><span class="label">Rückfälle: ${h.relapses}</span></div>
     <div class="big hc"></div><p class="muted hnext"></p><div class="bar"><i class="hbar"></i></div><p class="muted small hextra"></p>
-    <button class="primary sosBtn">CRAVING SOS</button><div class="sos" hidden></div>
+    <button class="primary sosBtn">Drang? 90 Sekunden</button><div class="sos" hidden></div>
     <details class="acc plan-d"><summary><span>Dein Plan</span><svg class="chev"><use href="#i-chev"/></svg></summary><div class="acc-body"><ul class="tips">${tipsFor(h.name).map(t=>`<li>${esc(t)}</li>`).join('')}</ul><button class="ghost aiPlan">Plan vom Coach</button><p class="muted aiOut"></p></div></details>
     <div class="row gap"><button class="ghost relapse">Rückfall melden</button><button class="ghost del">Entfernen</button></div></div>`).join(''):'<p class="muted">Noch keine Gewohnheit angelegt. Starte oben, der Zähler läuft ab sofort.</p>';
   updHabits();
@@ -1446,7 +1405,7 @@ const scanFood=b64=>gemini([{text:SCAN_PROMPT},{inline_data:{mime_type:'image/jp
 function showScan(f){
   $('scanOut').innerHTML=`<p class="scan-name">${esc(f.name)}</p><p class="muted">${esc(f.portion)}${f.portion?' • ':''}Kohlenhydrate ${f.carbs} g • Fett ${f.fat} g</p>
   <div class="grid2"><label>Kalorien<input id="scK" type="number" inputmode="numeric" value="${f.kcal}"></label><label>Eiweiß (g)<input id="scP" type="number" inputmode="decimal" value="${f.protein}"></label></div>
-  <p class="muted small">Das ist eine KI-Schätzung. Passe die Werte an, wenn sie nicht stimmen.</p><button class="primary" id="scAdd">ZUM KALORIENZÄHLER HINZUFÜGEN</button>`;
+  <p class="muted small">Das ist eine KI-Schätzung. Passe die Werte an, wenn sie nicht stimmen.</p><button class="primary" id="scAdd">ZUM KALORIENZÄHLER Hinzufügen</button>`;
   $('scAdd').onclick=e=>{addEaten(Math.max(0,Math.round(+$('scK').value||0)),Math.max(0,+$('scP').value||0),e.currentTarget);toast(`${f.name} hinzugefügt`);$('scanOut').innerHTML='';$('scanImg').hidden=true};
 }
 async function runScan(){
