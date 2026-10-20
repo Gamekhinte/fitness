@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Winterform">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 <style>
 .tick,.pchk{background:transparent;padding:8px;margin:-8px -8px -8px auto;display:block;color:var(--mut)}
 .pchk{margin:0 8px 0 -6px;flex:none}
@@ -1156,9 +1156,9 @@ function showExplain(name){
   <h2>${esc(name)}</h2><p class="muted">Trainiert: ${esc(i.m)}</p>
   <div class="exfig">${i.f.map((f,k)=>`<figure>${sv[k]}<figcaption><b>${k+1}</b> ${esc(f.l)}</figcaption></figure>`).join('')}</div>
   <p class="muted small">Grün markiert: die Körperteile, die hier arbeiten.</p>
-  <h3>So geht'S</h3><ol class="exsteps">${i.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+  <h3>So geht's</h3><ol class="exsteps">${i.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
   <h3>Häufige Fehler</h3><ul class="exerr">${i.e.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-  <button class="primary" id="exCam">MIT Kamera starten</button></div>`;
+  <button class="primary" id="exCam">Mit Kamera starten</button></div>`;
   m.addEventListener('click',e=>{if(e.target===m||e.target.closest('#exClose'))closeExplain();else if(e.target.closest('#exCam')){closeExplain();if(ex.name)launch(ex.name,ex.mode,ex.sets)}});
   document.body.appendChild(m);m.scrollTop=0;
 }
@@ -1438,5 +1438,6 @@ moveInd();addEventListener('resize',moveInd);addEventListener('orientationchange
 setTimeout(moveInd,300);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(moveInd);
 
 </script>
+<script src="crew.js?v=3"></script>
 </body>
 </html>

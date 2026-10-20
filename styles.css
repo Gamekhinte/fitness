@@ -197,3 +197,12 @@ input,select{border-radius:10px}
 .toast{border-radius:12px;border-color:var(--line)}
 .msg{border-radius:12px}
 .modal-card{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:20px}
+
+/* Crew */
+#wfLeiste{position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));z-index:6500;background:var(--bg);border:1px solid var(--volt);border-radius:12px;padding:12px 16px;display:flex;align-items:baseline;gap:12px}
+#wfLeiste b{font-size:40px;font-weight:900;color:var(--volt);font-variant-numeric:tabular-nums}
+#wfLeiste span{color:var(--txt);font-size:15px;font-weight:700}
+#tab-crew .tbl td:first-child{width:28px;color:var(--mut);font-weight:800}
+#tab-crew .tbl td:nth-child(3){font-weight:800;color:var(--volt);text-align:right;width:60px}
+#tab-crew .exinfo{margin:8px 0 0}
+.nav button{font-size:9.5px}
