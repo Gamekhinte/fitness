@@ -63,6 +63,7 @@
       <div class="ar-oben">
         <button class="ar-chip" id="arCoins" aria-label="Shop und Charakter">${rahmen(120, 48, 14, 7, '#fff')}${coin}<b id="arCoinZahl">0</b></button>
         <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
+        <button class="ar-zahn ar-ton" id="arTon" aria-label="Musik an oder aus">${rahmen(60, 60, 14, 6, '#fff')}<svg class="ar-note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="#2B2826" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.7" fill="#2B2826"/><circle cx="16.5" cy="16" r="2.7" fill="#2B2826"/><path class="aus" d="M4 4l16 16" stroke="#D9643A" stroke-width="2.6" stroke-linecap="round"/></svg></button>
         <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
       <div class="ar-modus" role="tablist"><button data-modus="lauf">Laufen</button><button data-modus="kraft">Kraft</button></div>
@@ -90,12 +91,16 @@
     $('arBlattIn').dataset.modus = modus3d || '';
     if (window.Arena3D) Arena3D.pause(true);
     if (modus3d) b3(modus3d, opt || {});
+    $('arBlattIn').classList.remove('kraft-voll');
+    musikPruefen();
   }
   const schliessen = () => {
     blatt.hidden = true; E = null;
     if (window.KraftUI && KraftUI._test.D) KraftUI.abbrechen();
     if (window.Arena3D) Arena3D.pause(false);
+    setTimeout(musikPruefen, 0);
   };
+  document.addEventListener('click', ev => { if (ev.target.closest('.ar-buehne button, .ar-blatt button') && window.Klang) Klang.effekt('tipp'); }, true);
   blatt.addEventListener('click', ev => {
     if (ev.target.closest('[data-zu]')) schliessen();
     else if (ev.target === blatt && !R) schliessen();
@@ -121,7 +126,14 @@
     altShow(t);
     document.body.classList.toggle('papier', t === 'arena'); document.documentElement.classList.toggle('papier', t === 'arena');
     if (t === 'arena') zeichnen();
+    musikPruefen();
   };
+  const DUELL = ['suche', 'vs', 'bahn'];
+  function musikPruefen() {
+    if (!window.Klang) return;
+    const modus = $('arBlattIn') && $('arBlattIn').dataset.modus;
+    Klang.musik(curTab === 'arena' && (blatt.hidden || !DUELL.includes(modus)) && !(window.KraftUI && KraftUI._test.D) && !R);
+  }
 
   function zeichnen(ohneLaden) {
     const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
@@ -310,6 +322,9 @@
   tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = profil);
   $('arName').onclick = () => arenaWeg();
   $('arZahn').onclick = () => openProfile();
+  const tonZeigen = () => $('arTon').classList.toggle('stumm', !(window.Klang && Klang.musikAn));
+  $('arTon').onclick = () => { if (window.Klang) { Klang.schalteMusik(); tonZeigen(); } };
+  tonZeigen();
   $('arCoins').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
@@ -363,7 +378,7 @@
       const r = await wf().rpc('wf_kaufen', mit({ p_item: teil.kat + ':' + teil.id }));
       F.coins = r.coins; F.besitz = r.besitz || []; store.set('wf-figur', F);
       $('arCoinZahl').textContent = F.coins;
-      toast(`${teil.name} gehört jetzt dir`);
+      toast(`${teil.name} gehört jetzt dir`); if (window.Klang) Klang.effekt('kauf');
       editorMalen(true);
     } catch (err) { toast(err.message); }
   }
@@ -446,7 +461,7 @@
     if (s.status === 'bereit' && R.los) {
       const g = gegnerMeter(s), stufe = R.klasse <= 1000 ? 500 : 1000;
       const st = Math.floor(g / stufe);
-      if (st > R.gegnerStufe && g < R.klasse) { R.gegnerStufe = st; say(`${gegnerName(s)} hat ${meter(st * stufe).replace(',00', '')} geschafft`, true); }
+      if (st > R.gegnerStufe && g < R.klasse) { R.gegnerStufe = st; window.Klang && Klang.effekt('meilenstein'); }
     }
     if (s.status === 'fertig' || s.status === 'abgebrochen') return beenden(s);
     if (R.seite === 'a' ? s.a_auf : s.b_auf) return aufgegeben(R.seite === 'a' ? s.a_delta : s.b_delta);
@@ -457,8 +472,8 @@
     const s = R.stand;
     if (s.status === 'bereit' && R.startAt) {
       const rest = Math.ceil((R.startAt - Date.now()) / 1000);
-      if (rest >= 1 && rest <= 3 && !R.gesagt[rest]) { R.gesagt[rest] = 1; say(String(rest), true); }
-      if (rest <= 0 && !R.los) { R.los = true; say('Los!', true); if (!runOn) toggleRun(); }
+      if (rest >= 1 && rest <= 3 && !R.gesagt[rest]) { R.gesagt[rest] = 1; window.Klang && Klang.effekt('countdown'); }
+      if (rest <= 0 && !R.los) { R.los = true; window.Klang && Klang.effekt('los'); if (!runOn) toggleRun(); }
       if (R.los) {
         const jetzt = Date.now(), dt = (jetzt - R.letzt.t) / 1000;
         if (dt >= 2) {
@@ -485,10 +500,11 @@
     if (runOn) toggleRun();
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <h2 class="ar-titel">Aufgegeben</h2>
+      <h2 class="ar-titel ar-pop">Aufgegeben</h2>
       <div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta || 0}</span></div>
       <p class="ar-hand">Nächstes Mal durchziehen: Wer verliert, aber die halbe Strecke schafft, verliert nur die Hälfte.</p>
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim: 'traurig' });
+    if (window.Klang) Klang.effekt('niederlage');
     profilLaden().then(zeichnen);
   }
   const PACE_LOOK = { haut: '#D19F74', haare: 'stachel', haarfarbe: '#2B2826', augen: 'froh', mund: 'grinsen', oberteil: '#F2C14E', hose: '#2F4A7A', schuhe: '#D9643A', kopf: 'stirnband' };
@@ -509,6 +525,7 @@
         <p class="ar-tipp">${TIPPS[Math.floor(sek / 5) % TIPPS.length]}</p>
         <button class="ar-knopf leise" id="arAufgeben">Abbrechen</button>`, 'suche', { aussehen: F.aussehen }, true);
     } else if (!R.los) {
+      if (!R.gefundenTon) { R.gefundenTon = true; if (window.Klang) Klang.effekt('gefunden'); }
       const rest = R.startAt ? Math.max(0, Math.ceil((R.startAt - Date.now()) / 1000)) : '';
       zeigeBlatt(`<div class="ar-vs"><div><b>${e(ich().name)}</b><span><img src="arena/pokal.svg" alt="">${pokale}</span></div><em>VS</em>
         <div><b>${e(gegnerName(s) || '')}</b><span><img src="arena/pokal.svg" alt="">${gegnerPokale(s) ?? 0}</span></div></div>
@@ -551,15 +568,35 @@
       : zuLangsam ? `Gewonnen, aber nicht im Zeitlimit (${zeit(s.limit)}) oder schon oft gegen denselben Gegner. Keine Sieg-Pokale.` : '';
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <h2 class="ar-titel">${ungueltig ? 'Zählt nicht' : abgelaufen ? 'Zeit um' : sieg ? 'Gewonnen' : 'Verloren'}</h2>
-      ${ungueltig || abgelaufen ? '' : `<div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta > 0 ? '+' : ''}${delta || 0}</span><span>${coin}+${coins}</span></div>`}
+      <h2 class="ar-titel ar-pop${sieg && !ungueltig && !abgelaufen ? ' sieg' : ''}">${ungueltig ? 'Zählt nicht' : abgelaufen ? 'Zeit um' : sieg ? 'Gewonnen!' : 'Verloren'}</h2>
+      ${ungueltig || abgelaufen ? '' : beuteHtml()}
       ${hinweis ? `<p class="ar-hand">${hinweis}</p>` : ''}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis',
       { aussehen: F.aussehen, anim: ungueltig ? 'idle' : sieg ? F.aussehen.emote : 'traurig', konfetti: sieg && !ungueltig });
-    say(ungueltig ? 'Das Rennen zählt nicht.' : sieg ? `Gewonnen. Plus ${delta} Pokale.` : `Verloren. ${delta} Pokale.`, true);
+    feiern(sieg && !ungueltig && !abgelaufen, delta || 0, coins);
     profilLaden().then(zeichnen); figurLaden();
+  }
+
+  /* ---------- Feiern: Pokale und Coins zählen hoch, mit Fanfare ---------- */
+  const beuteHtml = () => `<div class="ar-beute"><span class="ar-pop2"><img src="arena/pokal.svg" alt=""><b id="arBP">0</b></span><span class="ar-pop3">${coin}<b id="arBC">+0</b></span></div>`;
+  function feiern(sieg, delta, coins) {
+    const K = window.Klang;
+    if (K) K.effekt(sieg ? 'sieg' : 'niederlage');
+    const bp = document.getElementById('arBP'), bc = document.getElementById('arBC'); if (!bp || !bc) return;
+    const schritte = Math.min(30, Math.abs(delta)), start = sieg ? 900 : 500;
+    for (let i = 1; i <= schritte; i++) setTimeout(() => {
+      const w = Math.round(delta * i / schritte); bp.textContent = (w > 0 ? '+' : '') + w;
+      if (K) K.effekt('pokal', sieg ? i : schritte - i);
+      if (i === schritte) bp.parentNode.classList.add('fertig');
+    }, start + i * (900 / Math.max(schritte, 1)));
+    if (!schritte) bp.textContent = '0';
+    const cs = Math.min(10, coins), cStart = start + 1100;
+    for (let i = 1; i <= cs; i++) setTimeout(() => {
+      bc.textContent = '+' + Math.round(coins * i / cs); if (K) K.effekt('muenze');
+      if (i === cs) bc.parentNode.classList.add('fertig');
+    }, cStart + i * 110);
   }
 
   // Ein laufendes Rennen nach dem Neuladen wieder aufnehmen
@@ -575,6 +612,6 @@
   else zeichnen();
 
   // für Tests
-  window.ArenaUI = { editor, profil, arenaWeg, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden,
+  window.ArenaUI = { editor, profil, arenaWeg, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

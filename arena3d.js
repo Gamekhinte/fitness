@@ -23,14 +23,24 @@
     rund: { geo: (h, s) => W.rohr(5.8 * s, h, 40), drin: (x, z) => x * x + z * z < 5.75 * 5.75, ecken: [[-3.75, -3.75], [3.75, -3.75], [-3.75, 3.75], [3.75, 3.75]] },
     sechseck: { geo: (h, s) => { const g = W.rohr(6 * s, h, 6); g.rotateY(Math.PI / 6); return g; }, drin: (x, z) => x * x + z * z < 5.1 * 5.1, ecken: [[-3.6, -3.6], [3.6, -3.6], [-3.6, 3.6], [3.6, 3.6]] }
   };
+  // Kegelstumpf in der Form der Insel: oben breit, unten schmal
+  function stumpf(form, oben, unten, h) {
+    let geo;
+    if (form === 'quadrat') { geo = new T.CylinderGeometry(7.1 * oben, 7.1 * unten, h, 4, 1); geo.rotateY(Math.PI / 4); geo.scale(1.1, 1, 1); }
+    else if (form === 'rund') geo = new T.CylinderGeometry(5.8 * oben, 5.8 * unten, h, 40, 1);
+    else { geo = new T.CylinderGeometry(6 * oben, 6 * unten, h, 6, 1); geo.rotateY(Math.PI / 6); }
+    return geo;
+  }
   function sockel(g, form, oben, erde, erde2) {
     const f = FORMEN[form];
-    g.add(teil(f.geo(1.4, 1), erde, 0, -0.6, 0, 0.06));
-    g.add(teil(f.geo(1.1, 0.84), erde2, 0, -1.75, 0, 0.06));
+    g.add(teil(f.geo(1.2, 1), erde, 0, -0.5, 0, 0.06));
     g.add(teil(f.geo(0.4, 1.02), oben, 0, 0, 0, 0.05));
-    // Felsen unten dran, damit sie wie eine schwebende Insel aussieht
-    [[-2, -1, 1.3, 2.2], [1.8, 1.2, 1.1, 1.8], [0.2, -2.2, 0.9, 1.4], [-2.6, 2, 0.8, 1.2], [2.8, -1.8, 0.7, 1.1]].forEach(([x, z, r, h]) => {
-      const k = W.kegel(r, h, 6); k.rotateX(Math.PI); g.add(teil(k, erde2, x, -2.3 - h / 2, z, 0.05));
+    // Felsbrocken darunter: wird nach unten schmaler, unregelmäßige Steine hängen dran
+    g.add(teil(stumpf(form, 0.99, 0.62, 1.6), erde2, 0, -1.9, 0, 0.06));
+    g.add(teil(stumpf(form, 0.62, 0.3, 1.2), erde2, 0, -3.3, 0, 0.06));
+    [[0, 0, 1.35, 1.45], [-1.7, -0.8, 0.95, 1.5], [1.6, 0.9, 0.85, 1.4], [0.9, -1.5, 0.7, 1.1], [-1.2, 1.5, 0.75, 1.2], [2.6, -0.6, 0.55, 0.9], [-2.6, 0.5, 0.5, 0.8]].forEach(([x, z, r, st], i) => {
+      const stein = new T.IcosahedronGeometry(r, 0); stein.scale(1, st, 1); stein.rotateY(i * 0.7);
+      g.add(teil(stein, i % 2 ? erde2 : erde, x, -3.6 - r * st * 0.55 + (i ? 0.5 : 0), z, 0.05));
     });
   }
   // Laufweg als Band mit dunkler Kante, gibt die Kurve zurück (darauf joggt die Figur)
@@ -384,6 +394,7 @@
     if (phy.cool <= 0 && phy.vyAlt < -4 && a > 60) {
       const staerke = Math.min(1, -phy.vyAlt / 14);
       losreissen(Math.round(30 + 60 * staerke), Math.max(4, -phy.vyAlt * 0.6));
+      if (window.Klang) Klang.effekt('plumps', staerke);
       fig.vy = Math.max(fig.vy, -phy.vyAlt * 0.35); phy.cool = 0.35;
     }
     phy.vyAlt = phy.vy;
@@ -549,6 +560,7 @@
     bild: async (nr, set) => { await bereit(); return bild(nr, set); },
     // für Tests: Insel loslassen wie nach dem Hochziehen
     stoss(y) { phy.y = y; phy.vy = 0; },
+    _insel: (nr, set) => insel(nr, set),
     fliegend: () => KR.teile.filter(k => k.zustand !== 'aus').length
   };
 })();

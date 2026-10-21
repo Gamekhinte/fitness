@@ -158,3 +158,39 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .kr-check{font-family:var(--dick);font-size:18px;text-align:center;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:8px;margin:10px 0}
 .kr-check[data-ok="1"]{background:var(--marker)}
 .ar-knopf:disabled{opacity:.45;box-shadow:none}
+
+/* ---------- Kraft: Kamera nimmt drei Viertel, Text unten kompakt ---------- */
+.ar-blatt-in.kraft-voll{padding:0 0 10px;min-height:0}
+.ar-blatt-in.kraft-voll .kr-kamera{margin:0 0 6px;height:calc(74svh - 30px)}
+.kr-kurz{padding:4px 14px 0;text-align:center}
+.kr-kurz>b{display:block;font-family:var(--dick);font-size:19px;line-height:1.2}
+.kr-kurz>p{font-size:15px;line-height:1.25;margin:2px 0 6px;opacity:.85}
+.kr-reihe{display:flex;gap:8px;justify-content:center;margin-top:4px}
+.kr-reihe .ar-knopf{flex:1;max-width:200px;font-size:16px;padding:7px 10px;margin:0}
+.kr-kurz .ar-vs b{font-size:17px}
+.kr-kurz .ar-vs em{font-size:24px}
+.kr-kurz.ar-hud .ar-renn-zeile{margin:4px 0;grid-template-columns:80px 1fr 82px}
+.kr-kurz .ar-abstand{font-size:15px;margin:4px 0 0}
+.kr-uhr{position:absolute;top:10px;left:12px;font-family:var(--dick);font-size:34px;line-height:1.1;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.kr-uhr:empty{display:none}
+.kr-mitte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--dick);font-size:120px;color:#fff;-webkit-text-stroke:4px var(--graphit);paint-order:stroke fill;text-shadow:0 6px 0 var(--graphit)}
+.kr-hinweis{font-size:16px;padding:5px 10px}
+
+/* ---------- Pop-Animationen für Sieg, Zähler und Beute ---------- */
+@keyframes arPop{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.18);opacity:1}100%{transform:scale(1)}}
+@keyframes arPuls{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.ar-pop{animation:arPop .55s cubic-bezier(.2,1.4,.4,1) both}
+.ar-pop2{animation:arPop .5s .7s cubic-bezier(.2,1.4,.4,1) both}
+.ar-pop3{animation:arPop .5s 1.6s cubic-bezier(.2,1.4,.4,1) both}
+.ar-titel.sieg{font-size:42px;color:#fff;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit)}
+.ar-beute span.fertig{animation:arPuls .35s ease-out;background:var(--gold)}
+.kr-zahl.pop,.kr-mitte.pop{animation:arPuls .3s ease-out}
+.kr-mitte.pop{animation:arPop .45s cubic-bezier(.2,1.4,.4,1)}
+@media (prefers-reduced-motion:reduce){.ar-pop,.ar-pop2,.ar-pop3,.kr-zahl.pop,.kr-mitte.pop,.ar-beute span.fertig{animation:none}}
+
+/* Ton-Knopf */
+.ar-ton{margin-left:auto}
+.ar-ton+.ar-zahn{margin-left:0}
+.ar-ton .ar-note{position:relative;width:28px;height:28px;margin:0 auto;display:block}
+.ar-ton .aus{display:none}
+.ar-ton.stumm .aus{display:inline}

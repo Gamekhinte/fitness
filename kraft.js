@@ -210,8 +210,10 @@
     D.z = new Zaehler(uebung); K.zaehler = D.z;
     ui.zeigeBlatt(`
       <div class="kr-kamera" id="krKamera"><video playsinline muted></video><canvas></canvas>
-        <div class="kr-zahl" id="krZahl"></div><div class="kr-hinweis" id="krHinweis">Kamera startet…</div></div>
+        <div class="kr-uhr" id="krUhr"></div><div class="kr-zahl" id="krZahl"></div><div class="kr-mitte" id="krMitte"></div>
+        <div class="kr-hinweis" id="krHinweis">Kamera startet…</div></div>
       <div id="krInfo"></div>`);
+    document.getElementById('arBlattIn').classList.add('kraft-voll');
     infoAufbau();
     try { await kameraAn(document.getElementById('krKamera')); }
     catch (err) { info(`<p class="ar-hand">Kamera geht nicht: ${e(err.message || 'keine Erlaubnis')}. Erlaube die Kamera in den Einstellungen.</p><button class="ar-knopf breit" data-ende>Zurück</button>`); return; }
@@ -225,10 +227,12 @@
   }
   function infoAufbau() {
     const u = UEB[D.uebung];
-    info(`<h2 class="ar-titel">${u.name}: aufstellen</h2><p class="ar-hand">${u.aufbau}</p>
-      <div class="kr-check" id="krCheck">Ich suche deinen Körper…</div>
-      <button class="ar-knopf breit" id="krSuchen" ${D.bereit >= 1 ? '' : 'disabled'}>Gegner suchen</button>
-      <button class="ar-knopf leise" data-ende>Abbrechen</button>`);
+    info(`<div class="kr-kurz"><b>${u.name}</b><p>${u.aufbau}</p>
+      <div class="kr-reihe"><button class="ar-knopf leise" data-ende>Abbrechen</button><button class="ar-knopf" id="krSuchen" ${D.bereit >= 1 ? '' : 'disabled'}>Gegner suchen</button></div></div>`);
+  }
+  function mitte(text) {
+    const m = document.getElementById('krMitte'); if (!m || m.textContent === text) return;
+    m.textContent = text; m.classList.remove('pop'); void m.offsetWidth; if (text) m.classList.add('pop');
   }
   function hinweis(text, art) {
     const h = document.getElementById('krHinweis'); if (!h) return;
@@ -244,14 +248,15 @@
       const c = document.getElementById('krCheck');
       if (c) { c.textContent = D.bereit >= 1 ? 'Ganzer Körper erkannt. Passt!' : erkannt ? 'Gut, kurz so bleiben…' : z.hinweis; c.dataset.ok = D.bereit >= 1 ? '1' : ''; }
       const b = document.getElementById('krSuchen'); if (b) b.disabled = D.bereit < 1;
-      hinweis(lm ? (D.bereit >= 1 ? 'Bereit' : z.hinweis) : 'Ganzer Körper ins Bild', D.bereit >= 1 ? 'ok' : '');
+      hinweis(D.bereit >= 1 ? 'Passt! Du kannst starten' : erkannt ? 'Gut, kurz so bleiben' : (lm ? z.hinweis : 'Ganzer Körper ins Bild'), D.bereit >= 1 ? 'ok' : erkannt ? 'warn' : '');
       return;
     }
     if (D.fertig) return;
     const z = D.z; z.schritt(lm, welt, t, asp);
-    if (z.ereignis === 'wdh') { say(String(z.wert), true); }
-    if (z.ereignis === 'fehler') { K.fehlerFarbe = performance.now(); say(z.hinweis, true); }
-    if (z.ereignis === 'vorbei') { say('Plank vorbei. ' + z.wert + ' Sekunden.', true); satzEnde(); }
+    if (z.ereignis === 'wdh') { window.Klang && Klang.effekt('wdh', z.wert); const zz = document.getElementById('krZahl'); if (zz) { zz.classList.remove('pop'); void zz.offsetWidth; zz.classList.add('pop'); } }
+    if (z.ereignis === 'fehler') { K.fehlerFarbe = performance.now(); window.Klang && Klang.effekt('fehler'); }
+    if (z.ereignis === 'sekunde' && z.wert % 10 === 0) window.Klang && Klang.effekt('wdh', z.wert / 10);
+    if (z.ereignis === 'vorbei') { window.Klang && Klang.effekt('countdown'); satzEnde(); }
     hinweis(z.hinweis, z.ereignis === 'fehler' ? 'fehler' : z.gueltig ? 'ok' : 'warn');
     const zahl = document.getElementById('krZahl'); if (zahl) zahl.textContent = z.wert;
   }
@@ -289,34 +294,38 @@
     const ui = A(), u = UEB[D.uebung], s = D.stand;
     if (D.phase === 'suche' && (!s || s.status === 'suche')) {
       const sek = Math.floor((Date.now() - D.t0) / 1000);
-      info(`<h2 class="ar-titel">Suche Gegner${'.'.repeat(1 + sek % 3)}</h2><p class="ar-hand gross">${u.name} · ${sek} s</p>
-        <p class="ar-hand klein">Bleib in Position, die Kamera ist schon an.</p><button class="ar-knopf leise" id="krAufgeben">Abbrechen</button>`);
+      mitte('');
+      info(`<div class="kr-kurz"><b>Suche Gegner${'.'.repeat(1 + sek % 3)}</b><p>${u.name} · ${sek} s · bleib in Position</p>
+        <div class="kr-reihe"><button class="ar-knopf leise" id="krAufgeben">Abbrechen</button></div></div>`);
       return;
     }
     if (s && s.status === 'bereit' && D.startAt && D.phase !== 'satz' && D.phase !== 'warten') {
       const rest = Math.ceil((D.startAt - Date.now()) / 1000);
       if (rest > 0) {
         if (D.phase !== 'countdown') { D.phase = 'countdown'; }
-        if (rest <= 3 && !D.gesagt[rest]) { D.gesagt[rest] = 1; say(String(rest), true); }
-        info(`<div class="ar-vs"><div><b>${e(ui.ich().name)}</b></div><em>VS</em><div><b>${e(gegnerName(s) || '')}</b><span><img src="arena/pokal.svg" alt="">${(s.aufzeichnung ? s.geist_pokale : (D.seite === 'a' ? s.b_pokale : s.a_pokale)) ?? 0}</span></div></div>
-          <p class="ar-countdown">${rest}</p><p class="ar-hand">${u.name}. Geh in Position!</p><button class="ar-knopf leise" id="krAufgeben">Aufgeben</button>`);
+        if (rest <= 3 && !D.gesagt[rest]) { D.gesagt[rest] = 1; window.Klang && Klang.effekt('countdown'); }
+        if (D.phase === 'countdown' && !D.gefundenTon) { D.gefundenTon = true; window.Klang && Klang.effekt('gefunden'); }
+        mitte(String(rest));
+        info(`<div class="kr-kurz"><div class="ar-vs"><div><b>${e(ui.ich().name)}</b></div><em>VS</em><div><b>${e(gegnerName(s) || '')}</b><span><img src="arena/pokal.svg" alt="">${(s.aufzeichnung ? s.geist_pokale : (D.seite === 'a' ? s.b_pokale : s.a_pokale)) ?? 0}</span></div></div>
+          <div class="kr-reihe"><button class="ar-knopf leise" id="krAufgeben">Aufgeben</button></div></div>`);
         return;
       }
       // Los geht's
-      D.phase = 'satz'; D.z = new Zaehler(D.uebung); K.zaehler = D.z; D.satzStart = Date.now(); say('Los!', true);
+      mitte('LOS!'); setTimeout(() => mitte(''), 900);
+      D.phase = 'satz'; D.z = new Zaehler(D.uebung); K.zaehler = D.z; D.satzStart = Date.now(); window.Klang && Klang.effekt('los');
     }
     if (D.phase === 'satz' || D.phase === 'warten') {
       const sek = Math.floor((Date.now() - D.startAt) / 1000), dauer = s ? s.dauer : 60;
-      if (D.phase === 'satz' && D.uebung !== 'plank' && sek >= dauer) { say('Zeit! ' + D.z.wert + ' Wiederholungen.', true); satzEnde(); }
+      if (D.phase === 'satz' && D.uebung !== 'plank' && sek >= dauer) { window.Klang && Klang.effekt('countdown'); satzEnde(); }
       if (D.phase === 'satz' && D.uebung === 'plank' && sek >= dauer) satzEnde();
       if (Date.now() - D.gemeldet > 2000 && D.phase === 'satz') { D.gemeldet = Date.now(); ui.wf().rpc('wf_kraft_wert', ui.mit({ p_duell: D.id, p_wert: D.z.wert, p_fertig: false })).catch(() => {}); }
       const g = s ? gegnerWert(s) : 0, ich = D.z.wert;
       const rest = D.uebung === 'plank' ? sek : Math.max(0, dauer - sek);
-      info(`<div class="ar-hud"><p class="ar-uhr">${D.uebung === 'plank' ? zeit(rest) : rest}</p>
+      const uh = document.getElementById('krUhr'); if (uh) uh.textContent = D.uebung === 'plank' ? zeit(rest) : rest;
+      info(`<div class="kr-kurz ar-hud">
         <div class="ar-renn-zeile ich"><span>Du</span><div class="ar-mini"><i style="width:${Math.min(100, ich / Math.max(ich, g, 1) * 100)}%"></i></div><b>${ich} ${u.einheit}</b></div>
         <div class="ar-renn-zeile"><span>${e(s ? gegnerName(s) || 'Gegner' : 'Gegner')}</span><div class="ar-mini"><i style="width:${Math.min(100, g / Math.max(ich, g, 1) * 100)}%"></i></div><b>${g} ${u.einheit}${s && gegnerFertig(s) ? ' fertig' : ''}</b></div>
-        ${D.phase === 'warten' ? '<p class="ar-abstand">Fertig! Warte auf deinen Gegner…</p>' : ''}</div>
-        ${D.phase === 'satz' ? '<button class="ar-knopf leise" id="krAufgeben">Aufgeben</button>' : ''}`);
+        ${D.phase === 'warten' ? '<p class="ar-abstand">Fertig! Warte auf deinen Gegner…</p>' : '<div class="kr-reihe"><button class="ar-knopf leise" id="krAufgeben">Aufgeben</button></div>'}</div>`);
     }
   }
   async function satzEnde() {
@@ -355,7 +364,7 @@
     else {
       const seite = war.seite, sieg = s.sieger === seite, remis = s.ergebnis === 'remis';
       delta = seite === 'a' ? s.a_delta : s.b_delta;
-      titel = s.ergebnis === 'ungueltig' ? 'Zählt nicht' : remis ? 'Unentschieden' : sieg ? 'Gewonnen' : 'Verloren';
+      titel = s.ergebnis === 'ungueltig' ? 'Zählt nicht' : remis ? 'Unentschieden' : sieg ? 'Gewonnen!' : 'Verloren';
       anim = sieg ? F.aussehen.emote : remis ? 'idle' : 'traurig';
       const ich = seite === 'a' ? s.a_wert : s.b_wert, er = s.aufzeichnung ? s.geist_endwert : (seite === 'a' ? s.b_wert : s.a_wert);
       text = `<ul class="ar-liste"><li><span>Du</span><b>${ich} ${u.einheit}</b></li><li><span>${e(gName(s, war.seite) || 'Gegner')}</span><b>${er ?? '–'} ${u.einheit}</b></li></ul>`;
@@ -363,10 +372,10 @@
     }
     ui.zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <h2 class="ar-titel">${titel}</h2>
-      ${titel === 'Zählt nicht' ? '' : `<div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta > 0 ? '+' : ''}${delta || 0}</span>${coins ? `<span>${ui.coin}+${coins}</span>` : ''}</div>`}
-      ${text}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen' });
-    say(titel + '.', true);
+      <h2 class="ar-titel ar-pop${titel === 'Gewonnen!' ? ' sieg' : ''}">${titel}</h2>
+      ${titel === 'Zählt nicht' ? '' : ui.beuteHtml()}
+      ${text}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen!' });
+    ui.feiern(titel === 'Gewonnen!', delta || 0, coins);
     ui.nachDuell();
   }
 

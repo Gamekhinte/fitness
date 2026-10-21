@@ -89,7 +89,8 @@
     if (sk === 'dino') { haut = '#8CC084'; ober = '#3E7A55'; hose = '#3E7A55'; schuh = '#3E7A55'; haare = 'glatze'; kopf = 'dino'; }
     if (sk === 'gold') { haut = '#F2C14E'; ober = '#F2C14E'; hose = '#E0A400'; schuh = '#E0A400'; hf = '#E0A400'; }
 
-    const wurzel = new T.Group();
+    // aussen: Platz in der Welt (setzt der Aufrufer), wurzel: wird von den Animationen bewegt
+    const aussen = new T.Group(), wurzel = new T.Group(); aussen.add(wurzel);
     const rig = { wurzel };
     const huefte = new T.Group(); huefte.position.y = 0.85; wurzel.add(huefte); rig.huefte = huefte;
     const rumpf = new T.Group(); huefte.add(rumpf); rig.rumpf = rumpf;
@@ -130,10 +131,10 @@
       huefte.add(W.teil(schwanz, '#3E7A55', 0, 0.0, -0.6, 0.03));
     }
     if (sk === 'astronaut') rumpf.add(W.teil(W.box(0.5, 0.6, 0.25), '#D0D0D0', 0, 0.5, -0.42, 0.03));
-    if (sk === 'eisbaer') k.add(W.teil(W.kugel(0.17), '#F1EDE4', 0, -0.12, R * 0.92, 0.02));
+    if (sk === 'eisbaer') { k.add(W.teil(W.kugel(0.14), '#F1EDE4', 0, -0.17, R * 0.9, 0.02)); k.add(W.teil(W.kugel(0.05), '#2B2826', 0, -0.13, R * 1.02, 0)); }
     rig.anim = a.emote; rig.aussehen = a;
-    wurzel.userData.rig = rig;
-    return wurzel;
+    aussen.userData.rig = rig;
+    return aussen;
   }
 
   function haarBauen(k, typ, f, R) {
@@ -142,13 +143,13 @@
     const add = (geo, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
     if (typ === 'glatze') return;
     if (typ === 'kurz') { const m = add(kappe(0.38), 0, 0, 0); m.rotation.x = -0.25; }
-    if (typ === 'seite') { const m = add(kappe(0.4), 0, 0, 0); m.rotation.set(-0.2, 0, 0.25); add(W.box(0.5, 0.12, 0.25), -0.14, R * 0.86, R * 0.42).rotation.z = 0.35; }
+    if (typ === 'seite') { const m = add(kappe(0.4), 0, 0, 0); m.rotation.set(-0.2, 0, 0.25); const tolle = W.kugel(0.2, 14, 10); tolle.scale(1.7, 0.55, 1.1); add(tolle, -0.12, R * 0.88, R * 0.3).rotation.z = 0.3; }
     if (typ === 'stachel') {
       add(kappe(0.36), 0, 0, 0).rotation.x = -0.2;
       for (let i = 0; i < 8; i++) { const w = i / 8 * Math.PI * 2; const c = add(W.kegel(0.12, 0.34, 6), Math.cos(w) * 0.26, R * 0.95, Math.sin(w) * 0.26 - 0.05, 0.025); c.rotation.set(Math.sin(w) * 0.6, 0, -Math.cos(w) * 0.6); }
       add(W.kegel(0.13, 0.4, 6), 0, R * 1.12, -0.02, 0.025);
     }
-    if (typ === 'lang') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; add(W.box(R * 1.9, 0.75, 0.3), 0, -0.25, -R * 0.75); }
+    if (typ === 'lang') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; const hinten = W.kugel(R * 1.02, 22, 16); hinten.scale(1, 1.3, 0.62); add(hinten, 0, -0.2, -R * 0.42); }
     if (typ === 'locken') { add(kappe(0.36), 0, 0, 0); for (let i = 0; i < 11; i++) { const w = i / 11 * Math.PI * 2; add(W.kugel(0.15, 10, 8), Math.cos(w) * R * 0.85, R * 0.55 + (i % 2) * 0.08, Math.sin(w) * R * 0.85 - 0.08, 0.025); } }
     if (typ === 'dutt') { add(kappe(0.4), 0, 0, 0).rotation.x = -0.25; add(W.kugel(0.22, 12, 10), 0, R * 0.85, -R * 0.55); }
   }
@@ -157,22 +158,22 @@
     const W = WF3D, T = W.T;
     const add = (geo, f, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
     const kappe = (s, anteil = 0.5) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
-    if (typ === 'muetze') { add(kappe(1.1, 0.42), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.1; const t = new T.TorusGeometry(R * 0.92, 0.09, 8, 24); t.rotateX(Math.PI / 2); add(t, '#FFFFFF', 0, R * 0.38, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
     if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
     if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#FFFFFF', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
     if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
-    if (typ === 'helm') { add(kappe(1.14, 0.42), '#3FA9E6', 0, 0.03, 0); for (const x of [-0.18, 0, 0.18]) add(W.box(0.06, 0.08, 0.7), '#2B2826', x, R * 1.12, -0.02, 0); }
+    if (typ === 'helm') { add(kappe(1.14, 0.38), '#3FA9E6', 0, 0.03, 0).rotation.x = -0.15; const kamm = new T.SphereGeometry(R * 1.17, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.3); kamm.scale(0.3, 1, 1); add(kamm, '#2B2826', 0, 0.03, 0, 0).rotation.x = -0.15; }
     if (typ === 'hasenohren') for (const s of [-1, 1]) { const o = add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), '#FFFFFF', s * 0.2, R * 1.35, -0.05, 0.025); o.rotation.z = -s * 0.2; }
     if (typ === 'kopfhoerer') { const t = new T.TorusGeometry(R * 1.05, 0.05, 8, 24, Math.PI); add(t, '#2B2826', 0, 0, 0, 0.015); for (const s of [-1, 1]) { const c = W.rohr(0.17, 0.12, 16); c.rotateZ(Math.PI / 2); add(c, '#D9643A', s * R * 1.02, 0, 0, 0.02); } }
     if (typ === 'baerohren') for (const s of [-1, 1]) add(W.kugel(0.15), '#FFFFFF', s * R * 0.65, R * 0.8, 0, 0.025);
-    if (typ === 'dino') { add(kappe(1.08, 0.55), '#3E7A55', 0, 0, -0.02); for (let i = 0; i < 4; i++) add(W.kegel(0.08, 0.2, 4), '#8CC084', 0, R * (1.05 - i * 0.18), -R * (0.15 + i * 0.3), 0.02); }
-    if (typ === 'raumhelm') { const glas = new T.Mesh(W.kugel(R * 1.32, 24, 18), new T.MeshToonMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.3 })); k.add(glas); W.umriss(glas, 0.03); glas.children[0].material = WF3D.inkMat; }
+    if (typ === 'dino') { add(kappe(1.1, 0.36), '#3E7A55', 0, 0, -0.02).rotation.x = -0.35; for (let i = 0; i < 4; i++) add(W.kegel(0.08, 0.2, 4), '#8CC084', 0, R * (1.05 - i * 0.18), -R * (0.15 + i * 0.3), 0.02); }
+    if (typ === 'raumhelm') { const glas = new T.Mesh(W.kugel(R * 1.32, 24, 18), new T.MeshBasicMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.16, depthWrite: false })); glas.renderOrder = 2; k.add(glas); const rand = new T.TorusGeometry(R * 1.05, 0.06, 8, 28); rand.rotateX(Math.PI / 2); k.add(W.teil(rand, '#D0D0D0', 0, -R * 0.85, 0, 0.02)); }
   }
 
   function extraBauen(rig, typ, R) {
     const W = WF3D, T = W.T, k = rig.kopf;
     if (typ === 'brille' || typ === 'sonnenbrille' || typ === 'skibrille') {
-      if (typ === 'skibrille') { const t = new T.TorusGeometry(R * 1.0, 0.06, 8, 28, Math.PI); t.rotateX(Math.PI / 2); t.rotateY(Math.PI); k.add(W.teil(t, '#2B2826', 0, 0.12, 0, 0, false)); k.add(W.teil(W.box(0.62, 0.2, 0.08), '#F2C14E', 0, 0.12, R * 0.95, 0.025)); return; }
+      if (typ === 'skibrille') { const t = new T.TorusGeometry(R * 1.04, 0.045, 8, 28); t.rotateX(Math.PI / 2 - 0.25); k.add(W.teil(t, '#2B2826', 0, R * 0.5, 0, 0, false)); const glas = W.kugel(0.16, 14, 10); glas.scale(1.9, 0.75, 0.6); k.add(W.teil(glas, '#F2C14E', 0, R * 0.66, R * 0.78, 0.025)); return; }
       for (const s of [-1, 1]) {
         if (typ === 'brille') { const t = new T.TorusGeometry(0.11, 0.025, 6, 16); k.add(W.teil(t, '#2B2826', s * 0.17, 0.1, R * 0.97, 0)); }
         else k.add(W.teil(W.rohr(0.13, 0.04, 16).rotateX(Math.PI / 2), '#2B2826', s * 0.17, 0.1, R * 0.97, 0.015));
