@@ -23,8 +23,13 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-rand .schatten{fill:var(--graphit)!important;stroke:var(--graphit)}
 .ar-blase .ar-rand{height:calc(100% + 20px)}
 
-.ar-karte{position:absolute;left:19%;top:36%;width:62%;text-align:center}
-.ar-karte img{width:84%!important;margin:0 auto}
+.ar-karte{position:absolute;left:-16px;right:-16px;top:29%;text-align:center}
+.ar-3d{position:relative;height:clamp(220px,35svh,320px);touch-action:pan-y}
+.ar-3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.ar-3d img{width:52%!important;margin:0 auto}
+.ar-3d.an img{display:none}
+.ar-3d::after{content:'';position:absolute;left:24%;right:24%;bottom:4%;height:18px;border-radius:50%;background:rgba(43,40,38,.12);z-index:-1}
+.ar-karte p,.ar-karte small,.ar-weg{margin-left:auto;margin-right:auto;max-width:260px}
 .ar-karte p{margin:4px 0 6px;font-family:var(--dick);font-size:22px;letter-spacing:.5px}
 .ar-weg{height:14px;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;margin:0 6px;background:#fff;box-shadow:0 3px 0 var(--graphit)}
 .ar-weg i{display:block;height:100%;width:0;background:var(--marker)}
@@ -87,3 +92,4 @@ body.papier .nav button.active{background:var(--marker);border:2px solid var(--g
 .ar-ergebnis-mann{display:block;width:90px;margin:4px auto}
 .ar-delta{font-family:var(--dick);display:flex;align-items:center;justify-content:center;gap:10px;font-size:54px;margin:4px 0 10px}
 .ar-delta img{width:46px}
+.ar-karte p,.ar-karte small,.ar-karte .ar-weg{margin-left:auto!important;margin-right:auto!important}

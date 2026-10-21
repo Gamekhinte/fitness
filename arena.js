@@ -58,7 +58,7 @@
       <div class="ar-blase">${rahmen(130, 60, 18, 11, true, '#fff')}<span id="arHi">Hi</span></div>
       <button class="ar-mann" data-profil aria-label="Profil öffnen"><img id="arMann" src="arena/mann_offen.png" alt=""></button>
       <div class="ar-karte">
-        <img id="arBild" src="arena/arena_schulhof.svg" alt="">
+        <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
         <p id="arName"></p>
         <div class="ar-weg"><i id="arWeg"></i></div>
         <small id="arWegText"></small>
@@ -105,6 +105,7 @@
     $('arPokale').textContent = pokale;
     $('arName').textContent = `Arena ${i + 1} · ${a.name}`;
     $('arBild').src = a.bild || ARENEN[0].bild;
+    if (window.Arena3D) Arena3D.zeigen($('ar3d'), i);
     $('arWeg').style.width = n ? Math.min(100, (pokale - a.ab) / (n.ab - a.ab) * 100) + '%' : '100%';
     $('arWegText').textContent = n ? `noch ${n.ab - pokale} Pokale bis ${n.name}` : 'Letzte Arena erreicht';
     $('arHi').textContent = ich() ? `Hi ${ich().name}` : 'Hi';

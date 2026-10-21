@@ -1,0 +1,99 @@
+/* Winterform im Arena-Look für die ganze App: Papier, Tinte, dicke Ränder, harte Schatten, Eisblau als Marker.
+   Überschreibt styles.css, ohne die Struktur anzufassen. */
+:root{--bg:#F3EFE6;--card:#FFFFFF;--line:#2B2826;--volt:#1C6FA6;--txt:#2B2826;--mut:#6B645C;
+  --papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--gold:#F2C14E;--rot:#D9643A;
+  --dick:'Lilita One','Arial Black',sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}
+html,body{background:var(--papier);color:var(--graphit)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+
+/* Kopf */
+.top{padding:16px 18px 6px}
+.logo{font-family:var(--dick);font-weight:400;font-size:24px;letter-spacing:1px;color:var(--graphit)}
+.logo span{color:var(--graphit);background:var(--marker);padding:0 4px;border-radius:4px}
+.pill{font-family:var(--dick);font-weight:400;font-size:15px;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 4px 0 var(--graphit);padding:6px 12px}
+
+/* Karten: weiße Kästen mit Tuscherand und Schatten */
+main{padding:6px 16px calc(116px + var(--safe))}
+.card{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:16px;margin:0 0 18px}
+.card:last-child{border-bottom:3px solid var(--graphit)}
+.label{font-family:var(--dick);font-weight:400;font-size:21px;letter-spacing:.3px;color:var(--graphit)}
+.label#todayDate,.label#proteinTotal{font-family:var(--hand);font-size:17px;color:var(--mut)}
+h2{font-family:var(--dick);font-weight:400;font-size:22px}
+h3{font-family:var(--dick);font-weight:400;font-size:18px;color:var(--graphit);letter-spacing:.3px}
+.muted{color:var(--mut)}
+.big{font-family:var(--dick);font-weight:400;color:var(--graphit)}
+.big small{font-family:var(--hand);font-size:18px}
+.kmline,#bSum{color:var(--volt)}
+
+/* Knöpfe */
+.primary,.send,.add,.launch,.ghost,.explain,.exinfo,.chip{border:3px solid var(--graphit);box-shadow:0 4px 0 var(--graphit);transition:transform .08s}
+.primary{font-family:var(--dick);font-weight:400;font-size:19px;letter-spacing:.5px;background:var(--marker);color:var(--graphit);border-radius:14px;padding:12px}
+.primary:active,.send:active,.add:active,.launch:active,.ghost:active,.chip:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.send{background:var(--marker);color:var(--graphit);border-radius:14px}
+.add{background:var(--marker);color:var(--graphit);border-radius:12px}
+.launch,.explain,.exinfo{background:#fff;color:var(--graphit);border-radius:10px;font-weight:800}
+.ghost{background:#fff;color:var(--graphit);border-radius:12px;font-weight:700}
+.chip{background:#fff;color:var(--graphit);border-radius:12px}
+.chip.on{background:var(--marker);color:var(--graphit);border-color:var(--graphit)}
+
+/* Felder */
+input,select{background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px}
+input::placeholder{color:#9A938A}
+.grid2 label,.full{color:var(--graphit)}
+.qty{background:#fff;border:3px solid var(--graphit);border-radius:12px}
+.qty button{color:var(--graphit)}
+
+/* Listen in Karten: gestrichelte Trennlinien wie im Profil */
+.ex,.acc .ex,.tile,.acc .tile{border-top:2px dashed rgba(43,40,38,.25)}
+.acc{border-bottom:2px dashed rgba(43,40,38,.25)}
+.acc[open]{border-color:rgba(43,40,38,.25)}
+.acc summary{font-family:var(--dick);font-weight:400;font-size:18px}
+.acc .chev,.acc[open] .chev{color:var(--graphit)}
+.pd{background:var(--papier);border:2px solid var(--graphit);border-radius:12px}
+.pd em{color:var(--volt)}
+
+/* Heute */
+.tbl th{color:var(--mut);border-bottom:3px solid var(--graphit)}
+.tbl td{border-bottom:2px dashed rgba(43,40,38,.25)}
+.tbl tr:last-child td{border-bottom:0}
+.wd{background:#fff;border:2.5px solid var(--graphit);border-radius:12px;color:var(--graphit);box-shadow:0 3px 0 var(--graphit)}
+.wd.now{background:var(--marker);border-color:var(--graphit);color:var(--graphit)}
+.wd.miss{color:var(--rot)}
+.bar{background:#fff;border:2.5px solid var(--graphit);height:12px;border-radius:7px}
+.bar i{background:var(--marker)}
+
+/* Coach */
+.msg{border:2.5px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.msg.me{background:var(--marker);color:var(--graphit)}
+.msg.ai{background:var(--papier);color:var(--graphit);border-color:var(--graphit)}
+.quote{font-family:var(--hand);font-weight:400;font-size:24px}
+
+/* Laufen und Karte */
+#map{border:3px solid var(--graphit);border-radius:16px;box-shadow:0 5px 0 var(--graphit)}
+.leaflet-tile-pane{filter:none}
+.leaflet-container{background:#E9E4D8}
+.breath{background:#fff;border:3px solid var(--graphit);color:var(--graphit);box-shadow:0 5px 0 var(--graphit)}
+.breath.on{background:var(--marker);color:var(--graphit);box-shadow:0 2px 0 var(--graphit)}
+.sos{background:#fff;border:3px solid var(--graphit)}
+.sos-t{color:var(--graphit);font-family:var(--dick);font-weight:400}
+
+/* Kamera bleibt dunkel, das Bild braucht Kontrast */
+.cam-wrap{border:3px solid var(--graphit);border-radius:16px}
+.hud,.angle,.form{color:#fff}
+.hud b{color:var(--marker)}
+
+/* Fenster, Meldungen */
+.modal{background:rgba(43,40,38,.45)}
+.modal-card{background:var(--papier);border:3px solid var(--graphit);border-radius:20px;box-shadow:0 6px 0 var(--graphit)}
+.toast{background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);box-shadow:0 4px 0 var(--graphit);font-family:var(--hand);font-size:18px;font-weight:400}
+
+/* Crew */
+#wfLeiste{background:#fff;border:3px solid var(--graphit);box-shadow:0 5px 0 var(--graphit)}
+#wfLeiste b{font-family:var(--dick);font-weight:400;color:var(--graphit)}
+#wfLeiste span{color:var(--graphit)}
+#tab-crew .tbl td:nth-child(3){color:var(--graphit);font-family:var(--dick);font-weight:400;font-size:16px}
+
+/* Navigation überall wie in der Arena */
+.nav{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
+.nav button{color:var(--graphit);font-family:var(--hand);font-size:13px;font-weight:400;letter-spacing:0;border:2px solid transparent}
+.nav button.active{background:var(--marker);border:2px solid var(--graphit);color:var(--graphit)}
