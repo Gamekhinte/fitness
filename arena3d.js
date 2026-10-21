@@ -6,7 +6,7 @@
    Zehn unterschiedliche Arenen. Kurz tippen: auf die Figur öffnet den Charakter, sonst den Arena-Weg. */
 (function () {
   const ANKER_Y = 26;
-  const st = { b: null, halter: null, insel: null, nr: -1, seile: [], figur: null, aussehen: null, beimTippen: null };
+  const st = { b: null, halter: null, insel: null, nr: -1, set: 'lauf', seile: [], figur: null, aussehen: null, beimTippen: null };
   const phy = { y: 0, vy: 0, yaw: 0, vyaw: 0, sx: 0, vsx: 0, zieh: null, vyAlt: 0, cool: 0 };
   const fig = { y: 0, vy: 0, modus: 'stehen', zeit: 0, weg: 0 };
   const C = { schnee: '#FFFFFF', erde: '#9C7448', erde2: '#7E5B37', bahn: '#D9643A', eis: '#BFE6FF', eis2: '#7CD4FF', wand: '#EADCC2',
@@ -268,12 +268,16 @@
     } }
   ];
 
-  function insel(nr) {
-    const def = ARENEN[nr] || ARENEN[0];
+  const SETS = { lauf: ARENEN };
+  // Bausteine für andere Arena-Sets (kraft3d.js)
+  const hilfen = () => ({ W, T, C, teil, letztes, FORMEN, sockel, weg, schneeFlecken, tanne, laubbaum, palme, schneemann, bank, laterne, haus, fenster, fahne, ovalPunkte, glut });
+  function insel(nr, set = st.set) {
+    const liste = SETS[set] || ARENEN;
+    const def = liste[nr] || liste[0];
     const g = new T.Group(); g.userData.tick = [];
     sockel(g, def.form, def.oben, def.erde || C.erde, def.erde2 || C.erde2);
-    const info = def.bau(g);
-    FORMEN[def.form].ecken.forEach(([x, z]) => { const o = new T.TorusGeometry(0.22, 0.07, 8, 16); o.rotateY(Math.PI / 4); g.add(teil(o, C.gold, x, 0.42, z, 0.02)); });
+    const info = def.bau(g, hilfen());
+    FORMEN[def.form].ecken.forEach(([x, z], i) => { const o = new T.TorusGeometry(0.22, 0.07, 8, 16); o.rotateY(Math.PI / 4); g.add(teil(o, C.gold, x, (info.seilY || [])[i] || 0.42, z, 0.02)); });
     Object.assign(g.userData, info, { def, form: def.form });
     return g;
   }
@@ -401,6 +405,19 @@
     fig.zeit += dt;
     fig.vy -= 22 * dt; fig.y = Math.max(0, fig.y + fig.vy * dt); if (fig.y === 0 && fig.vy < 0) fig.vy = 0;
     const inLuft = fig.y > 0.05 || (phy.y > S0 + 0.15 && !phy.zieh);
+    const uebungen = st.insel.userData.uebungen;
+    if (uebungen) {
+      // Kraft-Arena: Figur trainiert auf ihrer Matte, danach kurz ihre Animation
+      if (fig.modus !== 'emote' && fig.zeit > 7) { fig.weg = (fig.weg + 1) % (uebungen.length + 1); fig.zeit = 0; }
+      if (fig.modus === 'emote' && fig.zeit > 3.5) { fig.modus = 'stehen'; fig.zeit = 0; fig.weg = 0; }
+      const u = uebungen[fig.weg];
+      if (!u && fig.modus !== 'emote') { fig.modus = 'emote'; fig.zeit = 0; }
+      f.position.y = 0.24 + fig.y;
+      const ziel = u && u !== 'kniebeuge' ? st.insel.userData.blick : 0.6 - phy.yaw;
+      f.rotation.y += (ziel - f.rotation.y) * Math.min(1, dt * 5);
+      Figur.haltung(f, inLuft ? 'fliegen' : u || (st.aussehen && st.aussehen.emote) || 'winken', t);
+      return;
+    }
     if (fig.modus === 'stehen' && fig.zeit > 5 && kurve) { fig.modus = 'joggen'; fig.zeit = 0; }
     else if (fig.modus === 'joggen' && fig.zeit > 8) { fig.modus = 'emote'; fig.zeit = 0; }
     else if (fig.modus === 'emote' && fig.zeit > 3.5) { fig.modus = 'stehen'; fig.zeit = 0; }
@@ -476,12 +493,13 @@
   }
 
   function inselSetzen(nr) {
+    fotoCache = null;
     if (st.insel) st.halter.remove(st.insel);
     st.insel = insel(nr); st.halter.add(st.insel); st.nr = nr;
     Object.assign(phy, { y: 0, vy: 0, yaw: 0, vyaw: 0, sx: 0, vsx: 0, vyAlt: 0 }); anwenden();
     st.insel.updateMatrixWorld(true);
     FORMEN[st.insel.userData.form].ecken.forEach(([x, z], i) => {
-      const s = st.seile[i]; s.lokal.set(x, 0.42, z);
+      const s = st.seile[i]; s.lokal.set(x, (st.insel.userData.seilY || [])[i] || 0.42, z);
       const ecke = s.lokal.clone().applyMatrix4(st.insel.matrixWorld);
       s.anker.set(ecke.x * 1.08, ANKER_Y, ecke.z * 1.08); s.laenge = ecke.distanceTo(s.anker);
     });
@@ -493,8 +511,10 @@
 
   /* ---------- Vorschaubilder für den Arena-Weg ---------- */
   let foto = null; const fotos = {};
-  async function bild(nr) {
-    if (fotos[nr]) return fotos[nr];
+  let fotoCache = null;
+  async function bild(nr, set = 'lauf') {
+    const key = set + nr;
+    if (fotos[key]) return fotos[key];
     if (!foto) {
       const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       r.setSize(480, 340, false); r.setPixelRatio(1);
@@ -503,29 +523,30 @@
       const k = new T.PerspectiveCamera(26, 480 / 340, 0.1, 100); k.position.set(10, 14, 25); k.lookAt(0, 1.8, 0);
       foto = { r, s, k };
     }
-    const g = insel(nr); g.rotation.y = -0.35; g.userData.tick.forEach(f => f(1)); foto.s.add(g);
+    const g = insel(nr, set); g.rotation.y = -0.35; g.userData.tick.forEach(f => f(1)); foto.s.add(g);
     foto.r.render(foto.s, foto.k);
-    fotos[nr] = foto.r.domElement.toDataURL('image/png');
+    fotos[key] = foto.r.domElement.toDataURL('image/png');
     foto.s.remove(g);
-    return fotos[nr];
+    return fotos[key];
   }
   const bereit = async () => { W = window.WF3D; await W.laden(); T = W.T; };
 
   window.Arena3D = {
-    namen: () => ARENEN.map(a => a.name),
-    async zeigen(el, nr, beimTippen) {
+    sets: SETS,
+    namen: (set = 'lauf') => (SETS[set] || ARENEN).map(a => a.name),
+    async zeigen(el, nr, beimTippen, set = 'lauf') {
       try {
         await bereit();
         if (!st.b) aufbauen(el);
         st.beimTippen = beimTippen || null;
-        if (st.nr !== nr) inselSetzen(nr);
+        if (st.nr !== nr || st.set !== set) { st.set = set; inselSetzen(nr); }
         el.classList.add('an');
         return true;
       } catch (err) { console.warn('Arena3D', err); return false; }
     },
     figur(aussehen) { st.aussehen = aussehen; if (st.insel) figurSetzen(aussehen); },
     pause(v) { if (st.b) st.b.pausiert = !!v; },
-    bild: async nr => { await bereit(); return bild(nr); },
+    bild: async (nr, set) => { await bereit(); return bild(nr, set); },
     // für Tests: Insel loslassen wie nach dem Hochziehen
     stoss(y) { phy.y = y; phy.vy = 0; },
     fliegend: () => KR.teile.filter(k => k.zustand !== 'aus').length

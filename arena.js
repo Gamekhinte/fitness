@@ -21,6 +21,11 @@
   const ich = () => wf() && wf().ich();
   const mit = a => Object.assign({ p_id: ich().id, p_geheim: ich().geheim }, a);
   let pokale = store.get('wf-pokale', 0);
+  let kraftPokale = store.get('wf-kpokale', 0), kraftDaten = null;
+  let MODUS = store.get('wf-modus', 'lauf');
+  const NAMEN_KRAFT = ['Schlafzimmer', 'Homegym', 'Fitnessstudio', 'Outdoor-Gym', 'Boxhalle', 'Turnhalle', 'Muscle Beach', 'Crossfit-Box', 'Dach-Gym', 'Olympia-Halle'];
+  const aktPokale = () => MODUS === 'kraft' ? kraftPokale : pokale;
+  const arenaName = k => MODUS === 'kraft' ? NAMEN_KRAFT[k] : ARENEN[k].name;
   let profilDaten = null;
   let F = store.get('wf-figur', null) || { aussehen: Figur.STANDARD, coins: 150, besitz: [] };
   F.aussehen = Figur.pruefen(F.aussehen);
@@ -60,6 +65,7 @@
         <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
         <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
+      <div class="ar-modus" role="tablist"><button data-modus="lauf">Laufen</button><button data-modus="kraft">Kraft</button></div>
       <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
       <div class="ar-unten">
         <button class="ar-name" id="arName"></button>
@@ -87,6 +93,7 @@
   }
   const schliessen = () => {
     blatt.hidden = true; E = null;
+    if (window.KraftUI && KraftUI._test.D) KraftUI.abbrechen();
     if (window.Arena3D) Arena3D.pause(false);
   };
   blatt.addEventListener('click', ev => {
@@ -116,24 +123,30 @@
     if (t === 'arena') zeichnen();
   };
 
-  function zeichnen() {
-    const i = arenaZu(pokale), a = ARENEN[i], n = ARENEN[i + 1];
-    $('arPokale').textContent = pokale;
+  function zeichnen(ohneLaden) {
+    const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
+    $('arPokale').textContent = pk;
     $('arCoinZahl').textContent = F.coins;
-    $('arName').textContent = `Arena ${i + 1} · ${a.name}`;
+    $('arName').textContent = `Arena ${i + 1} · ${arenaName(i)}`;
+    tab.querySelectorAll('[data-modus]').forEach(b => b.classList.toggle('an', b.dataset.modus === MODUS));
+    $('arBattle').querySelector('span').textContent = 'BATTLE';
     if (window.Arena3D) {
       Arena3D.figur(F.aussehen);
-      Arena3D.zeigen($('ar3d'), i, was => was === 'figur' ? editor() : arenaWeg());
+      Arena3D.zeigen($('ar3d'), i, was => was === 'figur' ? editor() : arenaWeg(), MODUS);
     }
-    $('arWeg').style.width = n ? Math.min(100, (pokale - a.ab) / (n.ab - a.ab) * 100) + '%' : '100%';
-    $('arWegText').textContent = n ? `noch ${n.ab - pokale} Pokale bis ${n.name}` : 'Letzte Arena erreicht';
-    profilLaden();
+    $('arWeg').style.width = n ? Math.min(100, (pk - a.ab) / (n.ab - a.ab) * 100) + '%' : '100%';
+    $('arWegText').textContent = n ? `noch ${n.ab - pk} Pokale bis ${arenaName(i + 1)}` : 'Letzte Arena erreicht';
+    if (!ohneLaden) profilLaden();
   }
+  tab.querySelectorAll('[data-modus]').forEach(b => b.onclick = () => { MODUS = b.dataset.modus; store.set('wf-modus', MODUS); zeichnen(true); });
   async function profilLaden() {
     if (!ich()) return;
     try {
-      profilDaten = await wf().rpc('wf_profil', { p_spieler: ich().id });
-      if (profilDaten && profilDaten.pokale !== pokale) { pokale = profilDaten.pokale; store.set('wf-pokale', pokale); zeichnen(); }
+      [profilDaten, kraftDaten] = await Promise.all([wf().rpc('wf_profil', { p_spieler: ich().id }), wf().rpc('wf_kraft_profil', { p_spieler: ich().id })]);
+      let neu = false;
+      if (profilDaten && profilDaten.pokale !== pokale) { pokale = profilDaten.pokale; store.set('wf-pokale', pokale); neu = true; }
+      if (kraftDaten && kraftDaten.pokale !== kraftPokale) { kraftPokale = kraftDaten.pokale; store.set('wf-kpokale', kraftPokale); neu = true; }
+      if (neu) zeichnen(true);
     } catch (err) { /* offline: alter Stand bleibt */ }
   }
   // Figur, Coins und Besitz vom Server. Hat der Server noch keine Figur, wird die vom Gerät hochgeladen.
@@ -268,17 +281,21 @@
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       ${ich() ? `<h2>${e(ich().name)}</h2>` : '<h2>Neu hier</h2>'}
-      <p class="ar-hand">Arena ${i + 1} · ${ARENEN[i].name}${p.platz ? ` · Platz ${p.platz}` : ''}</p>
+      <p class="ar-hand">Laufen: Arena ${i + 1} · ${ARENEN[i].name} · Kraft: Arena ${arenaZu(kraftPokale) + 1} · ${NAMEN_KRAFT[arenaZu(kraftPokale)]}</p>
       <button class="ar-knopf breit" id="arZumEditor">Charakter bearbeiten</button>
       ${ich() ? '' : `<p class="ar-hand">Wie sollen dich die anderen sehen? Kein echter Name.</p>
         <div class="ar-zeile"><input id="arNameIn" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" id="arNameOk">Los</button></div>`}
       <div class="ar-werte">
-        <div>${rahmen(100, 70, 12, 21)}<b>${p.pokale}</b><span>Pokale</span></div>
-        <div>${rahmen(100, 70, 12, 23)}<b>${p.siege}</b><span>Siege</span></div>
+        <div>${rahmen(100, 70, 12, 21)}<b>${p.pokale}</b><span>Lauf-Pokale</span></div>
+        <div>${rahmen(100, 70, 12, 23)}<b>${kraftPokale}</b><span>Kraft-Pokale</span></div>
         <div>${rahmen(100, 70, 12, 25)}<b>${F.coins}</b><span>Coins</span></div>
       </div>
       <h3 class="ar-h">Bestzeiten</h3>
       <ul class="ar-liste">${KLASSEN.map(([m, l]) => `<li><span>${l}</span><b>${zeit(p['best_' + m])}</b></li>`).join('')}</ul>
+      <h3 class="ar-h">Bestwerte Kraft</h3>
+      <ul class="ar-liste"><li><span>Liegestütze in 60 s</span><b>${(kraftDaten || {}).best_liegestuetze ?? '–'}</b></li>
+        <li><span>Squats in 60 s</span><b>${(kraftDaten || {}).best_squats ?? '–'}</b></li>
+        <li><span>Plank</span><b>${(kraftDaten || {}).best_plank != null ? zeit(kraftDaten.best_plank) : '–'}</b></li></ul>
       <button class="ar-knopf breit leise2" id="arKoerper">Größe, Gewicht und Ziel ändern</button>`, 'profil', { aussehen: F.aussehen });
     const ok = $('arNameOk');
     if (ok && ok.addEventListener) ok.onclick = async () => {
@@ -360,16 +377,16 @@
 
   /* ---------- Arena-Weg ---------- */
   function arenaWeg() {
-    const jetzt = arenaZu(pokale);
+    const pokale = aktPokale(), jetzt = arenaZu(pokale);
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <h2 class="ar-titel">Arenen</h2>
+      <h2 class="ar-titel">${MODUS === 'kraft' ? 'Kraft-Arenen' : 'Lauf-Arenen'}</h2>
       <p class="ar-hand">Gewinn Rennen, sammel Pokale, schalte neue Arenen frei. Eine freigeschaltete Arena verlierst du nie wieder.</p>
       <div class="ar-wegliste">${ARENEN.map((a, k) => {
         const offen = pokale >= a.ab, hier = k === jetzt;
         return `<div class="ar-station${offen ? ' offen' : ''}${hier ? ' hier' : ''}" id="arSt${k}">
           <div class="ar-st-bild"><img data-nr="${k}" alt=""></div>
-          <div class="ar-st-text"><small>Arena ${k + 1}</small><b>${a.name}</b>
+          <div class="ar-st-text"><small>Arena ${k + 1}</small><b>${arenaName(k)}</b>
             <span><img src="arena/pokal.svg" alt="">${a.ab}</span>
             <em>${hier ? 'Hier bist du' : offen ? 'Freigeschaltet' : `noch ${a.ab - pokale} Pokale`}</em></div></div>`;
       }).join('')}</div>`);
@@ -377,7 +394,7 @@
     if (!window.Arena3D) return;
     (async () => {
       for (const img of $('arBlatt').querySelectorAll('img[data-nr]')) {
-        try { img.src = await Arena3D.bild(+img.dataset.nr); } catch (err) { img.src = ARENEN[0].bild; }
+        try { img.src = await Arena3D.bild(+img.dataset.nr, MODUS); } catch (err) { img.src = ARENEN[0].bild; }
         await new Promise(r => setTimeout(r, 30));
       }
     })();
@@ -387,6 +404,7 @@
   let R = null;
   $('arBattle').onclick = () => {
     if (!ich()) { profil(); return toast('Erst Spitznamen eintragen'); }
+    if (MODUS === 'kraft' && window.KraftUI) return KraftUI.battle();
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <h2 class="ar-titel">Welche Strecke?</h2>
@@ -557,5 +575,6 @@
   else zeichnen();
 
   // für Tests
-  window.ArenaUI = { editor, profil, arenaWeg, F: () => F };
+  window.ArenaUI = { editor, profil, arenaWeg, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden,
+    nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

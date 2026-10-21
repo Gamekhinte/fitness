@@ -98,9 +98,11 @@
     // Beine
     for (const s of [-1, 1]) {
       const bein = new T.Group(); bein.position.set(s * 0.17, 0.02, 0); huefte.add(bein);
-      bein.add(W.teil(new T.CapsuleGeometry(0.13, 0.5, 4, 10), hose, 0, -0.38, 0, 0.04));
-      bein.add(W.teil(W.box(0.26, 0.16, 0.38), schuh, 0, -0.78, 0.06, 0.035));
-      rig[s < 0 ? 'beinL' : 'beinR'] = bein;
+      bein.add(W.teil(new T.CapsuleGeometry(0.135, 0.2, 4, 10), hose, 0, -0.21, 0, 0.04));
+      const knie = new T.Group(); knie.position.y = -0.42; bein.add(knie);
+      knie.add(W.teil(new T.CapsuleGeometry(0.12, 0.18, 4, 10), hose, 0, -0.17, 0, 0.04));
+      knie.add(W.teil(W.box(0.26, 0.16, 0.38), schuh, 0, -0.36, 0.06, 0.035));
+      rig[s < 0 ? 'beinL' : 'beinR'] = bein; rig[s < 0 ? 'knieL' : 'knieR'] = knie;
     }
     // Arme
     for (const s of [-1, 1]) {
@@ -191,11 +193,14 @@
     r.huefte.position.y = 0.85; r.rumpf.rotation.set(0, 0, 0); r.kopf.rotation.set(0, 0, 0);
     r.armL.rotation.set(0, 0, -0.12); r.armR.rotation.set(0, 0, 0.12);
     r.beinL.rotation.set(0, 0, 0); r.beinR.rotation.set(0, 0, 0);
+    r.knieL.rotation.set(0, 0, 0); r.knieR.rotation.set(0, 0, 0);
+    r.armL.scale.set(1, 1, 1); r.armR.scale.set(1, 1, 1); r.huefte.position.z = 0; r.wurzel.position.z = 0;
     const atem = s(t * 2) * 0.02;
     switch (name) {
       case 'laufen': {
         const w = t * 9 * tempo;
         r.beinL.rotation.x = s(w) * 0.85; r.beinR.rotation.x = -s(w) * 0.85;
+        r.knieL.rotation.x = Math.max(0, s(w)) * 1.2; r.knieR.rotation.x = Math.max(0, -s(w)) * 1.2;
         r.armL.rotation.x = -s(w) * 0.9; r.armR.rotation.x = s(w) * 0.9;
         r.huefte.position.y = 0.85 + Math.abs(c(w)) * 0.08; r.rumpf.rotation.x = 0.18; r.kopf.rotation.x = -0.1;
         break;
@@ -209,6 +214,23 @@
       case 'robot': { const q = Math.floor(t * 2.5) % 4; r.armL.rotation.x = q < 2 ? -1.57 : 0; r.armR.rotation.x = q < 2 ? 0 : -1.57; r.kopf.rotation.y = [0.4, 0, -0.4, 0][q]; r.beinL.rotation.x = q === 1 ? -0.4 : 0; r.beinR.rotation.x = q === 3 ? -0.4 : 0; r.wurzel.rotation.y += 0; break; }
       case 'salto': { const z = (t % 2.4) / 1.0; if (z < 1) { r.wurzel.position.y = s(z * Math.PI) * 1.4; r.wurzel.rotation.x = -z * Math.PI * 2; r.armL.rotation.z = -2.6; r.armR.rotation.z = 2.6; r.beinL.rotation.x = -0.8; r.beinR.rotation.x = -0.8; } else { r.armL.rotation.z = -2.2; r.armR.rotation.z = 2.2; } break; }
       case 'dehnen': { const p = s(t * 1.6); r.rumpf.rotation.z = p * 0.35; r.armL.rotation.z = p > 0 ? -2.8 : -0.3; r.armR.rotation.z = p < 0 ? 2.8 : 0.3; break; }
+      case 'kniebeuge': {
+        const p = (1 - c(t * 2.6)) / 2, a = 1.3 * p;
+        for (const [b, k] of [[r.beinL, r.knieL], [r.beinR, r.knieR]]) { b.rotation.x = -a; k.rotation.x = a * 1.05; }
+        r.huefte.position.y = 0.02 + 0.42 * c(a) + 0.41; r.huefte.position.z = -0.42 * s(a);
+        r.rumpf.rotation.x = 0.6 * p; r.kopf.rotation.x = -0.4 * p;
+        r.armL.rotation.set(-1.45 * p, 0, -0.12); r.armR.rotation.set(-1.45 * p, 0, 0.12);
+        break;
+      }
+      case 'liegestuetz': case 'plank': {
+        const p = name === 'plank' ? 0.55 + s(t * 9) * 0.02 : (1 - c(t * 3)) / 2;
+        const th = name === 'plank' ? 1.3 : 1.1 + 0.24 * p;
+        r.wurzel.rotation.x = th;
+        const schulter = 1.57 * c(th);
+        for (const a of [r.armL, r.armR]) { a.rotation.set(-th + (name === 'plank' ? 0.25 : 0), 0, 0); a.scale.y = Math.max(0.35, Math.min(1.1, schulter / 0.7)); }
+        r.kopf.rotation.x = -0.55;
+        break;
+      }
       case 'traurig': r.kopf.rotation.x = 0.45; r.rumpf.rotation.x = 0.15; r.armL.rotation.z = -0.05; r.armR.rotation.z = 0.05; break;
       case 'fliegen': r.armL.rotation.z = -2.4 + s(t * 14) * 0.3; r.armR.rotation.z = 2.4 - s(t * 14) * 0.3; r.beinL.rotation.x = 0.4; r.beinR.rotation.x = -0.3; break;
       default: r.rumpf.scale.set(1 + atem, 1 + atem, 1 + atem); r.armL.rotation.z = -0.12 - atem; r.armR.rotation.z = 0.12 + atem;
