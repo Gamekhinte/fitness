@@ -60,7 +60,9 @@
           const hv = v(23) > 0.3 || v(24) > 0.3;
           const hy = hv ? (v(23) >= v(24) ? lm[23] : lm[24]) : null;
           const rumpf2 = hy ? Math.hypot((((lm[11].x + lm[12].x) / 2) - hy.x) * asp, ((lm[11].y + lm[12].y) / 2) - hy.y) : 0;
-          if (sb > 0.12 && (!hy || sb > rumpf2 * 0.8)) return this.front(t, dt, lm, asp, sb);
+          // Hände links und rechts weit auseinander = von vorne gefilmt (von der Seite liegen sie im Bild übereinander)
+          const handSpreiz = v(15) > 0.3 && v(16) > 0.3 ? Math.abs(lm[15].x - lm[16].x) * asp : 0;
+          if (handSpreiz > 0.12 || (sb > 0.12 && (!hy || sb > rumpf2 * 0.8))) return this.front(t, dt, lm, asp, Math.max(sb, 0.08));
         }
       }
       // Pflicht: Liegestütz und Plank Schulter, Ellbogen, Hand, Hüfte. Squat Schulter, Hüfte, Knie. Knie und Füße sonst nur, wenn sichtbar.
@@ -358,8 +360,8 @@
     const m = document.getElementById('krMess'); if (!m) return;
     const v = z.mess; if (!v) { m.textContent = ''; return; }
     const r = x => Math.round(x);
-    if (v.front) { m.textContent = `von vorne · Arm ${r(v.arm)}° · Tiefe ${Math.round(100 - v.r / (v.rmax || 1) * 100)} % · ${z.phase}`; return; }
-    m.textContent = D.uebung === 'squats' ? `Knie ${r(v.knieU)}°  Oberkörper ${r(v.oberkoerper)}°  ${z.phase}` : `Arm ${r(v.armU)} bis ${r(v.arm)}°  Körper ${r(v.koerper)}°  Lage ${r(v.lage)}°  ${z.phase}`;
+    if (v.front) { m.textContent = `V8 · von vorne · Arm ${r(v.arm)}° · Tiefe ${Math.round(100 - v.r / (v.rmax || 1) * 100)} % · ${z.phase}`; return; }
+    m.textContent = 'V8 · ' + (D.uebung === 'squats' ? `Knie ${r(v.knieU)}°  Oberkörper ${r(v.oberkoerper)}°  ${z.phase}` : `Arm ${r(v.armU)} bis ${r(v.arm)}°  Körper ${r(v.koerper)}°  Lage ${r(v.lage)}°  ${z.phase}`);
   }
   function mitte(text) {
     const m = document.getElementById('krMitte'); if (!m || m.textContent === text) return;
