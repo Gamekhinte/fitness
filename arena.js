@@ -7,7 +7,7 @@
    Spielers mit ähnlich vielen Pokalen. Läuft nach crew.js und nutzt window.WF (Identität, rpc). */
 (function () {
   const ARENEN = [
-    { ab: 0, name: 'Schulhof', bild: 'arena/arena_schule.png' },
+    { ab: 0, name: 'Schulhof', bild: 'arena/arena_schulhof.svg' },
     { ab: 300, name: 'Stadtpark' }, { ab: 600, name: 'Eisbahn' }, { ab: 1000, name: 'Skipiste' },
     { ab: 1400, name: 'Gletscher' }, { ab: 1800, name: 'Polarnacht' }, { ab: 2300, name: 'Gipfel' }
   ];
@@ -36,14 +36,15 @@
     if (schwanz) { linie(w - r, h, w * 0.32, h); p.push([w * 0.32, h], [w * 0.1, h + 18], [w * 0.2, h]); linie(w * 0.2, h, r, h); }
     else linie(w - r, h, r, h);
     ecke(r, h - r, 90); linie(0, h - r, 0, r);
-    const q = p.map(([x, y]) => [x + z() * 2.4, y + z() * 2.4]);
+    const q = p.map(([x, y]) => [x + z() * 1.3, y + z() * 1.3]);
     let d = `M${q[0][0].toFixed(1)} ${q[0][1].toFixed(1)}`;
     for (let k = 1; k < q.length; k++) { const m = [(q[k - 1][0] + q[k][0]) / 2, (q[k - 1][1] + q[k][1]) / 2]; d += ` Q${q[k - 1][0].toFixed(1)} ${q[k - 1][1].toFixed(1)} ${m[0].toFixed(1)} ${m[1].toFixed(1)}`; }
     return d + ' Z';
   }
-  function rahmen(w, h, r, saat, schwanz) {
-    return `<svg class="ar-rand" viewBox="-4 -4 ${w + 8} ${h + (schwanz ? 28 : 8)}" preserveAspectRatio="none" aria-hidden="true">
-      <path d="${wackelPfad(w, h, r, saat, schwanz)}"/><path class="zwei" d="${wackelPfad(w, h, r, saat + 7, schwanz)}"/></svg>`;
+  function rahmen(w, h, r, saat, schwanz, farbe) {
+    const d = wackelPfad(w, h, r, saat, schwanz);
+    return `<svg class="ar-rand" viewBox="-4 -4 ${w + 8} ${h + (schwanz ? 28 : 10)}" preserveAspectRatio="none" aria-hidden="true">
+      <path class="schatten" d="${d}" transform="translate(0 4)"/><path d="${d}" style="fill:${farbe || 'var(--papier)'}"/></svg>`;
   }
 
   /* ---------- Oberfläche ---------- */
@@ -51,19 +52,19 @@
   tab.id = 'tab-arena'; tab.className = 'tab';
   tab.innerHTML = `
     <div class="ar-buehne">
-      <button class="ar-seil" data-profil aria-label="Profil öffnen"><img src="arena/seil.png" alt=""></button>
-      <div class="ar-chip">${rahmen(150, 52, 14, 3)}<b id="arPokale">0</b><img src="arena/pokal.png" alt="Pokale"></div>
-      <button class="ar-zahn" id="arZahn" aria-label="Einstellungen"><img src="arena/zahnrad.png" alt=""></button>
-      <div class="ar-blase">${rahmen(130, 60, 18, 11, true)}<span id="arHi">Hi</span></div>
+      <button class="ar-seil" data-profil aria-label="Profil öffnen"><img src="arena/seil.svg" alt=""></button>
+      <div class="ar-chip">${rahmen(150, 52, 14, 3, false, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></div>
+      <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, false, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
+      <div class="ar-blase">${rahmen(130, 60, 18, 11, true, '#fff')}<span id="arHi">Hi</span></div>
       <button class="ar-mann" data-profil aria-label="Profil öffnen"><img id="arMann" src="arena/mann_offen.png" alt=""></button>
       <div class="ar-karte">
-        <img id="arBild" src="arena/arena_schule.png" alt="">
+        <img id="arBild" src="arena/arena_schulhof.svg" alt="">
         <p id="arName"></p>
         <div class="ar-weg"><i id="arWeg"></i></div>
         <small id="arWegText"></small>
       </div>
       <button class="ar-battle" id="arBattle" aria-label="Battle starten">
-        <img class="r" src="arena/rahmen_battle.png" alt=""><span class="f"></span><img class="t" src="arena/battle.png" alt="BATTLE">
+        ${rahmen(260, 74, 18, 9, false, 'var(--marker)')}<span>BATTLE</span>
       </button>
     </div>`;
   document.querySelector('main').appendChild(tab);
@@ -87,7 +88,7 @@
   nav.querySelectorAll('button').forEach(b => {
     const n = ICONS[b.dataset.tab]; if (!n) return;
     const alt = b.querySelector('svg'); if (alt) alt.remove();
-    b.insertAdjacentHTML('afterbegin', `<span class="ar-icon" style="--bild:url(arena/nav_${n}.png)"></span>`);
+    b.insertAdjacentHTML('afterbegin', `<span class="ar-icon" style="--bild:url(arena/nav_${n}.svg)"></span>`);
   });
   TABORDER.splice(0, TABORDER.length, 'today', 'catalog', 'arena', 'crew', 'coach');
 
@@ -281,7 +282,7 @@
       <h2 class="ar-titel">${ungueltig ? 'Zählt nicht' : sieg ? 'Gewonnen' : 'Verloren'}</h2>
       <img class="ar-ergebnis-mann" src="arena/mann_offen.png" alt="">
       ${ungueltig ? '<p class="ar-hand">Das war schneller als ein Mensch läuft. Fahrrad oder Auto? Keine Pokale.</p>'
-        : `<p class="ar-delta">${delta > 0 ? '+' : ''}${delta || 0}<img src="arena/pokal.png" alt="Pokale"></p>`}
+        : `<p class="ar-delta">${delta > 0 ? '+' : ''}${delta || 0}<img src="arena/pokal.svg" alt="Pokale"></p>`}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
       <button class="ar-knopf breit" data-zu>Weiter</button>`);

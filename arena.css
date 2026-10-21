@@ -1,5 +1,5 @@
 /* Arena: Papier, Bleistift (Graphit) und ein eisblauer Marker. Positionen aus der Skizze übernommen. */
-:root{--papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--hand:'Patrick Hand','Comic Sans MS',cursive}
+:root{--papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--hand:'Patrick Hand','Comic Sans MS',cursive;--dick:'Lilita One','Arial Black',sans-serif}
 html.papier,body.papier{background:var(--papier);color:var(--graphit)}
 .toast{color:var(--txt)}
 body.papier .toast{background:var(--papier);color:var(--graphit);border:2px solid var(--graphit);font-family:var(--hand);font-size:17px;font-weight:400}
@@ -12,38 +12,40 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-seil{position:absolute;left:5%;top:-10px;width:12.7%}
 .ar-mann{position:absolute;left:17%;top:10%;width:27%}
 .ar-chip{position:absolute;left:31%;top:0;width:38%;height:48px;display:flex;align-items:center;justify-content:center;gap:8px}
-.ar-chip b{font-size:28px;font-weight:400;line-height:1}
-.ar-chip img{width:40px!important}
-.ar-zahn{position:absolute;right:2%;top:2%;width:15%}
+.ar-chip b{font-family:var(--dick);font-size:26px;font-weight:400;line-height:1;position:relative}
+.ar-chip img{width:30px!important;position:relative}
+.ar-zahn{position:absolute;right:3%;top:0;width:52px;height:52px}
+.ar-zahn img{position:relative;width:34px!important;margin:9px auto 0}
 .ar-blase{position:absolute;left:43%;top:12%;width:30%;height:56px;display:flex;align-items:center;justify-content:center}
-.ar-blase span{font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88%;margin-top:-4px}
+.ar-blase span{position:relative;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88%;margin-top:-4px}
 .ar-rand{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--graphit);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.ar-rand .zwei{opacity:.35;stroke-width:1.4}
+.ar-rand{stroke-width:3}
+.ar-rand .schatten{fill:var(--graphit)!important;stroke:var(--graphit)}
 .ar-blase .ar-rand{height:calc(100% + 20px)}
 
-.ar-karte{position:absolute;left:25%;top:38%;width:50%;text-align:center}
+.ar-karte{position:absolute;left:19%;top:36%;width:62%;text-align:center}
 .ar-karte img{width:84%!important;margin:0 auto}
-.ar-karte p{margin:6px 0 4px;font-size:20px}
-.ar-weg{height:12px;border:2px solid var(--graphit);border-radius:7px 5px 8px 6px;overflow:hidden;margin:0 6px}
+.ar-karte p{margin:4px 0 6px;font-family:var(--dick);font-size:22px;letter-spacing:.5px}
+.ar-weg{height:14px;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;margin:0 6px;background:#fff;box-shadow:0 3px 0 var(--graphit)}
 .ar-weg i{display:block;height:100%;width:0;background:var(--marker)}
 .ar-karte small{display:block;font-size:15px;margin-top:3px;opacity:.75}
 
-.ar-battle{position:absolute;left:24%;bottom:2%;width:52%}
-.ar-battle .f{position:absolute;left:7%;right:6.5%;top:17%;bottom:14%;background:var(--marker);transform:rotate(-.8deg);border-radius:3px}
-.ar-battle .t{position:absolute;left:7.4%;top:18.8%;width:85.6%!important}
-.ar-battle:active{transform:translateY(2px)}
+.ar-battle{position:absolute;left:14%;bottom:3%;width:72%;height:78px;color:var(--graphit)}
+.ar-battle span{position:relative;display:block;font-family:var(--dick);font-size:40px;letter-spacing:2px;line-height:74px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.ar-battle:active{transform:translateY(3px)}
+.ar-chip,.ar-blase,.ar-zahn{z-index:1}
 
 /* Navigation mit den gezeichneten Icons */
 .ar-icon{width:30px;height:26px;background:currentColor;-webkit-mask:var(--bild) center/contain no-repeat;mask:var(--bild) center/contain no-repeat}
 .nav button.mitte .ar-icon{width:34px;height:26px}
-body.papier .nav{background:var(--papier);border:2px solid var(--graphit);border-radius:10px 14px 9px 12px}
+body.papier .nav{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
 body.papier .nav button{color:var(--graphit);font-family:var(--hand);font-size:13px;font-weight:400;letter-spacing:0}
-body.papier .nav button.active{background:var(--marker);border-color:transparent;color:var(--graphit)}
+body.papier .nav button.active{background:var(--marker);border:2px solid var(--graphit);color:var(--graphit)}
 
 /* Blatt: Profil, Rennen, Ergebnis */
 .ar-blatt{position:fixed;inset:0;z-index:2000;background:rgba(43,40,38,.35);overflow-y:auto;padding:calc(18px + env(safe-area-inset-top,0px)) 14px 30px}
-.ar-blatt-in{position:relative;max-width:440px;margin:0 auto;background:var(--papier);color:var(--graphit);border:2px solid var(--graphit);border-radius:14px 10px 16px 12px;padding:22px 18px 20px;font-family:var(--hand);min-height:60vh}
-.ar-blatt h2,.ar-titel{font-family:var(--hand);font-weight:400;font-size:32px;margin:0 0 6px;text-align:center;color:var(--graphit)}
+.ar-blatt-in{position:relative;max-width:440px;margin:0 auto;background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);box-shadow:0 6px 0 var(--graphit);border-radius:20px;padding:22px 18px 20px;font-family:var(--hand);min-height:60vh}
+.ar-blatt h2,.ar-titel{font-family:var(--dick);font-weight:400;font-size:32px;margin:0 0 6px;text-align:center;color:var(--graphit)}
 .ar-hand{font-size:19px;line-height:1.3;text-align:center;margin:8px 0}
 .ar-hand.gross{font-size:30px}
 .ar-zu{position:absolute;right:12px;top:8px;font-family:var(--hand);font-size:34px;line-height:1;background:none;color:var(--graphit);padding:4px 8px}
@@ -52,13 +54,15 @@ body.papier .nav button.active{background:var(--marker);border-color:transparent
 .ar-kopf h2{text-align:left;margin:0}
 .ar-kopf p{margin:2px 0 0;font-size:18px}
 .ar-zeile{display:flex;gap:8px;margin:6px 0 10px}
-.ar-zeile input{background:#fff;color:var(--graphit);border:2px solid var(--graphit);border-radius:10px 8px 11px 9px;font-family:var(--hand);font-size:20px;padding:8px 12px}
-.ar-knopf{font-family:var(--hand);font-size:21px;background:var(--marker);color:var(--graphit);border:2px solid var(--graphit);border-radius:9px 12px 8px 11px;padding:8px 16px}
+.ar-zeile input{background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;font-family:var(--hand);font-size:20px;padding:8px 12px}
+.ar-knopf{font-family:var(--dick);font-size:20px;letter-spacing:.5px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:8px 16px;box-shadow:0 4px 0 var(--graphit)}
+.ar-knopf:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
 .ar-knopf.breit{display:block;width:100%;margin-top:16px}
 .ar-knopf.leise{display:block;margin:22px auto 0;background:none}
 .ar-werte{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 4px}
 .ar-werte div{position:relative;text-align:center;padding:10px 4px 14px}
-.ar-werte b{display:block;font-size:30px;font-weight:400;line-height:1.1}
+.ar-werte b{position:relative;display:block;font-family:var(--dick);font-size:28px;font-weight:400;line-height:1.1}
+.ar-werte span{position:relative}
 .ar-werte span{font-size:16px}
 .ar-h{font-family:var(--hand);font-size:22px;font-weight:400;letter-spacing:0;color:var(--graphit);margin:16px 0 4px}
 .ar-liste{list-style:none;margin:0;padding:0}
@@ -67,19 +71,19 @@ body.papier .nav button.active{background:var(--marker);border-color:transparent
 .ar-liste.stufen li:not(.an){opacity:.45}
 .ar-klassen{display:grid;gap:14px;margin-top:16px}
 .ar-klassen button{position:relative;background:none;color:var(--graphit);font-family:var(--hand);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
-.ar-klassen b{font-size:30px;font-weight:400}
-.ar-klassen span{font-size:20px;opacity:.7}
-.ar-klassen button:active{background:var(--marker)}
+.ar-klassen b{position:relative;font-family:var(--dick);font-size:30px;font-weight:400}
+.ar-klassen span{position:relative;font-size:20px;opacity:.7}
+.ar-klassen button:active{transform:translateY(3px)}
 .ar-gegner{position:relative;text-align:center;padding:18px;margin:14px 0}
-.ar-gegner b{display:block;font-size:32px;font-weight:400}
-.ar-gegner span{font-size:19px}
-.ar-countdown{font-size:90px;text-align:center;margin:6px 0;line-height:1}
+.ar-gegner b{position:relative;display:block;font-family:var(--dick);font-size:30px;font-weight:400}
+.ar-gegner span{position:relative;font-size:19px}
+.ar-countdown{font-family:var(--dick);font-size:90px;text-align:center;margin:6px 0;line-height:1}
 .ar-bahn{margin:18px 0}
 .ar-bahn-kopf{display:flex;justify-content:space-between;font-size:22px;margin-bottom:4px}
 .ar-strecke{position:relative;height:26px}
-.ar-strecke i{position:absolute;left:3px;top:5px;bottom:5px;background:var(--marker);max-width:calc(100% - 6px)}
+.ar-strecke i{position:absolute;left:4px;top:6px;bottom:8px;border-radius:4px;background:var(--marker);max-width:calc(100% - 6px)}
 .ar-bahn:not(.ich) .ar-strecke i{background:rgba(43,40,38,.25)}
 .ar-strecke img{position:absolute;top:-22px;width:30px;transform:translateX(-50%)}
 .ar-ergebnis-mann{display:block;width:90px;margin:4px auto}
-.ar-delta{display:flex;align-items:center;justify-content:center;gap:10px;font-size:54px;margin:4px 0 10px}
+.ar-delta{font-family:var(--dick);display:flex;align-items:center;justify-content:center;gap:10px;font-size:54px;margin:4px 0 10px}
 .ar-delta img{width:46px}
