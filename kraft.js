@@ -59,44 +59,51 @@
       this.fussFehlt = !fussDa;
       const w = i => welt[i], p = i => lm[i];
       const ende = fussDa ? fuss : knieDa ? S.knie : null;              // Endpunkt der Körperlinie (null: nur Oberkörper sichtbar)
-      const beide = Math.min(ml, mr) > 0.75;
-      const arm = this.glaetten('arm', beide ? (winkel(w(11), w(13), w(15)) + winkel(w(12), w(14), w(16))) / 2 : winkel(w(S.schulter), w(S.ellbogen), w(S.hand)));
-      const koerper = this.glaetten('koerper', ende != null ? winkel(w(S.schulter), w(S.huefte), w(ende)) : 180);
-      let knieRoh;
-      if (fussDa) {
-        const andere = S === L ? R : L, f2 = fussVon(andere);
-        knieRoh = beide && (lm[f2].visibility ?? 1) >= 0.3 ? (winkel(w(S.huefte), w(S.knie), w(fuss)) + winkel(w(andere.huefte), w(andere.knie), w(f2))) / 2 : winkel(w(S.huefte), w(S.knie), w(fuss));
-      } else knieRoh = this.u === 'squats' ? 180 - (90 - neigung(p(S.huefte), p(S.knie), asp)) * 1.4 : 180;   // ohne Fuß: aus dem Winkel des Oberschenkels (Schienbein leicht vorgeneigt)
-      const knie = this.glaetten('knie', knieRoh);
+      // Winkel im Kamerabild (2D, Seitenverhältnis korrigiert) und in 3D, immer von der Seite, die die Kamera sieht.
+      // Von der Seite gefilmt ist 2D meist genauer, 3D schätzt die Tiefe. Wir nehmen das jeweils günstigere,
+      // die anderen Prüfungen (Körper gerade, Tempo, ganzer Bereich) bleiben streng.
+      const q = i => ({ x: lm[i].x * asp, y: lm[i].y, z: 0 });
+      // Seitlich gefilmt (Liegestütz und Plank immer, Squat wenn die Schultern im Bild eng zusammen sind): Winkel aus dem Bild.
+      // Frontal (Squat von vorne): 3D, weil im Bild das Knie von vorne immer gestreckt aussieht.
+      const schulterBreite = Math.abs(lm[11].x - lm[12].x) * asp, rumpf = Math.hypot((lm[S.schulter].x - lm[S.huefte].x) * asp, lm[S.schulter].y - lm[S.huefte].y) || 1e-6;
+      const seitlich = this.u !== 'squats' || schulterBreite < rumpf * 0.55;
+      const wink = (a, b, c) => seitlich ? winkel(q(a), q(b), q(c)) : winkel(w(a), w(b), w(c));
+      const armO = this.glaetten('arm', wink(S.schulter, S.ellbogen, S.hand)), armU = armO, arm = armO;
+      const koerper = this.glaetten('koerper', ende != null ? wink(S.schulter, S.huefte, ende) : 180);
+      let knieO;
+      if (fussDa && knieDa) knieO = wink(S.huefte, S.knie, fuss);
+      else if (this.u === 'squats') knieO = 180 - (90 - neigung(p(S.huefte), p(S.knie), asp)) * 1.4;   // ohne Fuß: aus dem Oberschenkel
+      else knieO = 180;
+      knieO = this.glaetten('knie', knieO); const knieU = knieO;
+      const knie = knieO;
       const lage = neigung(p(S.schulter), p(ende != null ? ende : S.huefte), asp);   // Körper waagrecht im Bild?
       const oberkoerper = 90 - neigung(p(S.huefte), p(S.schulter), asp);  // Squat: Abweichung von senkrecht
       // Hüfte durchhängen (positiv) oder Po hoch (negativ), im Bild gemessen
       const sx = p(S.schulter), ax = p(ende != null ? ende : S.huefte), hx = p(S.huefte);
       const anteil = (hx.x - sx.x) / ((ax.x - sx.x) || 1e-6), linieY = sx.y + (ax.y - sx.y) * anteil, durchhang = hx.y - linieY;
-      this.mess = { arm, koerper, knie, lage, oberkoerper, durchhang };
-      if (this.u === 'liegestuetze') return this.liegestuetz(t, arm, koerper, lage, durchhang, knie);
-      if (this.u === 'squats') return this.squat(t, knie, oberkoerper, p(S.schulter), p(S.huefte), p(fussDa ? fuss : S.knie));
+      this.mess = { arm: armO, armU, koerper, knie: knieO, knieU, lage, oberkoerper, durchhang };
+      if (this.u === 'liegestuetze') return this.liegestuetz(t, armO, armU, koerper, lage, durchhang, knie);
+      if (this.u === 'squats') return this.squat(t, knieO, knieU, oberkoerper, p(S.schulter), p(S.huefte), p(fussDa ? fuss : S.knie));
       return this.plank(t, dt, arm, koerper, lage, durchhang, knie);
     }
     kein(t, text) { this.hinweis = text; this.gueltig = false; if (this.u === 'plank') this.plankFehler(t); return this; }
     haltungsText(durchhang) { return durchhang > 0 ? 'Hüfte nicht durchhängen lassen' : 'Po runter, Körper gerade'; }
-    liegestuetz(t, arm, koerper, lage, durchhang, knie) {
-      if (lage > 40) { this.phase = 'start'; return this.kein(t, 'Leg dich in Liegestütz-Position, Handy seitlich.'); }
-      if (knie < 140) { this.hinweis = 'Knie gestreckt lassen'; this.gueltig = false; }
-      if (this.phase === 'start') { if (arm > 150 && koerper > 155) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = arm > 150 ? this.haltungsText(durchhang) : 'Arme ganz strecken'; return this; }
+    liegestuetz(t, armO, armU, koerper, lage, durchhang, knie) {
+      if (lage > 45) { this.phase = 'start'; return this.kein(t, 'Leg dich in Liegestütz-Position, Handy seitlich.'); }
+      if (this.phase === 'start') { if (armO > 145 && koerper > 150) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = armO > 145 ? this.haltungsText(durchhang) : 'Arme ganz strecken'; return this; }
       if (this.phase === 'oben') {
-        this.gueltig = koerper > 155 && knie >= 140;
-        if (!this.gueltig) this.hinweis = knie < 140 ? 'Knie gestreckt lassen' : this.haltungsText(durchhang);
-        if (arm < 135) { this.phase = 'runter'; this.repStart = t; this.minArm = arm; this.minKoerper = koerper; this.minKnie = knie; this.fehler = null; }
+        this.gueltig = koerper > 150 && knie >= 135;
+        if (!this.gueltig) this.hinweis = knie < 135 ? 'Knie gestreckt lassen' : this.haltungsText(durchhang);
+        if (armU < 130) { this.phase = 'runter'; this.repStart = t; this.minArm = armU; this.minKoerper = koerper; this.minKnie = knie; this.fehler = null; }
         return this;
       }
       // in der Bewegung
-      this.minArm = Math.min(this.minArm, arm); this.minKoerper = Math.min(this.minKoerper, koerper); this.minKnie = Math.min(this.minKnie, knie);
-      if (this.minKoerper < 155 && !this.fehler) this.fehler = this.haltungsText(durchhang);
-      if (this.minKnie < 140 && !this.fehler) this.fehler = 'Knie gestreckt lassen';
-      if (arm > 150) {
+      this.minArm = Math.min(this.minArm, armU); this.minKoerper = Math.min(this.minKoerper, koerper); this.minKnie = Math.min(this.minKnie, knie);
+      if (this.minKoerper < 148 && !this.fehler) this.fehler = this.haltungsText(durchhang);
+      if (this.minKnie < 135 && !this.fehler) this.fehler = 'Knie gestreckt lassen';
+      if (armO > 145) {
         const dauer = t - this.repStart;
-        if (this.minArm > 95) this.wertung(false, 'Tiefer runter, Brust fast bis zum Boden');
+        if (this.minArm > 100) this.wertung(false, 'Tiefer runter, Brust fast bis zum Boden');
         else if (this.fehler) this.wertung(false, this.fehler);
         else if (dauer < 350) this.wertung(false, 'Zu schnell, sauber ausführen');
         else this.wertung(true, 'Sauber!');
@@ -104,20 +111,20 @@
       }
       return this;
     }
-    squat(t, knie, oberkoerper, schulter, huefte, knoechel) {
+    squat(t, knieO, knieU, oberkoerper, schulter, huefte, knoechel) {
       const aufrecht = schulter.y < huefte.y && huefte.y < knoechel.y;
-      if (!aufrecht) { this.phase = 'start'; return this.kein(t, 'Stell dich hin, Gesicht oder Seite zur Kamera.'); }
-      if (this.phase === 'start') { if (knie > 160) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = 'Gerade hinstellen'; return this; }
+      if (!aufrecht) { this.phase = 'start'; return this.kein(t, 'Stell dich hin, Seite zur Kamera.'); }
+      if (this.phase === 'start') { if (knieO > 155) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = 'Gerade hinstellen'; return this; }
       if (this.phase === 'oben') {
         this.gueltig = true;
-        if (knie < 145) { this.phase = 'runter'; this.repStart = t; this.minKnie = knie; this.maxLage = oberkoerper; this.fehler = null; }
+        if (knieU < 145) { this.phase = 'runter'; this.repStart = t; this.minKnie = knieU; this.maxLage = oberkoerper; this.fehler = null; }
         return this;
       }
-      this.minKnie = Math.min(this.minKnie, knie); this.maxLage = Math.max(this.maxLage, oberkoerper);
-      if (this.maxLage > 55 && !this.fehler) this.fehler = 'Oberkörper aufrechter, Brust raus';
-      if (knie > 160) {
+      this.minKnie = Math.min(this.minKnie, knieU); this.maxLage = Math.max(this.maxLage, oberkoerper);
+      if (this.maxLage > 58 && !this.fehler) this.fehler = 'Oberkörper aufrechter, Brust raus';
+      if (knieO > 155) {
         const dauer = t - this.repStart;
-        if (this.minKnie > 100) this.wertung(false, 'Tiefer in die Hocke, Oberschenkel waagrecht');
+        if (this.minKnie > 105) this.wertung(false, 'Tiefer in die Hocke, Oberschenkel waagrecht');
         else if (this.fehler) this.wertung(false, this.fehler);
         else if (dauer < 450) this.wertung(false, 'Zu schnell, sauber ausführen');
         else this.wertung(true, 'Sauber!');
@@ -265,7 +272,7 @@
     D.z = new Zaehler(uebung); K.zaehler = D.z;
     ui.zeigeBlatt(`
       <div class="kr-kamera" id="krKamera"><video playsinline muted></video><canvas></canvas>
-        <div class="kr-uhr" id="krUhr"></div><div class="kr-zahl" id="krZahl"></div><div class="kr-pip" id="krPip" hidden><span id="krPipZahl">0</span></div><div class="kr-mitte" id="krMitte"></div>
+        <div class="kr-uhr" id="krUhr"></div><div class="kr-zahl" id="krZahl"></div><div class="kr-mess" id="krMess"></div><div class="kr-pip" id="krPip" hidden><span id="krPipZahl">0</span></div><div class="kr-mitte" id="krMitte"></div>
         <div class="kr-hinweis" id="krHinweis">Kamera startet…</div></div>
       <div id="krInfo"></div>`);
     document.getElementById('arBlattIn').classList.add('kraft-voll');
@@ -282,8 +289,15 @@
   }
   function infoAufbau() {
     const u = UEB[D.uebung];
-    info(`<div class="kr-kurz"><b>${u.name}</b><p>${u.aufbau}</p>
+    info(`<div class="kr-kurz"><b>${u.name}: probier ein paar Wiederholungen</b><p>${u.aufbau} Die Zahl oben zählt schon zum Testen.</p>
       <div class="kr-reihe"><button class="ar-knopf leise" data-ende>Abbrechen</button><button class="ar-knopf" id="krSuchen" ${D.bereit >= 1 ? '' : 'disabled'}>Gegner suchen</button></div></div>`);
+  }
+  // kleine Messanzeige unten links im Bild, hilft beim Einstellen (und mir bei Fehlern)
+  function messen(z) {
+    const m = document.getElementById('krMess'); if (!m) return;
+    const v = z.mess; if (!v) { m.textContent = ''; return; }
+    const r = x => Math.round(x);
+    m.textContent = D.uebung === 'squats' ? `Knie ${r(v.knieU)}°  Oberkörper ${r(v.oberkoerper)}°  ${z.phase}` : `Arm ${r(v.armU)} bis ${r(v.arm)}°  Körper ${r(v.koerper)}°  Lage ${r(v.lage)}°  ${z.phase}`;
   }
   function mitte(text) {
     const m = document.getElementById('krMitte'); if (!m || m.textContent === text) return;
@@ -297,17 +311,25 @@
     if (!D) return;
     // Aufbau und Wartezeit: nur prüfen, ob die Haltung erkannt wird
     if (D.phase !== 'satz') {
-      const z = new Zaehler(D.uebung); z.schritt(lm, welt, t, asp);
+      if (!D.uebZ) D.uebZ = new Zaehler(D.uebung);
+      const z = D.uebZ; z.schritt(lm, welt, t, asp);
+      if (D.phase === 'aufbau') {
+        if (z.ereignis === 'wdh') { window.Klang && Klang.effekt('wdh', z.wert); }
+        if (z.ereignis === 'fehler') { K.fehlerFarbe = performance.now(); window.Klang && Klang.effekt('fehler'); }
+        const zz = document.getElementById('krZahl'); if (zz) zz.textContent = z.wert ? z.wert : '';
+        messen(z);
+      }
       const erkannt = lm && !/Ganzer Körper|sehe dich nicht|müssen ins Bild|Ich sehe deine/.test(z.hinweis);
       D.bereit = erkannt ? Math.min(1, D.bereit + 0.04) : Math.max(0, D.bereit - 0.08);
       const c = document.getElementById('krCheck');
       if (c) { c.textContent = D.bereit >= 1 ? 'Ganzer Körper erkannt. Passt!' : erkannt ? 'Gut, kurz so bleiben…' : z.hinweis; c.dataset.ok = D.bereit >= 1 ? '1' : ''; }
       const b = document.getElementById('krSuchen'); if (b) b.disabled = D.bereit < 1;
+      if (D.phase === 'aufbau' && z.ereignis === 'fehler') { hinweis(z.hinweis, 'fehler'); return; }
       hinweis(D.bereit >= 1 ? (z.fussFehlt ? 'Passt! Füße schlecht zu sehen, mehr Licht hilft' : 'Passt! Du kannst starten') : erkannt ? 'Gut, kurz so bleiben' : (lm ? z.hinweis : 'Ganzer Körper ins Bild'), D.bereit >= 1 ? 'ok' : erkannt ? 'warn' : '');
       return;
     }
     if (D.fertig) return;
-    const z = D.z; z.schritt(lm, welt, t, asp);
+    const z = D.z; z.schritt(lm, welt, t, asp); messen(z);
     if (z.ereignis === 'wdh') { window.Klang && Klang.effekt('wdh', z.wert); const zz = document.getElementById('krZahl'); if (zz) { zz.classList.remove('pop'); void zz.offsetWidth; zz.classList.add('pop'); } }
     if (z.ereignis === 'fehler') { K.fehlerFarbe = performance.now(); window.Klang && Klang.effekt('fehler'); }
     if (z.ereignis === 'sekunde' && z.wert % 10 === 0) window.Klang && Klang.effekt('wdh', z.wert / 10);
