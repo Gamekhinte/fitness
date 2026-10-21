@@ -158,7 +158,7 @@
       h.pflanze(g, 4.6, -1.6, 1.1);
       // Tür in der linken Wand
       h.box(g, 0.1, 2.3, 1.2, F.holz, -5.25, 1.35, 3.4, 0.025); h.kugel(g, 0.06, F.gold, -5.18, 1.3, 2.95, 0.01);
-      return info([0.6, 1.0], 0.2, { seilY: wandSeile(hoch) });
+      return info([0.6, 1.0], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Homegym', form: 'quadrat', kruemel: '#D8D2C8', bau(g, H) {
       const h = mk(H);
@@ -188,7 +188,7 @@
       // Reifen an der Wand, Kiste mit Bändern
       h.box(g, 0.8, 0.5, 0.6, F.holz2, -4.4, 0.45, 3.4, 0.025);
       ['#D9643A', '#3FA9E6', '#3E7A55'].forEach((f, i) => h.box(g, 0.6, 0.04, 0.08, f, -4.4, 0.72, 3.25 + i * 0.12, 0));
-      return info([0.6, 1.4], 0.2, { seilY: wandSeile(hoch) });
+      return info([0.6, 1.4], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Fitnessstudio', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {
       const h = mk(H);
@@ -215,7 +215,7 @@
       [F.rot, F.blau, F.gold].forEach((f, i) => h.box(g, 0.4, 0.08, 0.3, f, 4.6, 0.25 + i * 0.09, 1.0, 0.012));
       h.kettlebell(g, 1.4, 2.8, 1, F.gold); h.kettlebell(g, 1.9, 3.1, 0.9, F.rot);
       h.matte(g, 0.2, 1.2, 0.9, 2.2, F.ink, Math.PI / 2);
-      return info([0.2, 1.2], 0.2, { seilY: wandSeile(hoch) });
+      return info([0.2, 1.2], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Outdoor-Gym', form: 'quadrat', kruemel: '#8CC084', bau(g, H) {
       const h = mk(H);
@@ -268,7 +268,7 @@
       g.add(H.teil(seil, F.gold, 2.2, 0.24, 3.8, 0, false)); g.children[g.children.length - 1].rotation.x = Math.PI / 2;
       h.poster(g, 1.4, 2.4, F.rot, F.gold, true); h.poster(g, -1.2, 2.4, F.blau, F.ink, true);
       h.matte(g, -1.6, 2.6, 0.9, 2.2, F.ink, Math.PI / 2);
-      return info([-1.6, 2.6], 0.2, { seilY: wandSeile(hoch) });
+      return info([-1.6, 2.6], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Turnhalle', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {
       const h = mk(H);
@@ -288,7 +288,7 @@
       h.box(g, 0.08, 0.9, 1.3, '#FFFFFF', -5.2, 2.7, 0.2, 0.02); const ring = new H.T.TorusGeometry(0.26, 0.03, 6, 18); ring.rotateX(Math.PI / 2); g.add(H.teil(ring, F.rot, -4.85, 2.45, 0.2, 0));
       [[-1.6, 3.6, F.rot], [-0.8, 4.0, F.gold], [4.6, 3.8, F.blau]].forEach(([x, z, f]) => h.kugel(g, 0.24, f, x, 0.44, z, 0.02));
       h.matte(g, 0.4, 1.6, 0.9, 2.2, F.blau, Math.PI / 2);
-      return info([0.4, 1.6], 0.2, { seilY: wandSeile(hoch) });
+      return info([0.4, 1.6], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Muscle Beach', form: 'quadrat', kruemel: '#EAD39C', bau(g, H) {
       const h = mk(H), { T, W } = H;
@@ -334,7 +334,7 @@
       [[0.5, F.ink], [0.3, F.rot], [0.1, F.blau], [-0.1, F.ink], [-0.3, F.ink]].forEach(([dy, f], i) => h.box(g, 1.6 - i * 0.2, 0.06, 0.02, f, 2.4, 2.0 + dy, -4.73, 0));
       h.zyl(g, 0.22, 0.35, '#FFFFFF', 1.0, 0.38, 0.6, 0.02, 14); h.box(g, 0.2, 0.12, 0.15, '#F4F4F4', 1.0, 0.6, 0.6, 0);
       h.matte(g, 0.0, 1.2, 0.9, 2.2, F.gold, Math.PI / 2);
-      return info([0.0, 1.2], 0.2, { seilY: wandSeile(hoch) });
+      return info([0.0, 1.2], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
     { name: 'Dach-Gym', form: 'quadrat', kruemel: '#D8D2C8', bau(g, H) {
       const h = mk(H), { T, W } = H;
@@ -379,7 +379,7 @@
       h.fans(g, fans);
       [[-4.6, 3.6], [4.6, 3.6]].forEach(([x, z]) => { h.zyl(g, 0.06, 3.6, F.stahl, x, 2.0, z, 0.015); const s = h.box(g, 0.6, 0.5, 0.3, F.gold, x, 3.9, z, 0.02); s.rotation.x = 0.5; });
       h.matte(g, 3.8, 1.2, 0.9, 2.2, F.rot, Math.PI / 2);
-      return info([3.8, 1.2], 0.2, { seilY: wandSeile(hoch) });
+      return info([3.8, 1.2], 0.2, { seilY: wandSeile(hoch), innen: true });
     } }
   ];
 

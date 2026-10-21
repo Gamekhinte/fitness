@@ -16,7 +16,8 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-chip b{position:relative;font-family:var(--dick);font-size:22px;font-weight:400;line-height:1}
 .ar-chip img{position:relative;width:26px}
 .ar-zahn{position:relative;width:50px;height:50px;margin-left:auto}
-.ar-zahn img{position:relative;width:32px;margin:9px auto 0}
+.ar-zahn{display:flex;align-items:center;justify-content:center}
+.ar-zahn img{position:relative;width:32px;margin:0 0 3px}
 .ar-rand{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--graphit);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 .ar-rand .schatten{fill:var(--graphit)!important;stroke:var(--graphit)}
 
@@ -194,3 +195,12 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-ton .ar-note{position:relative;width:28px;height:28px;margin:0 auto;display:block}
 .ar-ton .aus{display:none}
 .ar-ton.stumm .aus{display:inline}
+
+/* Einstellungen: Lautstärke-Regler im App-Stil */
+.ar-regler{display:grid;grid-template-columns:110px 1fr 54px;align-items:center;gap:10px;margin:10px 0}
+.ar-regler span{font-family:var(--dick);font-size:18px}
+.ar-regler b{font-family:var(--dick);font-weight:400;font-size:16px;text-align:right}
+.ar-regler input{-webkit-appearance:none;appearance:none;width:100%;height:22px;padding:0;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);
+  background:linear-gradient(90deg,var(--marker) var(--w),#fff var(--w))}
+.ar-regler input::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--graphit);box-shadow:0 3px 0 var(--graphit)}
+.ar-regler input::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--graphit)}

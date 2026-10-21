@@ -63,7 +63,6 @@
       <div class="ar-oben">
         <button class="ar-chip" id="arCoins" aria-label="Shop und Charakter">${rahmen(120, 48, 14, 7, '#fff')}${coin}<b id="arCoinZahl">0</b></button>
         <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
-        <button class="ar-zahn ar-ton" id="arTon" aria-label="Musik an oder aus">${rahmen(60, 60, 14, 6, '#fff')}<svg class="ar-note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="#2B2826" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.7" fill="#2B2826"/><circle cx="16.5" cy="16" r="2.7" fill="#2B2826"/><path class="aus" d="M4 4l16 16" stroke="#D9643A" stroke-width="2.6" stroke-linecap="round"/></svg></button>
         <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
       <div class="ar-modus" role="tablist"><button data-modus="lauf">Laufen</button><button data-modus="kraft">Kraft</button></div>
@@ -321,10 +320,38 @@
   }
   tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = profil);
   $('arName').onclick = () => arenaWeg();
-  $('arZahn').onclick = () => openProfile();
-  const tonZeigen = () => $('arTon').classList.toggle('stumm', !(window.Klang && Klang.musikAn));
-  $('arTon').onclick = () => { if (window.Klang) { Klang.schalteMusik(); tonZeigen(); } };
-  tonZeigen();
+  $('arZahn').onclick = () => einstellungen();
+
+  /* ---------- Einstellungen (wie im Spiel: Musik, Sound, Konto) ---------- */
+  function einstellungen() {
+    const K = window.Klang, lm = K ? Math.round(K.laut('musik') * 100) : 0, le = K ? Math.round(K.laut('effekte') * 100) : 0;
+    const regler = (id, name, wert) => `<div class="ar-regler"><span>${name}</span><input type="range" id="${id}" min="0" max="100" step="5" value="${wert}" style="--w:${wert}%"><b id="${id}Zahl">${wert ? wert + ' %' : 'Aus'}</b></div>`;
+    zeigeBlatt(`
+      <button class="ar-zu" data-zu aria-label="Schließen">×</button>
+      <h2 class="ar-titel">Einstellungen</h2>
+      <h3 class="ar-h">Ton</h3>
+      ${regler('arLautMusik', 'Musik', lm)}${regler('arLautEffekte', 'Soundeffekte', le)}
+      <h3 class="ar-h">Spieler</h3>
+      <div class="ar-zeile"><input id="arNeuName" maxlength="20" placeholder="Spitzname" value="${ich() ? e(ich().name) : ''}" autocomplete="off"><button class="ar-knopf" id="arNameSpeichern">${ich() ? 'Ändern' : 'Los'}</button></div>
+      <button class="ar-knopf breit leise2" id="arEinstFigur">Charakter bearbeiten</button>
+      <button class="ar-knopf breit leise2" id="arEinstKoerper">Größe, Gewicht und Ziel</button>
+      <h3 class="ar-h">Datenschutz</h3>
+      <p class="ar-hand klein" style="text-align:left">Beim Laufen gehen nur Meter und Zeit an den Server, nie dein Standort. Das Kamerabild beim Kraft-Modus bleibt auf deinem Handy. Dein Spitzname ist das Einzige, was andere von dir sehen.</p>`);
+    const verbinden = (id, art) => {
+      const r = $(id), z = $(id + 'Zahl');
+      r.oninput = () => { const v = +r.value; r.style.setProperty('--w', v + '%'); z.textContent = v ? v + ' %' : 'Aus'; if (K) K.setzeLaut(art, v / 100); };
+      if (art === 'effekte') r.onchange = () => K && K.effekt('muenze');
+    };
+    verbinden('arLautMusik', 'musik'); verbinden('arLautEffekte', 'effekte');
+    $('arNameSpeichern').onclick = async () => {
+      const n = $('arNeuName').value.trim();
+      if (n.length < 2) return toast('Mindestens 2 Zeichen');
+      try { await wf().registrieren(n); toast('Gespeichert'); await profilLaden(); await figurLaden(); zeichnen(true); }
+      catch (err) { toast(err.message); }
+    };
+    $('arEinstFigur').onclick = () => editor();
+    $('arEinstKoerper').onclick = () => { schliessen(); openProfile(); };
+  }
   $('arCoins').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
@@ -612,6 +639,6 @@
   else zeichnen();
 
   // für Tests
-  window.ArenaUI = { editor, profil, arenaWeg, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { editor, profil, arenaWeg, einstellungen, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

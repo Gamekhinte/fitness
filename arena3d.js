@@ -328,6 +328,7 @@
   }
   // Krümel von der Oberfläche losreißen: Startgeschwindigkeit = Insel + Schubs nach oben
   function losreissen(anzahl, schubs) {
+    if (st.insel.userData.innen) return;                 // in Räumen fliegt kein Schnee
     const drin = FORMEN[st.insel.userData.form].drin;
     st.insel.updateMatrixWorld(true);
     let n = 0;

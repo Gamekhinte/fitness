@@ -41,24 +41,35 @@
       this.ereignis = null;
       const dt = this.letzt ? Math.min(200, t - this.letzt) : 0; this.letzt = t;
       if (!lm || !welt) return this.kein(t, 'Ich sehe dich nicht. Ganzer Körper ins Bild.');
-      const sicht = s => [s.schulter, s.ellbogen, s.hand, s.huefte, s.knie, s.knoechel].map(i => lm[i].visibility ?? 1);
-      const vl = sicht(L), vr = sicht(R), ml = vl.reduce((a, b) => a + b) / 6, mr = vr.reduce((a, b) => a + b) / 6;
+      // Füße erkennt die Kamera oft schlecht. Deshalb: Knöchel, sonst Ferse, sonst Zehen.
+      // Fehlt alles, wird mit dem Knie weitergerechnet und trotzdem sauber gezählt.
+      const sicht = s => [s.schulter, s.ellbogen, s.hand, s.huefte, s.knie].map(i => lm[i].visibility ?? 1);
+      const vl = sicht(L), vr = sicht(R), ml = vl.reduce((a, b) => a + b) / 5, mr = vr.reduce((a, b) => a + b) / 5;
       const S = ml >= mr ? L : R, vis = ml >= mr ? vl : vr;
-      const noetig = this.u === 'squats' ? [0, 3, 4, 5] : [0, 1, 2, 3, 5];   // welche der 6 Punkte sicher sichtbar sein müssen
-      if (noetig.some(i => vis[i] < 0.55)) return this.kein(t, 'Ganzer Körper muss ins Bild, Kopf bis Füße.');
+      const fussVon = seite => (seite === L ? [27, 29, 31] : [28, 30, 32]).reduce((b, i) => ((lm[i].visibility ?? 1) > (lm[b].visibility ?? 1) ? i : b));
+      const fuss = fussVon(S), fussDa = (lm[fuss].visibility ?? 1) >= 0.3;
+      const noetig = this.u === 'squats' ? [0, 3, 4] : [0, 1, 2, 3, 4];
+      if (noetig.some(i => vis[i] < 0.5)) return this.kein(t, this.u === 'squats' ? 'Oberkörper und Beine müssen ins Bild.' : 'Ganzer Körper muss ins Bild, Kopf bis Knie mindestens.');
+      this.fussFehlt = !fussDa;
       const w = i => welt[i], p = i => lm[i];
+      const ende = fussDa ? fuss : S.knie;                                 // Endpunkt der Körperlinie
       const beide = Math.min(ml, mr) > 0.75;
       const arm = this.glaetten('arm', beide ? (winkel(w(11), w(13), w(15)) + winkel(w(12), w(14), w(16))) / 2 : winkel(w(S.schulter), w(S.ellbogen), w(S.hand)));
-      const koerper = this.glaetten('koerper', winkel(w(S.schulter), w(S.huefte), w(S.knoechel)));
-      const knie = this.glaetten('knie', beide ? (winkel(w(23), w(25), w(27)) + winkel(w(24), w(26), w(28))) / 2 : winkel(w(S.huefte), w(S.knie), w(S.knoechel)));
-      const lage = neigung(p(S.schulter), p(S.knoechel), asp);           // Körper waagrecht im Bild?
+      const koerper = this.glaetten('koerper', winkel(w(S.schulter), w(S.huefte), w(ende)));
+      let knieRoh;
+      if (fussDa) {
+        const andere = S === L ? R : L, f2 = fussVon(andere);
+        knieRoh = beide && (lm[f2].visibility ?? 1) >= 0.3 ? (winkel(w(S.huefte), w(S.knie), w(fuss)) + winkel(w(andere.huefte), w(andere.knie), w(f2))) / 2 : winkel(w(S.huefte), w(S.knie), w(fuss));
+      } else knieRoh = this.u === 'squats' ? 180 - (90 - neigung(p(S.huefte), p(S.knie), asp)) * 1.4 : 180;   // ohne Fuß: aus dem Winkel des Oberschenkels (Schienbein leicht vorgeneigt)
+      const knie = this.glaetten('knie', knieRoh);
+      const lage = neigung(p(S.schulter), p(ende), asp);                // Körper waagrecht im Bild?
       const oberkoerper = 90 - neigung(p(S.huefte), p(S.schulter), asp);  // Squat: Abweichung von senkrecht
       // Hüfte durchhängen (positiv) oder Po hoch (negativ), im Bild gemessen
-      const sx = p(S.schulter), ax = p(S.knoechel), hx = p(S.huefte);
+      const sx = p(S.schulter), ax = p(ende), hx = p(S.huefte);
       const anteil = (hx.x - sx.x) / ((ax.x - sx.x) || 1e-6), linieY = sx.y + (ax.y - sx.y) * anteil, durchhang = hx.y - linieY;
       this.mess = { arm, koerper, knie, lage, oberkoerper, durchhang };
       if (this.u === 'liegestuetze') return this.liegestuetz(t, arm, koerper, lage, durchhang, knie);
-      if (this.u === 'squats') return this.squat(t, knie, oberkoerper, p(S.schulter), p(S.huefte), p(S.knoechel));
+      if (this.u === 'squats') return this.squat(t, knie, oberkoerper, p(S.schulter), p(S.huefte), p(fussDa ? fuss : S.knie));
       return this.plank(t, dt, arm, koerper, lage, durchhang, knie);
     }
     kein(t, text) { this.hinweis = text; this.gueltig = false; if (this.u === 'plank') this.plankFehler(t); return this; }
@@ -136,7 +147,7 @@
     const v = await import(VISION + '/vision_bundle.mjs');
     const dateien = await v.FilesetResolver.forVisionTasks(VISION + '/wasm');
     const opt = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-      minPoseDetectionConfidence: 0.6, minPosePresenceConfidence: 0.6, minTrackingConfidence: 0.6 });
+      minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
     try { K.pl = await v.PoseLandmarker.createFromOptions(dateien, opt('GPU')); }
     catch (err) { K.pl = await v.PoseLandmarker.createFromOptions(dateien, opt('CPU')); }
     return K.pl;
@@ -243,12 +254,12 @@
     // Aufbau und Wartezeit: nur prüfen, ob die Haltung erkannt wird
     if (D.phase !== 'satz') {
       const z = new Zaehler(D.uebung); z.schritt(lm, welt, t, asp);
-      const erkannt = lm && !/Ganzer Körper|sehe dich nicht/.test(z.hinweis);
+      const erkannt = lm && !/Ganzer Körper|sehe dich nicht|müssen ins Bild/.test(z.hinweis);
       D.bereit = erkannt ? Math.min(1, D.bereit + 0.04) : Math.max(0, D.bereit - 0.08);
       const c = document.getElementById('krCheck');
       if (c) { c.textContent = D.bereit >= 1 ? 'Ganzer Körper erkannt. Passt!' : erkannt ? 'Gut, kurz so bleiben…' : z.hinweis; c.dataset.ok = D.bereit >= 1 ? '1' : ''; }
       const b = document.getElementById('krSuchen'); if (b) b.disabled = D.bereit < 1;
-      hinweis(D.bereit >= 1 ? 'Passt! Du kannst starten' : erkannt ? 'Gut, kurz so bleiben' : (lm ? z.hinweis : 'Ganzer Körper ins Bild'), D.bereit >= 1 ? 'ok' : erkannt ? 'warn' : '');
+      hinweis(D.bereit >= 1 ? (z.fussFehlt ? 'Passt! Füße schlecht zu sehen, mehr Licht hilft' : 'Passt! Du kannst starten') : erkannt ? 'Gut, kurz so bleiben' : (lm ? z.hinweis : 'Ganzer Körper ins Bild'), D.bereit >= 1 ? 'ok' : erkannt ? 'warn' : '');
       return;
     }
     if (D.fertig) return;

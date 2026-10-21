@@ -4,8 +4,8 @@
    muenze, pokal, meilenstein, plumps, kauf. Musik: fröhlicher Marsch in C-Dur, 8 Takte in Schleife.
    Browser erlauben Ton erst nach dem ersten Antippen, deshalb startet alles beim ersten Touch. */
 (function () {
-  let ctx = null, master = null, musikGain = null, hall = null;
-  const zustand = { musik: store.get('wf-musik', true), effekte: store.get('wf-effekte', true), spielt: false, gewuenscht: false, timer: null, schritt: 0, naechste: 0 };
+  let ctx = null, master = null, musikGain = null, effektBus = null, hall = null;
+  const zustand = { lautMusik: store.get('wf-laut-musik', 0.7), lautEffekte: store.get('wf-laut-effekte', 0.9), musik: true, effekte: true, spielt: false, gewuenscht: false, timer: null, schritt: 0, naechste: 0 };
 
   function start() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return true; }
@@ -14,7 +14,8 @@
     master = ctx.createGain(); master.gain.value = 0.9;
     const komp = ctx.createDynamicsCompressor(); komp.threshold.value = -14; komp.ratio.value = 4;
     master.connect(komp); komp.connect(ctx.destination);
-    musikGain = ctx.createGain(); musikGain.gain.value = 0.32; musikGain.connect(master);
+    musikGain = ctx.createGain(); musikGain.gain.value = 0.0001; musikGain.connect(master);
+    effektBus = ctx.createGain(); effektBus.gain.value = zustand.lautEffekte; effektBus.connect(master);
     // kleiner Hall aus Rauschen für mehr Raum
     hall = ctx.createConvolver(); const len = ctx.sampleRate * 1.2, buf = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
@@ -25,7 +26,7 @@
 
   /* ---------- Bausteine ---------- */
   const hz = n => 440 * Math.pow(2, (n - 69) / 12);          // MIDI-Note zu Hertz
-  function ton(t, { f = 440, f2, dauer = 0.2, typ = 'sine', laut = 0.3, an = 0.005, ziel = master, filter, q = 1, hallAnteil = 0, detune = 0 }) {
+  function ton(t, { f = 440, f2, dauer = 0.2, typ = 'sine', laut = 0.3, an = 0.005, ziel = effektBus, filter, q = 1, hallAnteil = 0, detune = 0 }) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = typ; o.frequency.setValueAtTime(f, t); o.detune.value = detune;
     if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dauer);
@@ -35,7 +36,7 @@
     kette.connect(g); g.connect(ziel); if (hallAnteil) { const h = ctx.createGain(); h.gain.value = hallAnteil; g.connect(h); h.connect(hall); }
     o.start(t); o.stop(t + dauer + 0.05);
   }
-  function rauschen(t, { dauer = 0.1, laut = 0.2, band = 3000, q = 1, ziel = master, typ = 'bandpass', an = 0.003 }) {
+  function rauschen(t, { dauer = 0.1, laut = 0.2, band = 3000, q = 1, ziel = effektBus, typ = 'bandpass', an = 0.003 }) {
     const len = Math.ceil(ctx.sampleRate * dauer), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     const s = ctx.createBufferSource(); s.buffer = buf;
@@ -44,7 +45,7 @@
     s.connect(fl); fl.connect(g); g.connect(ziel); s.start(t);
   }
   // Blechbläser-artiger Akkordton (mehrere leicht verstimmte Sägezähne durch Tiefpass)
-  function blech(t, noten, dauer, laut = 0.12, ziel = master) {
+  function blech(t, noten, dauer, laut = 0.12, ziel = effektBus) {
     noten.forEach(n => [-7, 7].forEach(dt => ton(t, { f: hz(n), dauer, typ: 'sawtooth', laut: laut / noten.length, an: 0.03, filter: 2600, q: 0.8, ziel, hallAnteil: 0.6, detune: dt })));
   }
 
@@ -81,7 +82,7 @@
     kauf(t) { [0, 0.07, 0.14].forEach((dt, i) => EFFEKTE.muenze(t + dt * 1.5)); [72, 76, 79, 84].forEach((n, i) => ton(t + 0.25 + i * 0.07, { f: hz(n), dauer: 0.35, typ: 'triangle', laut: 0.16, hallAnteil: 0.6 })); }
   };
   function effekt(name, a) {
-    if (!zustand.effekte || !start() || !EFFEKTE[name]) return;
+    if (zustand.lautEffekte <= 0.01 || !start() || !EFFEKTE[name]) return;
     EFFEKTE[name](ctx.currentTime + 0.01, a);
   }
 
@@ -114,9 +115,9 @@
   }
   // spielen(): startet die Schleife, wenn erlaubt; stoppen(): hält sie an. gewuenscht = die Seite will gerade Musik.
   function spielen() {
-    if (!zustand.musik || !zustand.gewuenscht || zustand.spielt || document.hidden || !start() || ctx.state !== 'running') return;
+    if (zustand.lautMusik <= 0.01 || !zustand.gewuenscht || zustand.spielt || document.hidden || !start() || ctx.state !== 'running') return;
     zustand.spielt = true; zustand.schritt = 0; zustand.naechste = ctx.currentTime + 0.1;
-    musikGain.gain.cancelScheduledValues(ctx.currentTime); musikGain.gain.setValueAtTime(0.0001, ctx.currentTime); musikGain.gain.setTargetAtTime(0.32, ctx.currentTime, 0.4);
+    musikGain.gain.cancelScheduledValues(ctx.currentTime); musikGain.gain.setValueAtTime(0.0001, ctx.currentTime); musikGain.gain.setTargetAtTime(0.5 * zustand.lautMusik, ctx.currentTime, 0.4);
     zustand.timer = setInterval(planen, 40);
   }
   function stoppen() {
@@ -130,8 +131,18 @@
 
   window.Klang = {
     effekt, musik: an => an ? musikAn() : musikAus(),
-    get musikAn() { return zustand.musik; }, get effekteAn() { return zustand.effekte; },
-    schalteMusik() { zustand.musik = !zustand.musik; store.set('wf-musik', zustand.musik); if (zustand.musik) spielen(); else stoppen(); return zustand.musik; },
-    schalteEffekte() { zustand.effekte = !zustand.effekte; store.set('wf-effekte', zustand.effekte); return zustand.effekte; }
+    get musikAn() { return zustand.lautMusik > 0.01; },
+    laut(art) { return art === 'musik' ? zustand.lautMusik : zustand.lautEffekte; },
+    // Lautstärke 0 bis 1 setzen, 0 heißt aus
+    setzeLaut(art, v) {
+      v = Math.max(0, Math.min(1, v));
+      if (art === 'musik') {
+        zustand.lautMusik = v; store.set('wf-laut-musik', v);
+        if (v <= 0.01) stoppen(); else if (zustand.spielt) musikGain.gain.setTargetAtTime(0.5 * v, ctx.currentTime, 0.1); else spielen();
+      } else {
+        zustand.lautEffekte = v; store.set('wf-laut-effekte', v);
+        if (effektBus) effektBus.gain.setTargetAtTime(v, ctx.currentTime, 0.05);
+      }
+    }
   };
 })();
