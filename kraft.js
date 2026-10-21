@@ -12,9 +12,9 @@
   const MODELLE = { heavy: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task',
     full: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task' };
   const UEB = {
-    liegestuetze: { name: 'Liegestütze', einheit: 'Wdh.', anim: 'liegestuetz', aufbau: 'Handy seitlich auf den Boden stellen, 2 Meter weg. Kamera sieht dich von der Seite, Kopf bis Füße.' },
+    liegestuetze: { name: 'Liegestütze', einheit: 'Wdh.', anim: 'liegestuetz', aufbau: 'Handy vor dich auf den Boden (ca. 1 Meter vor dem Kopf) oder seitlich, 2 Meter weg. Beide Hände müssen im Bild sein.' },
     squats: { name: 'Squats', einheit: 'Wdh.', anim: 'kniebeuge', aufbau: 'Handy auf Hüfthöhe hinstellen, 2 bis 3 Meter weg, schräg von der Seite. Ganzer Körper im Bild.' },
-    plank: { name: 'Plank', einheit: 's', anim: 'plank', aufbau: 'Handy seitlich auf den Boden stellen, 2 Meter weg. Unterarme auf den Boden, Körper gerade wie ein Brett.' }
+    plank: { name: 'Plank', einheit: 's', anim: 'plank', aufbau: 'Handy vor dich oder seitlich auf den Boden. Unterarme auf den Boden, Körper gerade wie ein Brett.' }
   };
   const L = { schulter: 11, ellbogen: 13, hand: 15, huefte: 23, knie: 25, knoechel: 27 };
   const R = { schulter: 12, ellbogen: 14, hand: 16, huefte: 24, knie: 26, knoechel: 28 };
@@ -42,6 +42,7 @@
     schritt(lm, welt, t, asp = 16 / 9) {
       this.ereignis = null;
       const dt = this.letzt ? Math.min(200, t - this.letzt) : 0; this.letzt = t;
+      this._ctx = { lm, dt, asp };
       if (!lm || !welt) return this.kein(t, 'Ich sehe dich nicht. Ganzer Körper ins Bild.');
       // Füße erkennt die Kamera oft schlecht. Deshalb: Knöchel, sonst Ferse, sonst Zehen.
       // Fehlt alles, wird mit dem Knie weitergerechnet und trotzdem sauber gezählt.
@@ -50,6 +51,18 @@
       const S = ml >= mr ? L : R, vis = ml >= mr ? vl : vr;
       const fussVon = seite => (seite === L ? [27, 29, 31] : [28, 30, 32]).reduce((b, i) => ((lm[i].visibility ?? 1) > (lm[b].visibility ?? 1) ? i : b));
       const fuss = fussVon(S), fussDa = (lm[fuss].visibility ?? 1) >= 0.3;
+      // Handy VOR dem Körper (von vorne gefilmt): Schultern im Bild weit auseinander, Rumpf kurz.
+      // Dann zählen wir über den Abstand Schultern zu Händen und den Armwinkel beider Arme.
+      if (this.u !== 'squats') {
+        const v = i => lm[i].visibility ?? 1;
+        if (v(11) > 0.45 && v(12) > 0.45) {
+          const sb = Math.abs(lm[11].x - lm[12].x) * asp;
+          const hv = v(23) > 0.3 || v(24) > 0.3;
+          const hy = hv ? (v(23) >= v(24) ? lm[23] : lm[24]) : null;
+          const rumpf2 = hy ? Math.hypot((((lm[11].x + lm[12].x) / 2) - hy.x) * asp, ((lm[11].y + lm[12].y) / 2) - hy.y) : 0;
+          if (sb > 0.12 && (!hy || sb > rumpf2 * 0.8)) return this.front(t, dt, lm, asp, sb);
+        }
+      }
       // Pflicht: Liegestütz und Plank Schulter, Ellbogen, Hand, Hüfte. Squat Schulter, Hüfte, Knie. Knie und Füße sonst nur, wenn sichtbar.
       const NAMEN = ['Schultern', 'Ellbogen', 'Hände', 'Hüfte', 'Knie'];
       const noetig = this.u === 'squats' ? [[0, 0.4], [3, 0.3], [4, 0.3]] : this.u === 'plank' ? [[0, 0.4], [1, 0.35], [3, 0.3]] : [[0, 0.4], [1, 0.35], [2, 0.35], [3, 0.3]];
@@ -86,10 +99,58 @@
       if (this.u === 'squats') return this.squat(t, knieO, knieU, oberkoerper, p(S.schulter), p(S.huefte), p(fussDa ? fuss : S.knie));
       return this.plank(t, dt, arm, koerper, lage, durchhang, knie);
     }
+    vonVorne(t) {
+      const { lm, dt, asp } = this._ctx, v = i => lm[i].visibility ?? 1;
+      if (v(11) < 0.3 && v(12) < 0.3) return this.kein(t, 'Ich sehe deine Schultern nicht.');
+      const sb = Math.max(0.08, Math.abs(lm[11].x - lm[12].x) * asp);
+      return this.front(t, dt, lm, asp, sb);
+    }
+    front(t, dt, lm, asp, sb) {
+      const v = i => lm[i].visibility ?? 1;
+      const arme = [[11, 13, 15], [12, 14, 16]].filter(([a, b, c]) => v(b) > 0.35 && v(c) > 0.35);
+      if (!arme.length) return this.kein(t, 'Ich sehe deine Hände nicht. Hände ins Bild.');
+      const q = i => ({ x: lm[i].x * asp, y: lm[i].y, z: 0 });
+      const armRoh = arme.reduce((s, [a, b, c]) => s + winkel(q(a), q(b), q(c)), 0) / arme.length;
+      const schulterY = (lm[11].y + lm[12].y) / 2;
+      const untenY = this.u === 'plank' ? arme.reduce((s, [, b]) => s + lm[b].y, 0) / arme.length : arme.reduce((s, [, , c]) => s + lm[c].y, 0) / arme.length;
+      const r = this.glaetten('r', (untenY - schulterY) / sb);       // wie weit die Schultern über den Händen sind, relativ zur Schulterbreite
+      const arm = this.glaetten('armF', armRoh);
+      this.rmax = Math.max(r, (this.rmax || r) * 0.9993);
+      this.mess = { front: true, r, rmax: this.rmax, arm };
+      if (this.u === 'plank') {
+        // Plank von vorne: Ellbogen unter den Schultern und ruhig halten
+        if (r < 0.15) { this.hinweis = 'Ellbogen unter die Schultern'; this.gueltig = false; this.plankFehler(t); return this; }
+        if (!this.basis) this.basis = r;
+        if (Math.abs(r - this.basis) > this.basis * 0.35) { this.hinweis = 'Ruhig halten, nicht hochdrücken oder absacken'; this.gueltig = false; this.plankFehler(t); return this; }
+        this.basis += (r - this.basis) * 0.01;
+        this.gueltig = true; this.ungueltigSeit = 0; this.plankLief = true; this.hinweis = 'Halten!';
+        this.halteMs += dt; const neu = Math.floor(this.halteMs / 1000);
+        if (neu > this.wert) { this.wert = neu; this.ereignis = 'sekunde'; }
+        return this;
+      }
+      if (this.phase === 'start') {
+        if (r > 0.45 && arm > 120) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = 'Arme strecken, Hände unter die Schultern';
+        return this;
+      }
+      if (this.phase === 'oben') {
+        this.gueltig = true;
+        if (r < this.rmax * 0.8) { this.phase = 'runter'; this.repStart = t; this.minR = r; this.minArm = arm; }
+        return this;
+      }
+      this.minR = Math.min(this.minR, r); this.minArm = Math.min(this.minArm, arm);
+      if (r > this.rmax * 0.86 && arm > 120) {
+        const dauer = t - this.repStart, tief = this.minR < this.rmax * 0.5 || this.minArm < 100;
+        if (!tief) this.wertung(false, 'Tiefer runter, Brust fast bis zum Boden');
+        else if (dauer < 350) this.wertung(false, 'Zu schnell, sauber ausführen');
+        else this.wertung(true, 'Sauber!');
+        this.phase = 'oben';
+      }
+      return this;
+    }
     kein(t, text) { this.hinweis = text; this.gueltig = false; if (this.u === 'plank') this.plankFehler(t); return this; }
     haltungsText(durchhang) { return durchhang > 0 ? 'Hüfte nicht durchhängen lassen' : 'Po runter, Körper gerade'; }
     liegestuetz(t, armO, armU, koerper, lage, durchhang, knie) {
-      if (lage > 45) { this.phase = 'start'; return this.kein(t, 'Leg dich in Liegestütz-Position, Handy seitlich.'); }
+      if (lage > 45) return this.vonVorne(t);            // Körper steht im Bild senkrecht: Handy liegt vor dir
       if (this.phase === 'start') { if (armO > 145 && koerper > 150) { this.phase = 'oben'; this.hinweis = 'Los!'; } else this.hinweis = armO > 145 ? this.haltungsText(durchhang) : 'Arme ganz strecken'; return this; }
       if (this.phase === 'oben') {
         this.gueltig = koerper > 150 && knie >= 135;
@@ -134,7 +195,7 @@
     }
     plank(t, dt, arm, koerper, lage, durchhang, knie) {
       let fehler = null;
-      if (lage > 35) fehler = 'Runter in die Plank, Körper waagrecht';
+      if (lage > 35) return this.vonVorne(t);
       else if (knie < 150) fehler = 'Knie vom Boden, Beine gestreckt';
       else if (koerper < 158) fehler = this.haltungsText(durchhang);
       else if (!(arm > 60 && arm < 115) && !(arm > 150)) fehler = 'Ellbogen unter die Schultern';
@@ -297,6 +358,7 @@
     const m = document.getElementById('krMess'); if (!m) return;
     const v = z.mess; if (!v) { m.textContent = ''; return; }
     const r = x => Math.round(x);
+    if (v.front) { m.textContent = `von vorne · Arm ${r(v.arm)}° · Tiefe ${Math.round(100 - v.r / (v.rmax || 1) * 100)} % · ${z.phase}`; return; }
     m.textContent = D.uebung === 'squats' ? `Knie ${r(v.knieU)}°  Oberkörper ${r(v.oberkoerper)}°  ${z.phase}` : `Arm ${r(v.armU)} bis ${r(v.arm)}°  Körper ${r(v.koerper)}°  Lage ${r(v.lage)}°  ${z.phase}`;
   }
   function mitte(text) {
