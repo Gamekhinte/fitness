@@ -1,115 +1,128 @@
-/* Arena: Papier, Bleistift (Graphit) und ein eisblauer Marker. Positionen aus der Skizze übernommen. */
-:root{--papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--hand:'Patrick Hand','Comic Sans MS',cursive;--dick:'Lilita One','Arial Black',sans-serif}
+/* Arena: Papier, Tinte, dicke Ränder, harte Schatten, Eisblau als Marker. */
+:root{--papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--gold:#F2C14E;--hand:'Patrick Hand','Comic Sans MS',cursive;--dick:'Lilita One','Arial Black',sans-serif}
 html.papier,body.papier{background:var(--papier);color:var(--graphit)}
 .toast{color:var(--txt)}
-body.papier .toast{background:var(--papier);color:var(--graphit);border:2px solid var(--graphit);font-family:var(--hand);font-size:17px;font-weight:400}
 body.papier .top{display:none}
 body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 
-.ar-buehne{position:relative;width:100%;max-width:440px;margin:0 auto;height:max(540px,calc(100svh - 140px - var(--safe)));font-family:var(--hand);color:var(--graphit)}
-.ar-buehne button{background:none;padding:0;border:0}
-.ar-buehne img{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-drag:none}
-.ar-seil{position:absolute;left:30px;top:-10px;width:26px;z-index:2}
-.ar-mann{position:absolute;left:17%;top:10%;width:27%}
-.ar-chip{position:absolute;left:31%;top:0;width:38%;height:48px;display:flex;align-items:center;justify-content:center;gap:8px}
-.ar-chip b{font-family:var(--dick);font-size:26px;font-weight:400;line-height:1;position:relative}
-.ar-chip img{width:30px!important;position:relative}
-.ar-zahn{position:absolute;right:3%;top:0;width:52px;height:52px}
-.ar-zahn img{position:relative;width:34px!important;margin:9px auto 0}
-.ar-blase{position:absolute;left:43%;top:12%;width:30%;height:56px;display:flex;align-items:center;justify-content:center}
-.ar-blase span{position:relative;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88%;margin-top:-4px}
-.ar-rand{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--graphit);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.ar-rand{stroke-width:3}
+/* ---------- Startbildschirm: Spalte, nichts überlappt ---------- */
+.ar-buehne{position:relative;display:flex;flex-direction:column;max-width:460px;margin:0 auto;
+  height:calc(100svh - 126px - var(--safe) - env(safe-area-inset-top,0px));min-height:500px;font-family:var(--hand);color:var(--graphit)}
+.ar-buehne button{background:none;padding:0;border:0;color:var(--graphit)}
+.ar-buehne img{display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.ar-oben{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:10px;pointer-events:none}
+.ar-oben>*{pointer-events:auto}
+.ar-chip{position:relative;height:46px;min-width:96px;padding:0 12px!important;display:flex;align-items:center;justify-content:center;gap:7px}
+.ar-chip b{position:relative;font-family:var(--dick);font-size:22px;font-weight:400;line-height:1}
+.ar-chip img{position:relative;width:26px}
+.ar-zahn{position:relative;width:50px;height:50px;margin-left:auto}
+.ar-zahn img{position:relative;width:32px;margin:9px auto 0}
+.ar-rand{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--graphit);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 .ar-rand .schatten{fill:var(--graphit)!important;stroke:var(--graphit)}
-.ar-blase .ar-rand{height:calc(100% + 20px)}
 
-.ar-karte{position:absolute;left:-16px;right:-16px;top:29%;text-align:center}
-.ar-3d{position:relative;height:clamp(220px,35svh,320px);touch-action:pan-y}
+.ar-3d{position:relative;flex:1;min-height:240px;margin:-10px -16px 0;touch-action:none;cursor:grab}
 .ar-3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
-.ar-3d img{width:52%!important;margin:0 auto}
+.ar-3d img{position:absolute;left:24%;bottom:8%;width:52%}
 .ar-3d.an img{display:none}
-.ar-3d::after{content:'';position:absolute;left:24%;right:24%;bottom:4%;height:18px;border-radius:50%;background:rgba(43,40,38,.12);z-index:-1}
-.ar-karte p,.ar-karte small,.ar-weg{margin-left:auto;margin-right:auto;max-width:260px}
-.ar-karte p{margin:4px 0 6px;font-family:var(--dick);font-size:22px;letter-spacing:.5px}
-.ar-weg{height:14px;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;margin:0 6px;background:#fff;box-shadow:0 3px 0 var(--graphit)}
+.ar-unten{text-align:center;padding-top:2px}
+.ar-name{display:block;margin:0 auto 6px;font-family:var(--dick)!important;font-size:22px;letter-spacing:.5px}
+.ar-name::after{content:' ›'}
+.ar-weg{max-width:260px;height:14px;margin:0 auto;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 3px 0 var(--graphit)}
 .ar-weg i{display:block;height:100%;width:0;background:var(--marker)}
-.ar-karte small{display:block;font-size:15px;margin-top:3px;opacity:.75}
-
-.ar-battle{position:absolute;left:14%;bottom:3%;width:72%;height:78px;color:var(--graphit)}
-.ar-battle span{position:relative;display:block;font-family:var(--dick);font-size:40px;letter-spacing:2px;line-height:74px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.ar-unten small{display:block;font-size:16px;margin-top:5px;opacity:.8}
+.ar-battle{position:relative;flex:none;width:72%;height:74px;margin:12px auto 4px}
+.ar-battle span{position:relative;display:block;font-family:var(--dick);font-size:40px;letter-spacing:2px;line-height:70px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
 .ar-battle:active{transform:translateY(3px)}
-.ar-chip,.ar-blase,.ar-zahn{z-index:1}
+.ar-coin{width:22px;vertical-align:-4px}
 
-/* Navigation mit den gezeichneten Icons */
+/* Navigation mit gezeichneten Icons */
 .ar-icon{width:30px;height:26px;background:currentColor;-webkit-mask:var(--bild) center/contain no-repeat;mask:var(--bild) center/contain no-repeat}
 .nav button.mitte .ar-icon{width:34px;height:26px}
-body.papier .nav{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
-body.papier .nav button{color:var(--graphit);font-family:var(--hand);font-size:13px;font-weight:400;letter-spacing:0}
-body.papier .nav button.active{background:var(--marker);border:2px solid var(--graphit);color:var(--graphit)}
 
-/* Blatt: Profil, Rennen, Ergebnis */
-.ar-blatt{position:fixed;inset:0;z-index:2000;background:rgba(43,40,38,.35);overflow-y:auto;padding:calc(18px + env(safe-area-inset-top,0px)) 14px 30px}
-.ar-blatt-in{position:relative;max-width:440px;margin:0 auto;background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);box-shadow:0 6px 0 var(--graphit);border-radius:20px;padding:22px 18px 20px;font-family:var(--hand);min-height:60vh}
-.ar-blatt h2,.ar-titel{font-family:var(--dick);font-weight:400;font-size:32px;margin:0 0 6px;text-align:center;color:var(--graphit)}
+/* ---------- Fenster ---------- */
+.ar-blatt{position:fixed;inset:0;z-index:2000;background:rgba(43,40,38,.4);overflow-y:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 30px}
+.ar-blatt-in{position:relative;max-width:460px;margin:0 auto;background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);box-shadow:0 6px 0 var(--graphit);border-radius:20px;padding:20px 16px 20px;font-family:var(--hand);min-height:60vh}
+.ar-b3d{display:none}
+.ar-blatt-in.mit3d .ar-b3d{display:block;position:relative;height:250px;margin:-20px -16px 6px;border-radius:17px 17px 0 0;overflow:hidden;background:var(--marker);border-bottom:3px solid var(--graphit);touch-action:pan-y}
+.ar-blatt-in[data-modus="editor"] .ar-b3d{position:sticky;top:-14px;z-index:3;height:230px}
+.ar-blatt-in[data-modus="vs"] .ar-b3d{height:270px}
+.ar-blatt-in[data-modus="bahn"] .ar-b3d{height:300px;background:#BFE6FF}
+.ar-blatt-in[data-modus="ergebnis"] .ar-b3d{background:var(--gold)}
+.ar-b3d canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.ar-blatt h2,.ar-titel{font-family:var(--dick);font-weight:400;font-size:30px;margin:4px 0 6px;text-align:center;color:var(--graphit)}
 .ar-hand{font-size:19px;line-height:1.3;text-align:center;margin:8px 0}
 .ar-hand.gross{font-size:30px}
-.ar-zu{position:absolute;right:12px;top:8px;font-family:var(--hand);font-size:34px;line-height:1;background:none;color:var(--graphit);padding:4px 8px}
-.ar-kopf{display:flex;align-items:center;gap:14px;margin-bottom:6px}
-.ar-kopf img{width:70px}
-.ar-kopf h2{text-align:left;margin:0}
-.ar-kopf p{margin:2px 0 0;font-size:18px}
+.ar-hand.klein{font-size:16px;opacity:.8}
+.ar-zu{position:absolute;right:10px;top:8px;z-index:4;width:40px;height:40px;font-family:var(--dick);font-size:24px;line-height:1;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
 .ar-zeile{display:flex;gap:8px;margin:6px 0 10px}
 .ar-zeile input{background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;font-family:var(--hand);font-size:20px;padding:8px 12px}
-.ar-knopf{font-family:var(--dick);font-size:20px;letter-spacing:.5px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:8px 16px;box-shadow:0 4px 0 var(--graphit)}
+.ar-knopf{font-family:var(--dick);font-size:19px;letter-spacing:.5px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:9px 16px;box-shadow:0 4px 0 var(--graphit)}
 .ar-knopf:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
-.ar-knopf.breit{display:block;width:100%;margin-top:16px}
-.ar-knopf.leise{display:block;margin:22px auto 0;background:none}
-.ar-werte{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 4px}
+.ar-knopf.breit{display:block;width:100%;margin-top:14px}
+.ar-knopf.leise{display:block;margin:20px auto 0;background:#fff}
+.ar-knopf.leise2{background:#fff}
+.ar-knopf.gold{background:var(--gold)}
+.ar-knopf .ar-coin{width:20px}
+.ar-werte{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
 .ar-werte div{position:relative;text-align:center;padding:10px 4px 14px}
-.ar-werte b{position:relative;display:block;font-family:var(--dick);font-size:28px;font-weight:400;line-height:1.1}
-.ar-werte span{position:relative}
-.ar-werte span{font-size:16px}
-.ar-h{font-family:var(--hand);font-size:22px;font-weight:400;letter-spacing:0;color:var(--graphit);margin:16px 0 4px}
+.ar-werte b{position:relative;display:block;font-family:var(--dick);font-size:26px;font-weight:400;line-height:1.1}
+.ar-werte span{position:relative;font-size:16px}
+.ar-h{font-family:var(--dick);font-size:18px;font-weight:400;letter-spacing:.3px;color:var(--graphit);margin:16px 0 6px}
 .ar-liste{list-style:none;margin:0;padding:0}
 .ar-liste li{display:flex;justify-content:space-between;font-size:19px;padding:6px 2px;border-bottom:1.5px dashed rgba(43,40,38,.35)}
 .ar-liste li b{font-weight:400}
-.ar-liste.stufen li:not(.an){opacity:.45}
 .ar-klassen{display:grid;gap:14px;margin-top:16px}
 .ar-klassen button{position:relative;background:none;color:var(--graphit);font-family:var(--hand);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
 .ar-klassen b{position:relative;font-family:var(--dick);font-size:30px;font-weight:400}
 .ar-klassen span{position:relative;font-size:20px;opacity:.7}
 .ar-klassen button:active{transform:translateY(3px)}
-.ar-gegner{position:relative;text-align:center;padding:18px;margin:14px 0}
-.ar-gegner b{position:relative;display:block;font-family:var(--dick);font-size:30px;font-weight:400}
-.ar-gegner span{position:relative;font-size:19px}
-.ar-countdown{font-family:var(--dick);font-size:90px;text-align:center;margin:6px 0;line-height:1}
-.ar-bahn{margin:18px 0}
-.ar-bahn-kopf{display:flex;justify-content:space-between;font-size:22px;margin-bottom:4px}
-.ar-strecke{position:relative;height:26px}
-.ar-strecke i{position:absolute;left:4px;top:6px;bottom:8px;border-radius:4px;background:var(--marker);max-width:calc(100% - 6px)}
-.ar-bahn:not(.ich) .ar-strecke i{background:rgba(43,40,38,.25)}
-.ar-strecke img{position:absolute;top:-22px;width:30px;transform:translateX(-50%)}
-.ar-ergebnis-mann{display:block;width:90px;margin:4px auto}
-.ar-delta{font-family:var(--dick);display:flex;align-items:center;justify-content:center;gap:10px;font-size:54px;margin:4px 0 10px}
-.ar-delta img{width:46px}
-.ar-karte p,.ar-karte small,.ar-karte .ar-weg{margin-left:auto!important;margin-right:auto!important}
 
-/* Namensschild am Seil (öffnet das Profil) */
-.ar-schild{position:absolute;left:0;top:206px;width:110px;height:42px;z-index:2;display:flex;align-items:center;justify-content:center}
-.ar-schild span{position:relative;font-family:var(--dick);font-size:17px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ---------- Editor und Shop ---------- */
+.ar-coinzeile{display:flex;align-items:center;gap:6px;font-family:var(--dick);font-size:20px;margin:2px 0 10px}
+.ar-coinzeile span{font-family:var(--hand);font-size:17px;opacity:.75}
+.ar-reiter{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 8px;scrollbar-width:none}
+.ar-reiter::-webkit-scrollbar{display:none}
+.ar-reiter button{flex:none;font-family:var(--dick);font-size:16px;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:7px 12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-reiter button.an{background:var(--marker)}
+.ar-farben{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:9px}
+.ar-farben button{aspect-ratio:1;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-farben button.an{outline:3px solid var(--graphit);outline-offset:3px}
+.ar-wahl{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
+.ar-wahl button{position:relative;min-height:46px;font-family:var(--hand);font-size:18px;line-height:1.1;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:6px 6px;box-shadow:0 3px 0 var(--graphit)}
+.ar-wahl button.an{background:var(--marker)}
+.ar-wahl button.zu{background:#EDE6D6}
+.ar-wahl button.zu.an{background:var(--gold)}
+.ar-wahl small{display:flex;align-items:center;justify-content:center;gap:3px;font-family:var(--dick);font-size:14px;margin-top:2px}
+.ar-wahl small .ar-coin{width:16px}
+.ar-fuss{position:sticky;bottom:-20px;margin:16px -16px -20px;padding:4px 16px 18px;background:var(--papier);border-top:3px solid var(--graphit);border-radius:0 0 17px 17px}
 
-/* Insel hängt an Seilen: Bild geht bis ganz nach oben, Kästchen liegen darüber */
-.ar-karte{top:-10px!important;left:-16px;right:-16px}
-.ar-3d{height:clamp(400px,62svh,560px)!important;touch-action:none;cursor:grab}
-.ar-3d::after{display:none}
-.ar-3d img{position:absolute;left:24%;bottom:6%;width:52%!important}
-.ar-chip,.ar-zahn{z-index:3}
-.ar-chip{background:none;border:0;padding:0;color:var(--graphit)}
-.ar-name{display:block;margin:-6px auto 6px;background:none;border:0;padding:0;font-family:var(--dick);font-size:22px;letter-spacing:.5px;color:var(--graphit)}
-.ar-name::after{content:' ›'}
-.ar-battle{bottom:2%!important}
+/* ---------- Rennen ---------- */
+.ar-punkte{display:inline-block;width:1.2em;text-align:left}
+.ar-einsatz,.ar-beute{display:flex;justify-content:center;gap:12px;margin:8px 0}
+.ar-einsatz span,.ar-beute span{display:flex;align-items:center;gap:6px;font-family:var(--dick);font-size:20px;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-einsatz img,.ar-beute img{width:22px}
+.ar-beute span{font-size:30px;padding:6px 16px}
+.ar-beute img{width:30px}
+.ar-tipp{font-size:18px;text-align:center;margin:12px 4px 0;min-height:2.6em}
+.ar-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;text-align:center}
+.ar-vs b{display:block;font-family:var(--dick);font-weight:400;font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar-vs span{display:flex;align-items:center;justify-content:center;gap:4px;font-family:var(--dick);font-size:16px}
+.ar-vs span img{width:18px}
+.ar-vs em{font-style:normal;font-family:var(--dick);font-size:30px;color:var(--rot,#D9643A);-webkit-text-stroke:1.5px var(--graphit)}
+.ar-countdown{font-family:var(--dick);font-size:84px;text-align:center;margin:4px 0;line-height:1}
+.ar-hud{text-align:center}
+.ar-uhr{font-family:var(--dick);font-size:52px;line-height:1;margin:2px 0 6px}
+.ar-abstand{display:inline-block;font-family:var(--dick);font-size:19px;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit);margin:0 0 12px}
+.ar-abstand.vorne{background:var(--marker)}
+.ar-abstand.hinten{background:#F7C9B5}
+.ar-renn-zeile{display:grid;grid-template-columns:86px 1fr 74px;align-items:center;gap:8px;margin:8px 0;text-align:left}
+.ar-renn-zeile span{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar-renn-zeile b{font-family:var(--dick);font-weight:400;font-size:18px;text-align:right}
+.ar-mini{height:14px;background:#fff;border:3px solid var(--graphit);border-radius:8px;overflow:hidden}
+.ar-mini i{display:block;height:100%;background:#B9B4AC}
+.ar-renn-zeile.ich .ar-mini i{background:var(--marker)}
 
-/* Arena-Weg */
+/* ---------- Arena-Weg ---------- */
 .ar-wegliste{display:flex;flex-direction:column;gap:30px;margin-top:22px}
 .ar-station{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:8px 12px 8px 4px}
 .ar-station+.ar-station::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;background-image:url(arena/seil_muster.svg),url(arena/seil_muster.svg);background-repeat:repeat-y;background-size:12px 20px;background-position:16% 0,84% 0}

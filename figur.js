@@ -1,0 +1,220 @@
+/* ================= WINTERFORM FIGUR =================
+   Eigener Charakter wie ein Mii: Hautfarbe, Augen, Brauen, Mund, Gesicht, Haare, Haarfarbe,
+   Oberteil, Hose, Schuhe, Kopfbedeckung, Extra, Skin und Lieblings-Animation.
+   Das Gesicht wird auf eine Leinwand gezeichnet (Tusche-Look) und auf den Kopf gelegt.
+   Gekaufte Sachen prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige. */
+(function () {
+  const K = {
+    haut: ['#F6D7B8', '#EBC199', '#D19F74', '#A9744E', '#7A4E31', '#4E3221'],
+    haarfarbe: ['#2B2826', '#5A3A22', '#8B5A2B', '#D9A441', '#F1E3B0', '#C4472D', '#3FA9E6', '#E8E8E8'],
+    farben: ['#3FA9E6', '#D9643A', '#3E7A55', '#F2C14E', '#2B2826', '#FFFFFF', '#E86AA6', '#7B5CC4', '#8CC084', '#B9B4AC'],
+    hosen: ['#2B2826', '#2F4A7A', '#6B4A2E', '#B9B4AC', '#3E7A55', '#D9643A'],
+    schuhe: ['#FFFFFF', '#2B2826', '#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55'],
+    augen: [['punkt', 'Punkte'], ['rund', 'Rund'], ['froh', 'Fröhlich'], ['muede', 'Müde'], ['zwinker', 'Zwinkern'], ['wach', 'Hellwach']],
+    brauen: [['normal', 'Normal'], ['dick', 'Dick'], ['hoch', 'Überrascht'], ['boese', 'Entschlossen'], ['keine', 'Keine']],
+    mund: [['laecheln', 'Lächeln'], ['grinsen', 'Grinsen'], ['offen', 'Offen'], ['neutral', 'Neutral'], ['zunge', 'Zunge']],
+    gesicht: [['nichts', 'Nichts'], ['backen', 'Rote Backen'], ['sommersprossen', 'Sommersprossen'], ['pflaster', 'Pflaster']],
+    haare: [['kurz', 'Kurz'], ['stachel', 'Stacheln'], ['lang', 'Lang'], ['locken', 'Locken'], ['dutt', 'Dutt'], ['seite', 'Seitenscheitel'], ['glatze', 'Glatze']],
+    kopf: [['nichts', 'Nichts', 0], ['muetze', 'Mütze', 0], ['cap', 'Cap', 0], ['stirnband', 'Stirnband', 0],
+      ['hasenohren', 'Hasenohren', 300], ['kopfhoerer', 'Kopfhörer', 350], ['helm', 'Radhelm', 400], ['krone', 'Krone', 800]],
+    extra: [['nichts', 'Nichts', 0], ['brille', 'Brille', 0], ['schal', 'Schal', 0],
+      ['sonnenbrille', 'Sonnenbrille', 250], ['medaille', 'Medaille', 300], ['umhang', 'Umhang', 600]],
+    skin: [['nichts', 'Eigener Look', 0], ['skifahrer', 'Skifahrer', 700], ['ninja', 'Ninja', 900], ['eisbaer', 'Eisbär', 1200],
+      ['astronaut', 'Astronaut', 1500], ['dino', 'Dino', 1800], ['gold', 'Goldstatue', 3000]],
+    emote: [['winken', 'Winken', 0], ['jubeln', 'Jubeln', 0], ['hampelmann', 'Hampelmann', 200], ['flex', 'Muskeln', 300],
+      ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]]
+  };
+  const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
+    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken' };
+  const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
+
+  function pruefen(a) {
+    const r = Object.assign({}, STANDARD);
+    if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = a[k];
+    return r;
+  }
+
+  /* ---------- Gesicht auf Leinwand ---------- */
+  function gesichtMalen(a, skin) {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'), INK = '#2B2826';
+    g.lineCap = g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
+    const ex = [96, 160], ey = 112;
+    if (skin === 'ninja') { g.fillStyle = '#1E1C1B'; g.fillRect(0, 140, 256, 116); g.fillStyle = INK; }
+    // Augen
+    for (const [k, x] of ex.entries()) {
+      const typ = a.augen === 'zwinker' && k === 1 ? 'froh' : a.augen;
+      g.lineWidth = 7;
+      if (typ === 'punkt') { g.beginPath(); g.ellipse(x, ey, 9, 12, 0, 0, 7); g.fill(); }
+      else if (typ === 'rund' || typ === 'wach' || typ === 'zwinker') {
+        const rx = typ === 'wach' ? 19 : 15, ry = typ === 'wach' ? 23 : 17;
+        g.fillStyle = '#fff'; g.beginPath(); g.ellipse(x, ey, rx, ry, 0, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = INK; g.beginPath(); g.ellipse(x + 2, ey + 3, rx * 0.5, ry * 0.55, 0, 0, 7); g.fill();
+        g.fillStyle = '#fff'; g.beginPath(); g.arc(x + 5, ey - 3, 3.5, 0, 7); g.fill(); g.fillStyle = INK;
+      } else if (typ === 'froh') { g.beginPath(); g.arc(x, ey + 8, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
+      else if (typ === 'muede') { g.beginPath(); g.moveTo(x - 14, ey); g.lineTo(x + 14, ey); g.stroke(); g.beginPath(); g.arc(x, ey, 12, 0.1, Math.PI - 0.1); g.fill(); }
+    }
+    // Brauen
+    g.lineWidth = a.brauen === 'dick' ? 12 : 7;
+    if (a.brauen !== 'keine') for (const [k, x] of ex.entries()) {
+      const s = k ? 1 : -1, hoch = a.brauen === 'hoch' ? -10 : 0, boese = a.brauen === 'boese' ? 8 : 0;
+      g.beginPath(); g.moveTo(x - 15, ey - 30 + hoch + (s < 0 ? -boese * 0.3 : boese)); g.quadraticCurveTo(x, ey - 38 + hoch, x + 15, ey - 30 + hoch + (s < 0 ? boese : -boese * 0.3)); g.stroke();
+    }
+    // Gesicht-Extras
+    if (a.gesicht === 'backen') { g.fillStyle = 'rgba(232,106,106,.45)'; [70, 186].forEach(x => { g.beginPath(); g.ellipse(x, 150, 17, 10, 0, 0, 7); g.fill(); }); g.fillStyle = INK; }
+    if (a.gesicht === 'sommersprossen') { g.fillStyle = 'rgba(122,78,49,.7)'; [[70, 145], [80, 155], [62, 156], [186, 145], [176, 155], [194, 156]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 3.2, 0, 7); g.fill(); }); g.fillStyle = INK; }
+    if (a.gesicht === 'pflaster') { g.save(); g.translate(180, 150); g.rotate(-0.5); g.fillStyle = '#F2D2A6'; g.fillRect(-20, -8, 40, 16); g.lineWidth = 4; g.strokeRect(-20, -8, 40, 16); g.restore(); }
+    // Mund
+    if (skin !== 'ninja') {
+      g.lineWidth = 7; const mx = 128, my = 168;
+      if (a.mund === 'laecheln') { g.beginPath(); g.arc(mx, my - 14, 22, 0.25 * Math.PI, 0.75 * Math.PI); g.stroke(); }
+      else if (a.mund === 'grinsen') { g.beginPath(); g.moveTo(mx - 26, my - 4); g.quadraticCurveTo(mx, my + 34, mx + 26, my - 4); g.closePath(); g.fillStyle = '#fff'; g.fill(); g.stroke(); g.fillStyle = INK; }
+      else if (a.mund === 'offen') { g.beginPath(); g.ellipse(mx, my + 2, 11, 14, 0, 0, 7); g.fill(); }
+      else if (a.mund === 'neutral') { g.beginPath(); g.moveTo(mx - 16, my); g.lineTo(mx + 16, my); g.stroke(); }
+      else if (a.mund === 'zunge') { g.beginPath(); g.arc(mx, my - 12, 20, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke(); g.fillStyle = '#E86A6A'; g.beginPath(); g.ellipse(mx + 6, my + 10, 9, 11, 0, 0, 7); g.fill(); g.lineWidth = 4; g.stroke(); g.fillStyle = INK; }
+    }
+    return c;
+  }
+
+  /* ---------- Bauen ---------- */
+  function bauen(aussehen) {
+    const W = WF3D, T = W.T, a = pruefen(aussehen);
+    const sk = a.skin;
+    // Skins legen Farben fest
+    let haut = a.haut, ober = a.oberteil, hose = a.hose, schuh = a.schuhe, haare = a.haare, hf = a.haarfarbe, kopf = a.kopf, extra = a.extra;
+    if (sk === 'ninja') { ober = '#1E1C1B'; hose = '#1E1C1B'; schuh = '#1E1C1B'; kopf = 'stirnband_rot'; haare = 'kurz'; hf = '#1E1C1B'; }
+    if (sk === 'skifahrer') { ober = '#D9643A'; hose = '#2F4A7A'; schuh = '#2B2826'; kopf = 'muetze'; extra = 'skibrille'; }
+    if (sk === 'eisbaer') { haut = '#FFFFFF'; ober = '#FFFFFF'; hose = '#FFFFFF'; schuh = '#FFFFFF'; haare = 'glatze'; kopf = 'baerohren'; }
+    if (sk === 'astronaut') { ober = '#F4F4F4'; hose = '#F4F4F4'; schuh = '#B9B4AC'; kopf = 'raumhelm'; }
+    if (sk === 'dino') { haut = '#8CC084'; ober = '#3E7A55'; hose = '#3E7A55'; schuh = '#3E7A55'; haare = 'glatze'; kopf = 'dino'; }
+    if (sk === 'gold') { haut = '#F2C14E'; ober = '#F2C14E'; hose = '#E0A400'; schuh = '#E0A400'; hf = '#E0A400'; }
+
+    const wurzel = new T.Group();
+    const rig = { wurzel };
+    const huefte = new T.Group(); huefte.position.y = 0.85; wurzel.add(huefte); rig.huefte = huefte;
+    const rumpf = new T.Group(); huefte.add(rumpf); rig.rumpf = rumpf;
+    rumpf.add(W.teil(new T.CapsuleGeometry(0.36, 0.42, 6, 14), ober, 0, 0.42, 0, 0.045));
+    rumpf.add(W.teil(new T.CylinderGeometry(0.37, 0.35, 0.22, 14), hose, 0, 0.04, 0, 0.04));
+    // Beine
+    for (const s of [-1, 1]) {
+      const bein = new T.Group(); bein.position.set(s * 0.17, 0.02, 0); huefte.add(bein);
+      bein.add(W.teil(new T.CapsuleGeometry(0.13, 0.5, 4, 10), hose, 0, -0.38, 0, 0.04));
+      bein.add(W.teil(W.box(0.26, 0.16, 0.38), schuh, 0, -0.78, 0.06, 0.035));
+      rig[s < 0 ? 'beinL' : 'beinR'] = bein;
+    }
+    // Arme
+    for (const s of [-1, 1]) {
+      const arm = new T.Group(); arm.position.set(s * 0.45, 0.72, 0); rumpf.add(arm);
+      arm.add(W.teil(new T.CapsuleGeometry(0.1, 0.42, 4, 10), ober, 0, -0.3, 0, 0.035));
+      arm.add(W.teil(W.kugel(0.12), haut, 0, -0.62, 0, 0.03));
+      arm.rotation.z = s * 0.12;
+      rig[s < 0 ? 'armL' : 'armR'] = arm;
+    }
+    // Kopf
+    const k = new T.Group(); k.position.y = 1.32; rumpf.add(k); rig.kopf = k;
+    const R = 0.52;
+    k.add(W.teil(W.kugel(R, 28, 20), haut, 0, 0, 0, 0.045));
+    const tex = new T.CanvasTexture(gesichtMalen(a, sk)); tex.colorSpace = T.SRGBColorSpace;
+    const gGeo = new T.SphereGeometry(R * 1.008, 28, 20, Math.PI / 2 - 1.05, 2.1, 0.62, 1.55);
+    k.add(new T.Mesh(gGeo, new T.MeshBasicMaterial({ map: tex, transparent: true })));
+    // Ohren
+    if (kopf !== 'raumhelm') for (const s of [-1, 1]) k.add(W.teil(W.kugel(0.1), haut, s * R * 0.98, -0.02, 0, 0.02));
+    haarBauen(k, haare, hf, R);
+    kopfBauen(k, kopf, R, a);
+    extraBauen(rig, extra, R);
+    if (sk === 'dino') {
+      for (let i = 0; i < 5; i++) rumpf.add(W.teil(W.kegel(0.09, 0.22, 4), '#8CC084', 0, 0.85 - i * 0.2, -0.36, 0.02));
+      const schwanz = W.kegel(0.2, 0.8, 8); schwanz.rotateX(-Math.PI / 2 - 0.4);
+      huefte.add(W.teil(schwanz, '#3E7A55', 0, 0.0, -0.6, 0.03));
+    }
+    if (sk === 'astronaut') rumpf.add(W.teil(W.box(0.5, 0.6, 0.25), '#D0D0D0', 0, 0.5, -0.42, 0.03));
+    if (sk === 'eisbaer') k.add(W.teil(W.kugel(0.17), '#F1EDE4', 0, -0.12, R * 0.92, 0.02));
+    rig.anim = a.emote; rig.aussehen = a;
+    wurzel.userData.rig = rig;
+    return wurzel;
+  }
+
+  function haarBauen(k, typ, f, R) {
+    const W = WF3D, T = W.T;
+    const kappe = (anteil = 0.45, s = 1.06) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
+    const add = (geo, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
+    if (typ === 'glatze') return;
+    if (typ === 'kurz') { const m = add(kappe(0.38), 0, 0, 0); m.rotation.x = -0.25; }
+    if (typ === 'seite') { const m = add(kappe(0.4), 0, 0, 0); m.rotation.set(-0.2, 0, 0.25); add(W.box(0.5, 0.12, 0.25), -0.14, R * 0.86, R * 0.42).rotation.z = 0.35; }
+    if (typ === 'stachel') {
+      add(kappe(0.36), 0, 0, 0).rotation.x = -0.2;
+      for (let i = 0; i < 8; i++) { const w = i / 8 * Math.PI * 2; const c = add(W.kegel(0.12, 0.34, 6), Math.cos(w) * 0.26, R * 0.95, Math.sin(w) * 0.26 - 0.05, 0.025); c.rotation.set(Math.sin(w) * 0.6, 0, -Math.cos(w) * 0.6); }
+      add(W.kegel(0.13, 0.4, 6), 0, R * 1.12, -0.02, 0.025);
+    }
+    if (typ === 'lang') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; add(W.box(R * 1.9, 0.75, 0.3), 0, -0.25, -R * 0.75); }
+    if (typ === 'locken') { add(kappe(0.36), 0, 0, 0); for (let i = 0; i < 11; i++) { const w = i / 11 * Math.PI * 2; add(W.kugel(0.15, 10, 8), Math.cos(w) * R * 0.85, R * 0.55 + (i % 2) * 0.08, Math.sin(w) * R * 0.85 - 0.08, 0.025); } }
+    if (typ === 'dutt') { add(kappe(0.4), 0, 0, 0).rotation.x = -0.25; add(W.kugel(0.22, 12, 10), 0, R * 0.85, -R * 0.55); }
+  }
+
+  function kopfBauen(k, typ, R, a) {
+    const W = WF3D, T = W.T;
+    const add = (geo, f, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
+    const kappe = (s, anteil = 0.5) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
+    if (typ === 'muetze') { add(kappe(1.1, 0.42), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.1; const t = new T.TorusGeometry(R * 0.92, 0.09, 8, 24); t.rotateX(Math.PI / 2); add(t, '#FFFFFF', 0, R * 0.38, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
+    if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#FFFFFF', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
+    if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
+    if (typ === 'helm') { add(kappe(1.14, 0.42), '#3FA9E6', 0, 0.03, 0); for (const x of [-0.18, 0, 0.18]) add(W.box(0.06, 0.08, 0.7), '#2B2826', x, R * 1.12, -0.02, 0); }
+    if (typ === 'hasenohren') for (const s of [-1, 1]) { const o = add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), '#FFFFFF', s * 0.2, R * 1.35, -0.05, 0.025); o.rotation.z = -s * 0.2; }
+    if (typ === 'kopfhoerer') { const t = new T.TorusGeometry(R * 1.05, 0.05, 8, 24, Math.PI); add(t, '#2B2826', 0, 0, 0, 0.015); for (const s of [-1, 1]) { const c = W.rohr(0.17, 0.12, 16); c.rotateZ(Math.PI / 2); add(c, '#D9643A', s * R * 1.02, 0, 0, 0.02); } }
+    if (typ === 'baerohren') for (const s of [-1, 1]) add(W.kugel(0.15), '#FFFFFF', s * R * 0.65, R * 0.8, 0, 0.025);
+    if (typ === 'dino') { add(kappe(1.08, 0.55), '#3E7A55', 0, 0, -0.02); for (let i = 0; i < 4; i++) add(W.kegel(0.08, 0.2, 4), '#8CC084', 0, R * (1.05 - i * 0.18), -R * (0.15 + i * 0.3), 0.02); }
+    if (typ === 'raumhelm') { const glas = new T.Mesh(W.kugel(R * 1.32, 24, 18), new T.MeshToonMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.3 })); k.add(glas); W.umriss(glas, 0.03); glas.children[0].material = WF3D.inkMat; }
+  }
+
+  function extraBauen(rig, typ, R) {
+    const W = WF3D, T = W.T, k = rig.kopf;
+    if (typ === 'brille' || typ === 'sonnenbrille' || typ === 'skibrille') {
+      if (typ === 'skibrille') { const t = new T.TorusGeometry(R * 1.0, 0.06, 8, 28, Math.PI); t.rotateX(Math.PI / 2); t.rotateY(Math.PI); k.add(W.teil(t, '#2B2826', 0, 0.12, 0, 0, false)); k.add(W.teil(W.box(0.62, 0.2, 0.08), '#F2C14E', 0, 0.12, R * 0.95, 0.025)); return; }
+      for (const s of [-1, 1]) {
+        if (typ === 'brille') { const t = new T.TorusGeometry(0.11, 0.025, 6, 16); k.add(W.teil(t, '#2B2826', s * 0.17, 0.1, R * 0.97, 0)); }
+        else k.add(W.teil(W.rohr(0.13, 0.04, 16).rotateX(Math.PI / 2), '#2B2826', s * 0.17, 0.1, R * 0.97, 0.015));
+      }
+      k.add(W.teil(W.box(0.12, 0.03, 0.03), '#2B2826', 0, 0.12, R * 1.0, 0));
+    }
+    if (typ === 'schal') { const t = new T.TorusGeometry(0.33, 0.1, 8, 20); t.rotateX(Math.PI / 2); rig.rumpf.add(W.teil(t, '#D9643A', 0, 0.9, 0, 0.025)); rig.rumpf.add(W.teil(W.box(0.16, 0.42, 0.08), '#D9643A', 0.16, 0.66, 0.36, 0.025)); }
+    if (typ === 'medaille') { rig.rumpf.add(W.teil(W.rohr(0.13, 0.04, 18).rotateX(Math.PI / 2), '#F2C14E', 0, 0.55, 0.38, 0.02)); }
+    if (typ === 'umhang') { const g = new T.PlaneGeometry(0.85, 1.1, 6, 6); g.translate(0, -0.55, 0); const m = new T.Mesh(g, W.mat('#D9643A', { side: T.DoubleSide })); m.position.set(0, 0.95, -0.38); m.rotation.x = 0.12; rig.rumpf.add(m); rig.umhang = m; }
+  }
+
+  /* ---------- Animationen ---------- */
+  function haltung(fig, name, t, tempo = 1) {
+    const r = fig.userData.rig; if (!r) return;
+    const s = Math.sin, c = Math.cos;
+    // Grundhaltung
+    r.wurzel.position.y = 0; r.wurzel.rotation.set(0, r.wurzel.rotation.y, 0);
+    r.huefte.position.y = 0.85; r.rumpf.rotation.set(0, 0, 0); r.kopf.rotation.set(0, 0, 0);
+    r.armL.rotation.set(0, 0, -0.12); r.armR.rotation.set(0, 0, 0.12);
+    r.beinL.rotation.set(0, 0, 0); r.beinR.rotation.set(0, 0, 0);
+    const atem = s(t * 2) * 0.02;
+    switch (name) {
+      case 'laufen': {
+        const w = t * 9 * tempo;
+        r.beinL.rotation.x = s(w) * 0.85; r.beinR.rotation.x = -s(w) * 0.85;
+        r.armL.rotation.x = -s(w) * 0.9; r.armR.rotation.x = s(w) * 0.9;
+        r.huefte.position.y = 0.85 + Math.abs(c(w)) * 0.08; r.rumpf.rotation.x = 0.18; r.kopf.rotation.x = -0.1;
+        break;
+      }
+      case 'winken': r.armR.rotation.z = 2.6 + s(t * 8) * 0.35; r.kopf.rotation.z = s(t * 2) * 0.08; r.rumpf.rotation.z = -0.05; break;
+      case 'jubeln': { const h = Math.abs(s(t * 5)); r.wurzel.position.y = h * 0.35; r.armL.rotation.z = -2.7 - h * 0.2; r.armR.rotation.z = 2.7 + h * 0.2; r.beinL.rotation.z = -h * 0.15; r.beinR.rotation.z = h * 0.15; break; }
+      case 'hampelmann': { const h = (s(t * 7) + 1) / 2; r.wurzel.position.y = Math.abs(s(t * 7)) * 0.2; r.armL.rotation.z = -0.15 - h * 2.7; r.armR.rotation.z = 0.15 + h * 2.7; r.beinL.rotation.z = -h * 0.35; r.beinR.rotation.z = h * 0.35; break; }
+      case 'flex': { const p = 0.5 + 0.5 * s(t * 3); r.armL.rotation.set(0, 0, -1.6 - p * 0.3); r.armR.rotation.set(0, 0, 1.6 + p * 0.3); r.rumpf.rotation.x = -0.1; r.rumpf.scale.set(1 + p * 0.06, 1, 1 + p * 0.04); r.kopf.rotation.x = -0.15; break; }
+      case 'tanzen': { r.huefte.position.y = 0.85 + Math.abs(s(t * 6)) * 0.08; r.rumpf.rotation.z = s(t * 6) * 0.2; r.armL.rotation.z = -1.2 - s(t * 6) * 1.2; r.armR.rotation.z = 1.2 - s(t * 6) * 1.2; r.beinL.rotation.x = Math.max(0, s(t * 6)) * 0.5; r.beinR.rotation.x = Math.max(0, -s(t * 6)) * 0.5; r.kopf.rotation.z = -s(t * 6) * 0.15; break; }
+      case 'pose': { r.armL.rotation.set(0.3, 0, -0.9); r.armR.rotation.set(0.3, 0, 0.9); r.rumpf.rotation.x = -0.08; r.kopf.rotation.y = 0.25; r.beinL.rotation.z = -0.15; r.beinR.rotation.z = 0.15; if (r.umhang) r.umhang.rotation.x = 0.3 + s(t * 4) * 0.15; break; }
+      case 'robot': { const q = Math.floor(t * 2.5) % 4; r.armL.rotation.x = q < 2 ? -1.57 : 0; r.armR.rotation.x = q < 2 ? 0 : -1.57; r.kopf.rotation.y = [0.4, 0, -0.4, 0][q]; r.beinL.rotation.x = q === 1 ? -0.4 : 0; r.beinR.rotation.x = q === 3 ? -0.4 : 0; r.wurzel.rotation.y += 0; break; }
+      case 'salto': { const z = (t % 2.4) / 1.0; if (z < 1) { r.wurzel.position.y = s(z * Math.PI) * 1.4; r.wurzel.rotation.x = -z * Math.PI * 2; r.armL.rotation.z = -2.6; r.armR.rotation.z = 2.6; r.beinL.rotation.x = -0.8; r.beinR.rotation.x = -0.8; } else { r.armL.rotation.z = -2.2; r.armR.rotation.z = 2.2; } break; }
+      case 'dehnen': { const p = s(t * 1.6); r.rumpf.rotation.z = p * 0.35; r.armL.rotation.z = p > 0 ? -2.8 : -0.3; r.armR.rotation.z = p < 0 ? 2.8 : 0.3; break; }
+      case 'traurig': r.kopf.rotation.x = 0.45; r.rumpf.rotation.x = 0.15; r.armL.rotation.z = -0.05; r.armR.rotation.z = 0.05; break;
+      case 'fliegen': r.armL.rotation.z = -2.4 + s(t * 14) * 0.3; r.armR.rotation.z = 2.4 - s(t * 14) * 0.3; r.beinL.rotation.x = 0.4; r.beinR.rotation.x = -0.3; break;
+      default: r.rumpf.scale.set(1 + atem, 1 + atem, 1 + atem); r.armL.rotation.z = -0.12 - atem; r.armR.rotation.z = 0.12 + atem;
+    }
+    if (name !== 'flex' && name !== 'idle' && name !== undefined) r.rumpf.scale.set(1, 1, 1);
+  }
+
+  window.Figur = { KATALOG: K, STANDARD, preis, pruefen, bauen, haltung };
+})();
