@@ -229,7 +229,7 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
     </div>
   </section>
   <!-- HABITS -->
-  <section id="tab-habits" class="tab">
+  <section id="tab-habits" class="tab" hidden>
     <div class="card">
       <span class="label">Gewohnheit loswerden</span>
       <div class="grid2">
@@ -267,7 +267,6 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
   <button data-tab="catalog"><svg><use href="#i-dumb"/></svg>Training</button>
   <button data-tab="lung"><svg><use href="#i-pin"/></svg>Laufen</button>
   <button data-tab="coach"><svg><use href="#i-bot"/></svg>Coach</button>
-  <button data-tab="habits"><svg><use href="#i-shield"/></svg>Habits</button>
 </nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -281,7 +280,7 @@ const store = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}ca
 
 /* ---------- Tabs ---------- */
 let map = null;
-const TABORDER=['today','catalog','lung','coach','habits'];
+const TABORDER=['today','catalog','lung','coach'];
 let curTab='today';
 function showTab(t){
   if(t!==curTab)document.body.dataset.dir=TABORDER.indexOf(t)<TABORDER.indexOf(curTab)?'l':'r';
