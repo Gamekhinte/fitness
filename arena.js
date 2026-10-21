@@ -9,7 +9,8 @@
   const ARENEN = [
     { ab: 0, name: 'Schulhof', bild: 'arena/arena_schulhof.svg' },
     { ab: 300, name: 'Stadtpark' }, { ab: 600, name: 'Eisbahn' }, { ab: 1000, name: 'Skipiste' },
-    { ab: 1400, name: 'Gletscher' }, { ab: 1800, name: 'Polarnacht' }, { ab: 2300, name: 'Gipfel' }
+    { ab: 1400, name: 'Gletscher' }, { ab: 1800, name: 'Polarnacht' }, { ab: 2300, name: 'Gipfel' },
+    { ab: 2800, name: 'Sprungschanze' }, { ab: 3400, name: 'Eispalast' }, { ab: 4000, name: 'Nordpol' }
   ];
   const KLASSEN = [[1000, '1 km', 'Sprint'], [3000, '3 km', 'Mittel'], [10000, '10 km', 'Lang']];
   const e = s => esc(s);
@@ -52,13 +53,11 @@
   tab.id = 'tab-arena'; tab.className = 'tab';
   tab.innerHTML = `
     <div class="ar-buehne">
-      <button class="ar-seil" data-profil aria-label="Profil öffnen"><img src="arena/seil.svg" alt=""></button>
-      <div class="ar-chip">${rahmen(150, 52, 14, 3, false, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></div>
+      <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(150, 52, 14, 3, false, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
       <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, false, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
-      <button class="ar-schild" data-profil aria-label="Profil öffnen">${rahmen(96, 40, 10, 13, false, '#fff')}<span id="arHi">Profil</span></button>
       <div class="ar-karte">
         <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
-        <p id="arName"></p>
+        <button class="ar-name" id="arName"></button>
         <div class="ar-weg"><i id="arWeg"></i></div>
         <small id="arWegText"></small>
       </div>
@@ -104,10 +103,9 @@
     $('arPokale').textContent = pokale;
     $('arName').textContent = `Arena ${i + 1} · ${a.name}`;
     $('arBild').src = a.bild || ARENEN[0].bild;
-    if (window.Arena3D) Arena3D.zeigen($('ar3d'), i);
+    if (window.Arena3D) Arena3D.zeigen($('ar3d'), i, arenaWeg);
     $('arWeg').style.width = n ? Math.min(100, (pokale - a.ab) / (n.ab - a.ab) * 100) + '%' : '100%';
     $('arWegText').textContent = n ? `noch ${n.ab - pokale} Pokale bis ${n.name}` : 'Letzte Arena erreicht';
-    $('arHi').textContent = ich() ? ich().name : 'Profil';
     profilLaden();
   }
   async function profilLaden() {
@@ -149,6 +147,33 @@
     $('arKoerper').onclick = () => { schliessen(); openProfile(); };
   }
   tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = profil);
+  $('arName').onclick = () => arenaWeg();
+
+  /* ---------- Arena-Weg: alle Arenen mit Bild und Pokalen ---------- */
+  function arenaWeg() {
+    const jetzt = arenaZu(pokale);
+    zeigeBlatt(`
+      <button class="ar-zu" data-zu aria-label="Schließen">×</button>
+      <h2 class="ar-titel">Arenen</h2>
+      <p class="ar-hand">Gewinn Rennen, sammel Pokale, schalte neue Arenen frei.</p>
+      <div class="ar-wegliste">${ARENEN.map((a, k) => {
+        const offen = pokale >= a.ab, hier = k === jetzt;
+        return `<div class="ar-station${offen ? ' offen' : ''}${hier ? ' hier' : ''}" id="arSt${k}">
+          <div class="ar-st-bild"><img data-nr="${k}" alt=""></div>
+          <div class="ar-st-text"><small>Arena ${k + 1}</small><b>${a.name}</b>
+            <span><img src="arena/pokal.svg" alt="">${a.ab}</span>
+            <em>${hier ? 'Hier bist du' : offen ? 'Freigeschaltet' : `noch ${a.ab - pokale} Pokale`}</em></div></div>`;
+      }).join('')}</div>`);
+    const ziel = $('arSt' + jetzt); if (ziel && ziel.scrollIntoView) setTimeout(() => ziel.scrollIntoView({ block: 'center' }), 50);
+    if (!window.Arena3D) return;
+    // Bilder nacheinander rendern, damit das Handy nicht hängt
+    (async () => {
+      for (const img of $('arBlatt').querySelectorAll('img[data-nr]')) {
+        try { img.src = await Arena3D.bild(+img.dataset.nr); } catch (err) { img.src = ARENEN[0].bild; }
+        await new Promise(r => setTimeout(r, 30));
+      }
+    })();
+  }
   $('arZahn').onclick = () => openProfile();
   blatt.addEventListener('click', ev => { if (ev.target.closest('[data-zu]')) schliessen(); });
 

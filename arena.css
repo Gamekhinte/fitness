@@ -97,3 +97,30 @@ body.papier .nav button.active{background:var(--marker);border:2px solid var(--g
 /* Namensschild am Seil (öffnet das Profil) */
 .ar-schild{position:absolute;left:0;top:206px;width:110px;height:42px;z-index:2;display:flex;align-items:center;justify-content:center}
 .ar-schild span{position:relative;font-family:var(--dick);font-size:17px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Insel hängt an Seilen: Bild geht bis ganz nach oben, Kästchen liegen darüber */
+.ar-karte{top:-10px!important;left:-16px;right:-16px}
+.ar-3d{height:clamp(400px,62svh,560px)!important;touch-action:none;cursor:grab}
+.ar-3d::after{display:none}
+.ar-3d img{position:absolute;left:24%;bottom:6%;width:52%!important}
+.ar-chip,.ar-zahn{z-index:3}
+.ar-chip{background:none;border:0;padding:0;color:var(--graphit)}
+.ar-name{display:block;margin:-6px auto 6px;background:none;border:0;padding:0;font-family:var(--dick);font-size:22px;letter-spacing:.5px;color:var(--graphit)}
+.ar-name::after{content:' ›'}
+.ar-battle{bottom:2%!important}
+
+/* Arena-Weg */
+.ar-wegliste{display:flex;flex-direction:column;gap:30px;margin-top:22px}
+.ar-station{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:8px 12px 8px 4px}
+.ar-station+.ar-station::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;background-image:url(arena/seil_muster.svg),url(arena/seil_muster.svg);background-repeat:repeat-y;background-size:12px 20px;background-position:16% 0,84% 0}
+.ar-st-bild{flex:0 0 52%;aspect-ratio:48/34}
+.ar-st-bild img{width:100%;height:100%;object-fit:contain;display:block}
+.ar-station:not(.offen) .ar-st-bild img{filter:grayscale(1);opacity:.55}
+.ar-st-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ar-st-text small{font-size:16px;opacity:.7}
+.ar-st-text b{font-family:var(--dick);font-weight:400;font-size:22px;line-height:1.1}
+.ar-st-text span{display:flex;align-items:center;gap:5px;font-family:var(--dick);font-size:18px}
+.ar-st-text span img{width:20px}
+.ar-st-text em{font-style:normal;font-size:16px}
+.ar-station.hier{background:var(--marker)}
+.ar-station:not(.offen) em::before{content:'';display:inline-block;width:11px;height:9px;margin-right:6px;border:2.5px solid var(--graphit);border-radius:2px;vertical-align:-1px;box-shadow:0 -6px 0 -2px var(--papier),0 -7px 0 -1px var(--graphit)}
