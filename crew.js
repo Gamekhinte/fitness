@@ -452,4 +452,15 @@
   if (q.get('match')) matchBeitreten(q.get('match'));
   if (match.id) matchBeobachten();
   if (ich) serieZeigen();
+
+  // Für die Arena: gleiche Identität, gleicher Server
+  window.WF = {
+    rpc, ich: () => ich,
+    async registrieren(name) {
+      $('wfName').value = name;
+      if (!ich) await sicherIch();
+      else if (name !== ich.name) { await rpc('wf_name_aendern', mit({ p_name: name })); ich.name = name; store.set(ICH_KEY, ich); }
+      return ich;
+    }
+  };
 })();
