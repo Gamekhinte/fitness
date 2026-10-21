@@ -12,9 +12,9 @@
     { ab: 1000, name: 'Wald-Trail' }, { ab: 1400, name: 'Stadion' }, { ab: 1800, name: 'Dächer' }, { ab: 2300, name: 'Canyon' },
     { ab: 2800, name: 'Vulkan' }, { ab: 3400, name: 'Bergdorf' }, { ab: 4000, name: 'Mondbasis' }
   ];
-  const KLASSEN = [[1000, '1 km', 'Sprint'], [3000, '3 km', 'Mittel'], [10000, '10 km', 'Lang']];
+  const KLASSEN = [[1000, '1 km', 'Sprint', 1, 1], [3000, '3 km', 'Mittel', 3, 2], [10000, '10 km', 'Lang', 10, 4]];   // [Meter, Name, Art, Pokal-Faktor, Coin-Faktor]
   const TIPPS = ['Locker loslaufen, die ersten 200 m entscheiden nichts.', 'Handy in die Tasche, Bildschirm bleibt an.',
-    'Bei jedem Meilenstein vom Gegner sag ich Bescheid.', 'Sieg bringt Pokale und 25 Coins, Niederlage immerhin 8 Coins.',
+    'Bei jedem Meilenstein vom Gegner sag ich Bescheid.', 'Längere Strecke, mehr Pokale: 3 km zählt dreifach, 10 km zehnfach.', 'Freigeschaltete Arenen verlierst du nie wieder.',
     'Mit Coins kaufst du Skins und Animationen für deine Figur.', 'Schneller als Fahrrad zählt nicht, also wirklich laufen.'];
   const e = s => esc(s);
   const wf = () => window.WF;
@@ -364,7 +364,7 @@
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <h2 class="ar-titel">Arenen</h2>
-      <p class="ar-hand">Gewinn Rennen, sammel Pokale, schalte neue Arenen frei.</p>
+      <p class="ar-hand">Gewinn Rennen, sammel Pokale, schalte neue Arenen frei. Eine freigeschaltete Arena verlierst du nie wieder.</p>
       <div class="ar-wegliste">${ARENEN.map((a, k) => {
         const offen = pokale >= a.ab, hier = k === jetzt;
         return `<div class="ar-station${offen ? ' offen' : ''}${hier ? ' hier' : ''}" id="arSt${k}">
@@ -391,8 +391,9 @@
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <h2 class="ar-titel">Welche Strecke?</h2>
       <p class="ar-hand">Du läufst draußen, wo du willst. Dein Gegner sieht nur deine Meter, nie wo du bist.</p>
-      <div class="ar-klassen">${KLASSEN.map(([m, l, t], k) =>
-        `<button data-klasse="${m}">${rahmen(300, 74, 14, 31 + k, '#fff')}<b>${l}</b><span>${t}</span></button>`).join('')}</div>
+      <div class="ar-klassen">${KLASSEN.map(([m, l, t, f], k) =>
+        `<button data-klasse="${m}">${rahmen(300, 74, 14, 31 + k, '#fff')}<b>${l}</b><span>${t}<br><small>Pokale ×${f} · max ${m * 6 / 10000} min</small></span></button>`).join('')}</div>
+      <p class="ar-hand klein">Sieg-Pokale gibt es nur, wenn du im Zeitlimit ins Ziel kommst (10 min pro km).</p>
       <p class="ar-hand klein">Wichtig: draußen laufen, App offen lassen, Bildschirm bleibt an.</p>`);
     $('arBlatt').querySelectorAll('[data-klasse]').forEach(b => b.onclick = () => suchen(+b.dataset.klasse));
   };
@@ -430,6 +431,7 @@
       if (st > R.gegnerStufe && g < R.klasse) { R.gegnerStufe = st; say(`${gegnerName(s)} hat ${meter(st * stufe).replace(',00', '')} geschafft`, true); }
     }
     if (s.status === 'fertig' || s.status === 'abgebrochen') return beenden(s);
+    if (R.seite === 'a' ? s.a_auf : s.b_auf) return aufgegeben(R.seite === 'a' ? s.a_delta : s.b_delta);
     malen();
   }
   function uhr() {
@@ -458,6 +460,19 @@
   const gegnerMeter = s => s.aufzeichnung ? (s.geist_m || 0) : (R.seite === 'a' ? s.b_m : s.a_m);
   const gegnerName = (s, seite = R && R.seite) => s.aufzeichnung ? (s.geist_name === 'Trainingsgeist' ? 'Pace-Läufer' : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerPokale = s => s.aufzeichnung ? s.geist_pokale : (R.seite === 'a' ? s.b_pokale : s.a_pokale);
+  const gegnerAuf = s => !s.aufzeichnung && (R.seite === 'a' ? s.b_auf : s.a_auf);
+  function aufgegeben(delta) {
+    clearInterval(starten.uhr); clearInterval(starten.poll);
+    store.set('wf-rennen', null); R = null;
+    if (runOn) toggleRun();
+    zeigeBlatt(`
+      <button class="ar-zu" data-zu aria-label="Schließen">×</button>
+      <h2 class="ar-titel">Aufgegeben</h2>
+      <div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta || 0}</span></div>
+      <p class="ar-hand">Nächstes Mal durchziehen: Wer verliert, aber die halbe Strecke schafft, verliert nur die Hälfte.</p>
+      <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim: 'traurig' });
+    profilLaden().then(zeichnen);
+  }
   const PACE_LOOK = { haut: '#D19F74', haare: 'stachel', haarfarbe: '#2B2826', augen: 'froh', mund: 'grinsen', oberteil: '#F2C14E', hose: '#2F4A7A', schuhe: '#D9643A', kopf: 'stirnband' };
   function gegnerFigur(s, seite = R && R.seite) {
     const f = s.aufzeichnung ? s.geist_figur : (seite === 'a' ? s.b_figur : s.a_figur);
@@ -472,7 +487,7 @@
       const sek = Math.floor((Date.now() - R.t0) / 1000);
       zeigeBlatt(`<h2 class="ar-titel">Suche Gegner<span class="ar-punkte">${'.'.repeat(1 + sek % 3)}</span></h2>
         <p class="ar-hand gross">${k[1]} · ${sek} s</p>
-        <div class="ar-einsatz"><span><img src="arena/pokal.svg" alt="">ca. +30</span><span>${coin}+25</span></div>
+        <div class="ar-einsatz"><span><img src="arena/pokal.svg" alt="">ca. +${30 * k[3]}</span><span>${coin}+${25 * k[4]}</span></div>
         <p class="ar-tipp">${TIPPS[Math.floor(sek / 5) % TIPPS.length]}</p>
         <button class="ar-knopf leise" id="arAufgeben">Abbrechen</button>`, 'suche', { aussehen: F.aussehen }, true);
     } else if (!R.los) {
@@ -488,18 +503,21 @@
       const zeile = (name, m, ichs) => `<div class="ar-renn-zeile${ichs ? ' ich' : ''}"><span>${e(name)}</span><div class="ar-mini"><i style="width:${Math.min(100, m / R.klasse * 100)}%"></i></div><b>${meter(m)}</b></div>`;
       zeigeBlatt(`<div class="ar-hud"><p class="ar-uhr">${zeit(sek)}</p><p class="ar-abstand${d >= 3 ? ' vorne' : d <= -3 ? ' hinten' : ''}">${abstand}</p>
         ${zeile('Du', mm, true)}${zeile(gegnerName(s) || 'Gegner', gm, false)}
-        <p class="ar-hand klein">${k[1]} · noch ${meter(Math.max(0, R.klasse - mm))}</p></div>${aufgeben}`,
+        <p class="ar-hand klein">${k[1]} · noch ${meter(Math.max(0, R.klasse - mm))} · Limit ${zeit(Math.max(0, (s.limit || R.klasse * 0.6) - sek))}</p>
+        ${gegnerAuf(s) ? `<p class="ar-abstand vorne">${e(gegnerName(s))} hat aufgegeben. Lauf ins Ziel, dann gewinnst du.</p>` : ''}</div>${aufgeben}`,
         'bahn', { ich: F.aussehen, gegner: gegnerFigur(s), mm, gm, klasse: R.klasse, tempoIch: R.tempoIch, tempoGegner: R.tempoGegner }, true);
     }
     const ab = $('arAufgeben');
     if (ab && ab.addEventListener) ab.onclick = async () => {
       if (R.los && !confirm('Wirklich aufgeben? Das zählt als Niederlage.')) return;
-      try { await wf().rpc('wf_rennen_aufgeben', mit({ p_rennen: R.id })); } catch (err) {}
+      let r = null;
+      try { r = await wf().rpc('wf_rennen_aufgeben', mit({ p_rennen: R.id })); } catch (err) {}
+      if (r && r.delta != null && R && R.stand && !R.stand.aufzeichnung) return aufgegeben(r.delta);
       abfragen();
     };
   }
 
-  function beenden(s) {
+  async function beenden(s) {
     clearInterval(starten.uhr); clearInterval(starten.poll);
     store.set('wf-rennen', null);
     const war = R; R = null;
@@ -507,13 +525,17 @@
     if (s.status === 'abgebrochen') { schliessen(); return; }
     const seite = war.seite, sieg = s.sieger === seite;
     const delta = seite === 'a' ? s.a_delta : s.b_delta, meineZeit = seite === 'a' ? s.a_zeit : s.b_zeit;
-    const ungueltig = s.ergebnis === 'ungueltig';
-    const coins = ungueltig ? 0 : sieg ? 25 : 8;
+    const ungueltig = s.ergebnis === 'ungueltig', abgelaufen = s.ergebnis === 'abgelaufen';
+    const vorher = F.coins; await figurLaden(); const coins = Math.max(0, F.coins - vorher);
+    const zuLangsam = sieg && !ungueltig && !(delta > 0);
+    const hinweis = ungueltig ? 'Das war schneller als ein Mensch läuft. Fahrrad oder Auto? Keine Pokale.'
+      : abgelaufen ? 'Zeit abgelaufen, keiner war im Ziel. Keine Pokale.'
+      : zuLangsam ? `Gewonnen, aber nicht im Zeitlimit (${zeit(s.limit)}) oder schon oft gegen denselben Gegner. Keine Sieg-Pokale.` : '';
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <h2 class="ar-titel">${ungueltig ? 'Zählt nicht' : sieg ? 'Gewonnen' : 'Verloren'}</h2>
-      ${ungueltig ? '<p class="ar-hand">Das war schneller als ein Mensch läuft. Fahrrad oder Auto? Keine Pokale.</p>'
-        : `<div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta > 0 ? '+' : ''}${delta || 0}</span><span>${coin}+${coins}</span></div>`}
+      <h2 class="ar-titel">${ungueltig ? 'Zählt nicht' : abgelaufen ? 'Zeit um' : sieg ? 'Gewonnen' : 'Verloren'}</h2>
+      ${ungueltig || abgelaufen ? '' : `<div class="ar-beute"><span><img src="arena/pokal.svg" alt="">${delta > 0 ? '+' : ''}${delta || 0}</span><span>${coin}+${coins}</span></div>`}
+      ${hinweis ? `<p class="ar-hand">${hinweis}</p>` : ''}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis',

@@ -74,7 +74,8 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-klassen{display:grid;gap:14px;margin-top:16px}
 .ar-klassen button{position:relative;background:none;color:var(--graphit);font-family:var(--hand);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
 .ar-klassen b{position:relative;font-family:var(--dick);font-size:30px;font-weight:400}
-.ar-klassen span{position:relative;font-size:20px;opacity:.7}
+.ar-klassen span{position:relative;font-size:20px;opacity:.75;text-align:right;line-height:1.1}
+.ar-klassen small{font-size:15px}
 .ar-klassen button:active{transform:translateY(3px)}
 
 /* ---------- Editor und Shop ---------- */
