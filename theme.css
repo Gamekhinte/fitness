@@ -97,3 +97,23 @@ input::placeholder{color:#9A938A}
 .nav{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
 .nav button{color:var(--graphit);font-family:var(--hand);font-size:13px;font-weight:400;letter-spacing:0;border:2px solid transparent}
 .nav button.active{background:var(--marker);border:2px solid var(--graphit);color:var(--graphit)}
+
+/* ===== Hängende Schilder: Kopf hängt an Seilen von oben, jede Karte an der darüber ===== */
+.tab:not(#tab-arena)>.card,.tab:not(#tab-arena)>.acc,#catalogList{position:relative;margin-top:30px;transform-origin:50% -30px}
+#tab-catalog>.acc,#catalogList{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:2px 16px;margin-bottom:18px}
+#catalogList .acc:last-child{border-bottom:0}
+.tab:not(#tab-arena)>.card::before,.tab:not(#tab-arena)>.acc::before,#catalogList::before,
+body:not(.papier) .top::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;pointer-events:none;
+  background-image:url(arena/seil_muster.svg),url(arena/seil_muster.svg);background-repeat:repeat-y;background-size:12px 20px;background-position:16% 0,84% 0}
+.tab:not(#tab-arena)>.card::after,.tab:not(#tab-arena)>.acc::after,#catalogList::after,
+body:not(.papier) .top::after{content:'';position:absolute;left:0;right:0;top:-8px;height:16px;pointer-events:none;
+  background-image:url(arena/oese.svg),url(arena/oese.svg);background-repeat:no-repeat;background-size:16px 16px;background-position:calc(16% + 1px) 0,calc(84% - 1px) 0}
+/* Kopf als Schild, Seile gehen bis zum oberen Rand */
+body:not(.papier) .top{position:relative;margin:calc(26px + env(safe-area-inset-top,0px)) 16px 0;background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:10px 12px 10px 16px}
+body:not(.papier) .top::before{top:-200px;height:200px}
+body:not(.papier) main{padding-top:0}
+/* Beim Öffnen schwingen die Schilder einmal kurz aus und hängen dann still */
+@keyframes schwingen{0%{transform:rotate(1.6deg)}35%{transform:rotate(-.9deg)}65%{transform:rotate(.35deg)}100%{transform:rotate(0)}}
+.tab.active>.card,.tab.active>.acc,.tab.active>#catalogList{animation:schwingen .8s ease-out both}
+.tab.active>:nth-child(2){animation-delay:.06s}.tab.active>:nth-child(3){animation-delay:.12s}.tab.active>:nth-child(4){animation-delay:.18s}.tab.active>:nth-child(n+5){animation-delay:.24s}
+@media (prefers-reduced-motion:reduce){.tab.active>*{animation:none!important}}

@@ -55,8 +55,7 @@
       <button class="ar-seil" data-profil aria-label="Profil öffnen"><img src="arena/seil.svg" alt=""></button>
       <div class="ar-chip">${rahmen(150, 52, 14, 3, false, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></div>
       <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, false, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
-      <div class="ar-blase">${rahmen(130, 60, 18, 11, true, '#fff')}<span id="arHi">Hi</span></div>
-      <button class="ar-mann" data-profil aria-label="Profil öffnen"><img id="arMann" src="arena/mann_offen.png" alt=""></button>
+      <button class="ar-schild" data-profil aria-label="Profil öffnen">${rahmen(96, 40, 10, 13, false, '#fff')}<span id="arHi">Profil</span></button>
       <div class="ar-karte">
         <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
         <p id="arName"></p>
@@ -108,7 +107,7 @@
     if (window.Arena3D) Arena3D.zeigen($('ar3d'), i);
     $('arWeg').style.width = n ? Math.min(100, (pokale - a.ab) / (n.ab - a.ab) * 100) + '%' : '100%';
     $('arWegText').textContent = n ? `noch ${n.ab - pokale} Pokale bis ${n.name}` : 'Letzte Arena erreicht';
-    $('arHi').textContent = ich() ? `Hi ${ich().name}` : 'Hi';
+    $('arHi').textContent = ich() ? ich().name : 'Profil';
     profilLaden();
   }
   async function profilLaden() {
@@ -119,14 +118,7 @@
     } catch (err) { /* offline: alter Stand bleibt */ }
   }
 
-  // Ab und zu blinzeln
-  setInterval(() => {
-    if (curTab !== 'arena') return;
-    $('arMann').src = 'arena/mann_zu.png';
-    setTimeout(() => { $('arMann').src = 'arena/mann_offen.png'; }, 160);
-  }, 4200);
-
-  /* ---------- Profil (Seil oder Stickman antippen) ---------- */
+  /* ---------- Profil (Seil oder Namensschild antippen) ---------- */
   function profil() {
     const p = profilDaten || { pokale, max_pokale: pokale, siege: 0, niederlagen: 0 };
     const i = arenaZu(p.pokale);
