@@ -204,3 +204,25 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
   background:linear-gradient(90deg,var(--marker) var(--w),#fff var(--w))}
 .ar-regler input::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--graphit);box-shadow:0 3px 0 var(--graphit)}
 .ar-regler input::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--graphit)}
+
+/* ---------- Cutscene vor dem Duell ---------- */
+.ar-cut{position:fixed;inset:0;z-index:2600;background:#2B2826;animation:arCutRein .2s ease-out}
+.ar-cut.weg{opacity:0;transition:opacity .25s}
+@keyframes arCutRein{from{opacity:0}to{opacity:1}}
+.ar-cut-3d{position:absolute;inset:0}
+.ar-cut-3d canvas{width:100%!important;height:100%!important}
+.ar-cut-name{position:absolute;bottom:calc(18% + env(safe-area-inset-bottom,0px));font-family:var(--dick);font-size:34px;color:#fff;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit);opacity:0;white-space:nowrap}
+.ar-cut-name.links{left:6%}.ar-cut-name.rechts{right:6%}
+.ar-cut-name.rein.links{animation:arNameL .35s cubic-bezier(.2,1.4,.4,1) forwards}
+.ar-cut-name.rein.rechts{animation:arNameR .35s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes arNameL{from{transform:translateX(-120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes arNameR{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+.ar-cut-vs{position:absolute;left:0;right:0;top:12%;text-align:center;font-family:var(--dick);font-size:110px;color:var(--gold);-webkit-text-stroke:4px var(--graphit);paint-order:stroke fill;text-shadow:0 7px 0 var(--graphit);opacity:0}
+.ar-cut-vs.rein{animation:arVs .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes arVs{0%{transform:scale(3) rotate(-8deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){.ar-cut-name.rein.links,.ar-cut-name.rein.rechts,.ar-cut-vs.rein{animation:none;opacity:1}}
+
+/* ---------- Gegner-Avatar im Kamerabild ---------- */
+.kr-pip{position:absolute;top:58px;left:10px;width:46%;aspect-ratio:4/3;border:3px solid var(--graphit);border-radius:12px;overflow:hidden;box-shadow:0 4px 0 var(--graphit);background:var(--marker)}
+.kr-pip canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.kr-pip span{position:absolute;z-index:1;right:6px;bottom:4px;font-family:var(--dick);font-size:26px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 2px 0 var(--graphit)}

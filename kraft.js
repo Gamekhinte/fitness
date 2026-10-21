@@ -8,7 +8,9 @@
    Ungültige Wiederholungen zählen nicht, die App sagt warum. Der Server prüft zusätzlich die Höchstwerte. */
 (function () {
   const VISION = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-  const MODELL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
+  // heavy erkennt Arme und Beine besser (auch dunkle Kleidung), ist aber langsamer. Ist das Handy zu langsam, nehmen wir full.
+  const MODELLE = { heavy: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task',
+    full: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task' };
   const UEB = {
     liegestuetze: { name: 'Liegestütze', einheit: 'Wdh.', anim: 'liegestuetz', aufbau: 'Handy seitlich auf den Boden stellen, 2 Meter weg. Kamera sieht dich von der Seite, Kopf bis Füße.' },
     squats: { name: 'Squats', einheit: 'Wdh.', anim: 'kniebeuge', aufbau: 'Handy auf Hüfthöhe hinstellen, 2 bis 3 Meter weg, schräg von der Seite. Ganzer Körper im Bild.' },
@@ -48,24 +50,28 @@
       const S = ml >= mr ? L : R, vis = ml >= mr ? vl : vr;
       const fussVon = seite => (seite === L ? [27, 29, 31] : [28, 30, 32]).reduce((b, i) => ((lm[i].visibility ?? 1) > (lm[b].visibility ?? 1) ? i : b));
       const fuss = fussVon(S), fussDa = (lm[fuss].visibility ?? 1) >= 0.3;
-      const noetig = this.u === 'squats' ? [0, 3, 4] : [0, 1, 2, 3, 4];
-      if (noetig.some(i => vis[i] < 0.5)) return this.kein(t, this.u === 'squats' ? 'Oberkörper und Beine müssen ins Bild.' : 'Ganzer Körper muss ins Bild, Kopf bis Knie mindestens.');
+      // Pflicht: Liegestütz und Plank Schulter, Ellbogen, Hand, Hüfte. Squat Schulter, Hüfte, Knie. Knie und Füße sonst nur, wenn sichtbar.
+      const NAMEN = ['Schultern', 'Ellbogen', 'Hände', 'Hüfte', 'Knie'];
+      const noetig = this.u === 'squats' ? [[0, 0.4], [3, 0.3], [4, 0.3]] : this.u === 'plank' ? [[0, 0.4], [1, 0.35], [3, 0.3]] : [[0, 0.4], [1, 0.35], [2, 0.35], [3, 0.3]];
+      const fehlt = noetig.filter(([i, g]) => vis[i] < g).map(([i]) => NAMEN[i]);
+      if (fehlt.length) return this.kein(t, `Ich sehe deine ${fehlt.join(' und ')} nicht. Ganz ins Bild, mehr Licht hilft.`);
+      const knieDa = vis[4] >= 0.3;
       this.fussFehlt = !fussDa;
       const w = i => welt[i], p = i => lm[i];
-      const ende = fussDa ? fuss : S.knie;                                 // Endpunkt der Körperlinie
+      const ende = fussDa ? fuss : knieDa ? S.knie : null;              // Endpunkt der Körperlinie (null: nur Oberkörper sichtbar)
       const beide = Math.min(ml, mr) > 0.75;
       const arm = this.glaetten('arm', beide ? (winkel(w(11), w(13), w(15)) + winkel(w(12), w(14), w(16))) / 2 : winkel(w(S.schulter), w(S.ellbogen), w(S.hand)));
-      const koerper = this.glaetten('koerper', winkel(w(S.schulter), w(S.huefte), w(ende)));
+      const koerper = this.glaetten('koerper', ende != null ? winkel(w(S.schulter), w(S.huefte), w(ende)) : 180);
       let knieRoh;
       if (fussDa) {
         const andere = S === L ? R : L, f2 = fussVon(andere);
         knieRoh = beide && (lm[f2].visibility ?? 1) >= 0.3 ? (winkel(w(S.huefte), w(S.knie), w(fuss)) + winkel(w(andere.huefte), w(andere.knie), w(f2))) / 2 : winkel(w(S.huefte), w(S.knie), w(fuss));
       } else knieRoh = this.u === 'squats' ? 180 - (90 - neigung(p(S.huefte), p(S.knie), asp)) * 1.4 : 180;   // ohne Fuß: aus dem Winkel des Oberschenkels (Schienbein leicht vorgeneigt)
       const knie = this.glaetten('knie', knieRoh);
-      const lage = neigung(p(S.schulter), p(ende), asp);                // Körper waagrecht im Bild?
+      const lage = neigung(p(S.schulter), p(ende != null ? ende : S.huefte), asp);   // Körper waagrecht im Bild?
       const oberkoerper = 90 - neigung(p(S.huefte), p(S.schulter), asp);  // Squat: Abweichung von senkrecht
       // Hüfte durchhängen (positiv) oder Po hoch (negativ), im Bild gemessen
-      const sx = p(S.schulter), ax = p(ende), hx = p(S.huefte);
+      const sx = p(S.schulter), ax = p(ende != null ? ende : S.huefte), hx = p(S.huefte);
       const anteil = (hx.x - sx.x) / ((ax.x - sx.x) || 1e-6), linieY = sx.y + (ax.y - sx.y) * anteil, durchhang = hx.y - linieY;
       this.mess = { arm, koerper, knie, lage, oberkoerper, durchhang };
       if (this.u === 'liegestuetze') return this.liegestuetz(t, arm, koerper, lage, durchhang, knie);
@@ -142,15 +148,44 @@
 
   /* ---------- Kamera und Erkennung ---------- */
   const K = { pl: null, stream: null, video: null, canvas: null, laeuft: false, zaehler: null, letzteZeit: 0, aufFrame: null, fehlerFarbe: 0 };
-  async function erkennerLaden() {
-    if (K.pl) return K.pl;
+  async function erkennerLaden(art) {
+    art = art || store.get('wf-posemodell', 'heavy');
+    if (K.pl && K.art === art) return K.pl;
     const v = await import(VISION + '/vision_bundle.mjs');
-    const dateien = await v.FilesetResolver.forVisionTasks(VISION + '/wasm');
-    const opt = d => ({ baseOptions: { modelAssetPath: MODELL, delegate: d }, runningMode: 'VIDEO', numPoses: 1,
-      minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
-    try { K.pl = await v.PoseLandmarker.createFromOptions(dateien, opt('GPU')); }
-    catch (err) { K.pl = await v.PoseLandmarker.createFromOptions(dateien, opt('CPU')); }
+    const dateien = K.dateien || (K.dateien = await v.FilesetResolver.forVisionTasks(VISION + '/wasm'));
+    const opt = d => ({ baseOptions: { modelAssetPath: MODELLE[art], delegate: d }, runningMode: 'VIDEO', numPoses: 1,
+      minPoseDetectionConfidence: 0.4, minPosePresenceConfidence: 0.4, minTrackingConfidence: 0.4 });
+    let neu;
+    try { neu = await v.PoseLandmarker.createFromOptions(dateien, opt('GPU')); K.gpu = true; }
+    catch (err) { neu = await v.PoseLandmarker.createFromOptions(dateien, opt('CPU')); K.gpu = false; if (art === 'heavy') { neu.close && neu.close(); return erkennerLaden('full'); } }
+    if (K.pl && K.pl.close) K.pl.close();
+    K.pl = neu; K.art = art; K.messungen = [];
     return K.pl;
+  }
+  // Dunkles Bild aufhellen, bevor die Erkennung es sieht (dunkler Raum, schwarze Kleidung)
+  const HELL = { c: null, g: null, mess: null, mg: null, lut: null, dunkel: false, zaehler: 0 };
+  function aufbereiten(v) {
+    const w = 480, h = Math.round(480 * (v.videoHeight || 9) / (v.videoWidth || 16));
+    if (!HELL.c) {
+      HELL.c = document.createElement('canvas'); HELL.g = HELL.c.getContext('2d', { willReadFrequently: true });
+      HELL.mess = document.createElement('canvas'); HELL.mess.width = 32; HELL.mess.height = 18; HELL.mg = HELL.mess.getContext('2d', { willReadFrequently: true });
+      HELL.lut = new Uint8ClampedArray(256);
+      for (let i = 0; i < 256; i++) HELL.lut[i] = Math.min(255, Math.round(255 * Math.pow(i / 255, 0.55) * 1.08));   // Gamma hebt dunkle Stellen stark an
+    }
+    if (HELL.c.width !== w || HELL.c.height !== h) { HELL.c.width = w; HELL.c.height = h; }
+    // alle 15 Bilder messen, wie hell es ist
+    if (HELL.zaehler++ % 15 === 0) {
+      HELL.mg.drawImage(v, 0, 0, 32, 18);
+      const d = HELL.mg.getImageData(0, 0, 32, 18).data; let summe = 0;
+      for (let i = 0; i < d.length; i += 4) summe += d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+      HELL.dunkel = summe / (d.length / 4) < 95;
+    }
+    if (!HELL.dunkel) return v;
+    HELL.g.drawImage(v, 0, 0, w, h);
+    const bild = HELL.g.getImageData(0, 0, w, h), d = bild.data, lut = HELL.lut;
+    for (let i = 0; i < d.length; i += 4) { d[i] = lut[d[i]]; d[i + 1] = lut[d[i + 1]]; d[i + 2] = lut[d[i + 2]]; }
+    HELL.g.putImageData(bild, 0, 0);
+    return HELL.c;
   }
   async function kameraAn(box) {
     K.video = box.querySelector('video'); K.canvas = box.querySelector('canvas');
@@ -169,7 +204,16 @@
     const v = K.video; if (!v || v.readyState < 2) return;
     const jetzt = performance.now(); if (jetzt - K.letzteZeit < 30) return; K.letzteZeit = jetzt;
     let r = null;
-    try { r = K.pl.detectForVideo(v, jetzt); } catch (err) { return; }
+    const t0 = performance.now();
+    try { r = K.pl.detectForVideo(aufbereiten(v), jetzt); } catch (err) { return; }
+    // heavy zu langsam (über 110 ms pro Bild)? Dann auf full wechseln und merken
+    if (K.art === 'heavy' && K.messungen) {
+      K.messungen.push(performance.now() - t0);
+      if (K.messungen.length === 20) {
+        const schnitt = K.messungen.slice(5).reduce((a, b) => a + b) / 15; K.messungen = null;
+        if (schnitt > 110) { store.set('wf-posemodell', 'full'); K.laeuft = false; erkennerLaden('full').then(() => { K.laeuft = true; schleife(); }); return; }
+      }
+    }
     const lm = r && r.landmarks && r.landmarks[0], welt = r && r.worldLandmarks && r.worldLandmarks[0];
     zeichnen(lm);
     if (K.aufFrame) K.aufFrame(lm, welt, jetzt, (v.videoWidth || 16) / (v.videoHeight || 9));
@@ -221,7 +265,7 @@
     D.z = new Zaehler(uebung); K.zaehler = D.z;
     ui.zeigeBlatt(`
       <div class="kr-kamera" id="krKamera"><video playsinline muted></video><canvas></canvas>
-        <div class="kr-uhr" id="krUhr"></div><div class="kr-zahl" id="krZahl"></div><div class="kr-mitte" id="krMitte"></div>
+        <div class="kr-uhr" id="krUhr"></div><div class="kr-zahl" id="krZahl"></div><div class="kr-pip" id="krPip" hidden><span id="krPipZahl">0</span></div><div class="kr-mitte" id="krMitte"></div>
         <div class="kr-hinweis" id="krHinweis">Kamera startet…</div></div>
       <div id="krInfo"></div>`);
     document.getElementById('arBlattIn').classList.add('kraft-voll');
@@ -254,7 +298,7 @@
     // Aufbau und Wartezeit: nur prüfen, ob die Haltung erkannt wird
     if (D.phase !== 'satz') {
       const z = new Zaehler(D.uebung); z.schritt(lm, welt, t, asp);
-      const erkannt = lm && !/Ganzer Körper|sehe dich nicht|müssen ins Bild/.test(z.hinweis);
+      const erkannt = lm && !/Ganzer Körper|sehe dich nicht|müssen ins Bild|Ich sehe deine/.test(z.hinweis);
       D.bereit = erkannt ? Math.min(1, D.bereit + 0.04) : Math.max(0, D.bereit - 0.08);
       const c = document.getElementById('krCheck');
       if (c) { c.textContent = D.bereit >= 1 ? 'Ganzer Körper erkannt. Passt!' : erkannt ? 'Gut, kurz so bleiben…' : z.hinweis; c.dataset.ok = D.bereit >= 1 ? '1' : ''; }
@@ -298,6 +342,48 @@
   const gName = (s, seite) => s.aufzeichnung ? (s.geist_name === 'Trainingsgeist' ? 'Trainingspartner' : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerName = s => gName(s, D.seite);
   const gegnerWert = s => s.aufzeichnung ? (s.geist_wert || 0) : (D.seite === 'a' ? s.b_wert : s.a_wert);
+  const PACE = { haut: '#A9744E', haare: 'locken', haarfarbe: '#2B2826', augen: 'wach', mund: 'grinsen', oberteil: '#D9643A', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'stirnband', hg: 'graffiti' };
+  const gegnerFigur = s => { const f = s.aufzeichnung ? s.geist_figur : (D.seite === 'a' ? s.b_figur : s.a_figur); return Figur.pruefen(f && Object.keys(f).length ? f : PACE); };
+
+  /* ---------- Gegner-Avatar im Kamerabild: macht seine Wiederholungen mit (nur die Figur, nie der echte Gegner) ---------- */
+  const PIP = { b: null, g: null, f: null, hg: null, gezeigt: 0, ziel: 0, q: -1, uebung: null, fertig: false };
+  async function pipStart(look, uebung) {
+    const el = document.getElementById('krPip'); if (!el || !window.WF3D) return;
+    try { await WF3D.laden(); } catch (err) { return; }
+    const W = WF3D, T = W.T;
+    el.hidden = false;
+    if (!PIP.b) PIP.b = W.buehne(el, { fov: 30 }); else { PIP.b.einhaengen(el); PIP.b.beobachten(el); }
+    PIP.b.pausiert = false;
+    if (PIP.g) PIP.b.szene.remove(PIP.g);
+    const g = PIP.g = new T.Group(); PIP.b.szene.add(g);
+    PIP.hg = Figur.hintergrund(Figur.pruefen(look).hg); PIP.hg.position.set(0, 0, -4); g.add(PIP.hg);
+    g.add(W.teil(W.box(4.2, 0.08, 1.4), '#2B2826', 1.0, -0.04, 0, 0));
+    PIP.f = Figur.bauen(look); PIP.f.rotation.y = Math.PI / 2; g.add(PIP.f);
+    Object.assign(PIP, { gezeigt: 0, ziel: 0, q: -1, uebung, fertig: false });
+    const k = PIP.b.kamera;
+    PIP.b.beiGroesse = () => { if (uebung === 'squats') { k.position.set(0.2, 1.5, 6.4); k.lookAt(0.2, 1.15, 0); } else { k.position.set(1.15, 1.5, 6.2); k.lookAt(1.15, 0.65, 0); } };
+    PIP.b.groesse();
+    PIP.b.jeBild = (dt, t) => {
+      PIP.hg.userData.tick(t);
+      const anim = { liegestuetze: 'liegestuetz', squats: 'kniebeuge', plank: 'plank' }[uebung];
+      if (uebung === 'plank') { Figur.haltung(PIP.f, PIP.fertig ? 'traurig' : PIP.ziel > 0 ? 'plank' : 'idle', t); return; }
+      // eine Wiederholung pro gemeldeter Zahl, Tempo passt sich an, wenn er weit vorne ist
+      if (PIP.q < 0 && PIP.gezeigt < PIP.ziel) PIP.q = 0;
+      if (PIP.q >= 0) {
+        PIP.q += dt / Math.max(0.35, 0.7 - (PIP.ziel - PIP.gezeigt) * 0.08);
+        if (PIP.q >= 1) { PIP.q = -1; PIP.gezeigt++; }
+      }
+      if (PIP.q < 0) Figur.haltung(PIP.f, PIP.fertig ? 'idle' : anim, 0);
+      else Figur.haltung(PIP.f, anim, PIP.q * Math.PI * 2 / (anim === 'kniebeuge' ? 2.6 : 3));
+      if (PIP.fertig && PIP.q < 0) PIP.f.rotation.y = Math.PI / 2;
+    };
+  }
+  function pipWert(n, fertig) {
+    PIP.ziel = Math.max(PIP.ziel, n || 0); PIP.fertig = !!fertig;
+    const z = document.getElementById('krPipZahl'); if (z) z.textContent = n || 0;
+  }
+  function pipStopp() { if (PIP.b) { PIP.b.jeBild = null; PIP.b.pausiert = true; } }
+
   const gegnerFertig = s => s.aufzeichnung ? s.geist_fertig : (D.seite === 'a' ? (s.b_fertig || s.b_auf) : (s.a_fertig || s.a_auf));
 
   function uhr() {
@@ -315,7 +401,7 @@
       if (rest > 0) {
         if (D.phase !== 'countdown') { D.phase = 'countdown'; }
         if (rest <= 3 && !D.gesagt[rest]) { D.gesagt[rest] = 1; window.Klang && Klang.effekt('countdown'); }
-        if (D.phase === 'countdown' && !D.gefundenTon) { D.gefundenTon = true; window.Klang && Klang.effekt('gefunden'); }
+        if (D.phase === 'countdown' && !D.gefundenTon) { D.gefundenTon = true; ui.cutscene(ui.F().aussehen, gegnerFigur(s), ui.ich().name, gegnerName(s)); pipStart(gegnerFigur(s), D.uebung); }
         mitte(String(rest));
         info(`<div class="kr-kurz"><div class="ar-vs"><div><b>${e(ui.ich().name)}</b></div><em>VS</em><div><b>${e(gegnerName(s) || '')}</b><span><img src="arena/pokal.svg" alt="">${(s.aufzeichnung ? s.geist_pokale : (D.seite === 'a' ? s.b_pokale : s.a_pokale)) ?? 0}</span></div></div>
           <div class="kr-reihe"><button class="ar-knopf leise" id="krAufgeben">Aufgeben</button></div></div>`);
@@ -331,6 +417,7 @@
       if (D.phase === 'satz' && D.uebung === 'plank' && sek >= dauer) satzEnde();
       if (Date.now() - D.gemeldet > 2000 && D.phase === 'satz') { D.gemeldet = Date.now(); ui.wf().rpc('wf_kraft_wert', ui.mit({ p_duell: D.id, p_wert: D.z.wert, p_fertig: false })).catch(() => {}); }
       const g = s ? gegnerWert(s) : 0, ich = D.z.wert;
+      pipWert(g, s && gegnerFertig(s));
       const rest = D.uebung === 'plank' ? sek : Math.max(0, dauer - sek);
       const uh = document.getElementById('krUhr'); if (uh) uh.textContent = D.uebung === 'plank' ? zeit(rest) : rest;
       info(`<div class="kr-kurz ar-hud">
@@ -359,14 +446,14 @@
   }
   function abbrechen() {
     if (D) { clearInterval(D.uhr); clearInterval(D.poll); }
-    D = null; K.aufFrame = null; kameraAus(); store.set('wf-kraft', null);
+    D = null; K.aufFrame = null; kameraAus(); pipStopp(); store.set('wf-kraft', null);
     A().schliessen();
   }
   async function ergebnis(s, aufgabeDelta) {
     const ui = A(), war = D;
     if (!war) return;
     clearInterval(war.uhr); clearInterval(war.poll);
-    D = null; K.aufFrame = null; kameraAus(); store.set('wf-kraft', null);
+    D = null; K.aufFrame = null; kameraAus(); pipStopp(); store.set('wf-kraft', null);
     if (s && s.status === 'abgebrochen') return ui.schliessen();
     const u = UEB[war.uebung], F = ui.F();
     const vorher = F.coins; await ui.figurLaden(); const coins = Math.max(0, ui.F().coins - vorher);

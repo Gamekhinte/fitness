@@ -207,13 +207,21 @@
     const k = B3.b.kamera, zwei = modus === 'vs';
     const plaetze = zwei ? [-1.45, 1.45] : [0];
     const figs = plaetze.map(x => ({ p: podest(g, x, T, W), f: null, aussehen: null }));
+    const hgs = plaetze.map(() => ({ g: null, id: null }));
     const setzen = opt => {
       const looks = zwei ? [opt.ich, opt.gegner] : [opt.aussehen];
       figs.forEach((s, i) => {
-        const json = JSON.stringify(looks[i] || {});
-        if (s.aussehen === json) return;
-        if (s.f) s.p.remove(s.f);
-        s.f = Figur.bauen(looks[i]); s.f.scale.setScalar(zwei ? 0.8 : 0.95); s.p.add(s.f); s.aussehen = json;
+        const json = JSON.stringify(looks[i] || {}) + (opt.boese ? 'b' : '');
+        if (s.aussehen !== json) {
+          if (s.f) s.p.remove(s.f);
+          s.f = Figur.bauen(looks[i], { boese: opt.boese }); s.f.scale.setScalar(zwei ? 0.8 : 0.95); s.p.add(s.f); s.aussehen = json;
+        }
+        const hid = Figur.pruefen(looks[i]).hg, h = hgs[i];
+        if (h.id !== hid) {
+          if (h.g) g.remove(h.g);
+          h.g = Figur.hintergrund(hid); h.id = hid;
+          h.g.position.set(zwei ? (i ? 8 : -8) : 0, 0, zwei ? -4 - i * 0.02 : -4); g.add(h.g);
+        }
       });
     };
     setzen(B3.opt); B3.setzen = setzen;
@@ -237,6 +245,7 @@
         const basis = zwei ? (i ? -0.5 : 0.5) : 0.25;
         s.p.rotation.y = basis + (zwei ? 0 : B3.dreh + (modus === 'suche' ? Math.sin(t * 0.4) * 0.5 : 0));
       });
+      hgs.forEach(h => h.g && h.g.userData.tick(t));
       ringe.forEach((r, i) => { const p = (t * 0.5 + i / 3) % 1; r.scale.setScalar(1.2 + p * 2.2); r.material.opacity = 0.6 * (1 - p); r.position.y = -0.02; });
       konfetti.forEach(m => { m.position.y -= m.userData.v * dt; m.rotation.x += dt * 3; m.rotation.z += dt * m.userData.w; if (m.position.y < -0.5) m.position.y = 5; });
     };
@@ -355,11 +364,11 @@
   $('arCoins').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
-  const REITER = [['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen']];
+  const REITER = [['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
   let E = null;
   const besitzt = (kat, id) => !Figur.preis(kat, id) || F.besitz.includes(kat + ':' + id);
   function gesperrt(a) {
-    return ['kopf', 'extra', 'skin', 'emote'].filter(k => !besitzt(k, a[k]))
+    return ['kopf', 'extra', 'skin', 'emote', 'intro', 'hg'].filter(k => !besitzt(k, a[k]))
       .map(k => ({ kat: k, id: a[k], name: (Figur.KATALOG[k].find(x => x[0] === a[k]) || [])[1], preis: Figur.preis(k, a[k]) }));
   }
   function editor(reiter) {
@@ -380,7 +389,9 @@
       kleidung: () => farbe('oberteil', K.farben, 'Oberteil') + farbe('hose', K.hosen, 'Hose') + farbe('schuhe', K.schuhe, 'Schuhe'),
       extras: () => wahl('kopf', K.kopf, 'Auf dem Kopf') + wahl('extra', K.extra, 'Extra'),
       skins: () => '<p class="ar-hand">Ein Skin ersetzt Kleidung und Kopf. Gesicht bleibt deins.</p>' + wahl('skin', K.skin, 'Skins'),
-      emotes: () => '<p class="ar-hand">Deine Figur zeigt sie auf der Insel und nach jedem Sieg.</p>' + wahl('emote', K.emote, 'Animationen')
+      emotes: () => '<p class="ar-hand">Deine Figur zeigt sie auf der Insel und nach jedem Sieg.</p>' + wahl('emote', K.emote, 'Animationen'),
+      intro: () => '<p class="ar-hand">Läuft in der Cutscene vor jedem Duell. Dein Gegner sieht es.</p>' + wahl('intro', K.intro, 'Intro'),
+      hg: () => '<p class="ar-hand">Hinter deiner Figur in Cutscene, Duell und Ergebnis.</p>' + wahl('hg', K.hg, 'Hintergrund')
     }[E.reiter]();
     const zu = gesperrt(a);
     zeigeBlatt(`
@@ -391,7 +402,7 @@
       <div class="ar-fuss">
         ${zu.length ? `<button class="ar-knopf breit gold" id="arKaufen">${e(zu[0].name)} kaufen · ${zu[0].preis} ${coin}</button>` : ''}
         <button class="ar-knopf breit" id="arFigurOk">${zu.length ? 'Erst kaufen, dann speichern' : 'Speichern'}</button>
-      </div>`, 'editor', { aussehen: a, anim: E.reiter === 'emotes' ? a.emote : 'idle' }, bleiben);
+      </div>`, 'editor', { aussehen: a, anim: E.reiter === 'emotes' ? a.emote : E.reiter === 'intro' ? a.intro : 'idle', boese: E.reiter === 'intro' }, bleiben);
     $('arBlatt').querySelectorAll('[data-feld]').forEach(b => b.onclick = () => { E.a[b.dataset.feld] = b.dataset.wert; editorMalen(true); });
     $('arBlatt').querySelectorAll('[data-reiter]').forEach(b => b.onclick = () => { E.reiter = b.dataset.reiter; editorMalen(true); });
     const kauf = $('arKaufen');
@@ -552,7 +563,7 @@
         <p class="ar-tipp">${TIPPS[Math.floor(sek / 5) % TIPPS.length]}</p>
         <button class="ar-knopf leise" id="arAufgeben">Abbrechen</button>`, 'suche', { aussehen: F.aussehen }, true);
     } else if (!R.los) {
-      if (!R.gefundenTon) { R.gefundenTon = true; if (window.Klang) Klang.effekt('gefunden'); }
+      if (!R.gefundenTon) { R.gefundenTon = true; cutscene(F.aussehen, gegnerFigur(s), ich().name, gegnerName(s)); }
       const rest = R.startAt ? Math.max(0, Math.ceil((R.startAt - Date.now()) / 1000)) : '';
       zeigeBlatt(`<div class="ar-vs"><div><b>${e(ich().name)}</b><span><img src="arena/pokal.svg" alt="">${pokale}</span></div><em>VS</em>
         <div><b>${e(gegnerName(s) || '')}</b><span><img src="arena/pokal.svg" alt="">${gegnerPokale(s) ?? 0}</span></div></div>
@@ -606,6 +617,60 @@
     profilLaden().then(zeichnen); figurLaden();
   }
 
+  /* ---------- Cutscene vor dem Duell (3 s): erst du, dann der Gegner, dann Auge in Auge ---------- */
+  const CUT = { el: null, b: null, gruppe: null, laeuft: false };
+  async function cutscene(ichLook, gegnerLook, ichName, gegnerName) {
+    if (!window.WF3D || CUT.laeuft) return;
+    try { await WF3D.laden(); } catch (err) { return; }
+    const W = WF3D, T = W.T, K = window.Klang;
+    if (!CUT.el) {
+      CUT.el = document.createElement('div'); CUT.el.className = 'ar-cut';
+      CUT.el.innerHTML = '<div class="ar-cut-3d"></div><div class="ar-cut-name" id="arCutName"></div><div class="ar-cut-vs" id="arCutVs">VS</div>';
+      document.body.appendChild(CUT.el);
+    }
+    CUT.laeuft = true; CUT.el.hidden = false; CUT.el.className = 'ar-cut';
+    if (!CUT.b) CUT.b = W.buehne(CUT.el.querySelector('.ar-cut-3d'), { fov: 32 });
+    if (CUT.gruppe) CUT.b.szene.remove(CUT.gruppe);
+    const g = CUT.gruppe = new T.Group(); CUT.b.szene.add(g);
+    const a1 = Figur.pruefen(ichLook), a2 = Figur.pruefen(gegnerLook);
+    // drei Sets nebeneinander: links du allein, rechts der Gegner allein, in der Mitte beide
+    const set = (x, look, hgX) => { const h = Figur.hintergrund(look.hg); h.position.set(x + (hgX || 0), 0, -4); g.add(h); return h; };
+    const hg = [set(-40, a1), set(40, a2), set(0, a1, -8), set(0, a2, 8)];
+    hg[3].position.z = -4.02;
+    const f1 = Figur.bauen(a1, { boese: true }), f2 = Figur.bauen(a2, { boese: true });
+    const m1 = Figur.bauen(a1, { boese: true }), m2 = Figur.bauen(a2, { boese: true });
+    f1.position.set(-40, 0, 0); f2.position.set(40, 0, 0);
+    m1.position.set(-0.95, 0, 0); m1.rotation.y = Math.PI / 2; m2.position.set(0.95, 0, 0); m2.rotation.y = -Math.PI / 2;
+    [f1, f2, m1, m2].forEach(f => g.add(f));
+    const k = CUT.b.kamera, start = performance.now();
+    const name = document.getElementById('arCutName'), vs = document.getElementById('arCutVs');
+    const zeigeName = (text, seite) => { name.textContent = text; name.className = 'ar-cut-name ' + seite; void name.offsetWidth; name.classList.add('rein'); };
+    zeigeName(ichName || 'Du', 'links'); vs.classList.remove('rein');
+    if (K) K.effekt('gefunden');
+    let schnitt = 0;
+    CUT.b.jeBild = (dt, t) => {
+      const z = (performance.now() - start) / 1000 * (window.CUT_TEMPO || 1);   // CUT_TEMPO nur für Tests
+      hg.forEach(h => h.userData.tick(t));
+      Figur.haltung(f1, a1.intro, t); Figur.haltung(f2, a2.intro, t + 0.3);
+      Figur.haltung(m1, 'starren', t); Figur.haltung(m2, 'starren', t + 0.5);
+      // Abstand aus der Bildbreite: im Hochformat weiter weg, damit die ganze Figur drauf ist
+      const asp = k.aspect || 0.5, nah = Math.max(4.4, 2.3 / asp / 0.57), weit = Math.max(6, 3.6 / asp / 0.57);
+      if (z < 1) { const d = nah * (1.08 - z * 0.12); k.position.set(-40, 1.9, d); k.lookAt(-40, 1.35, 0); }
+      else if (z < 2) {
+        if (schnitt < 1) { schnitt = 1; zeigeName(gegnerName || 'Gegner', 'rechts'); if (K) K.effekt('tipp'); }
+        const d = nah * (1.08 - (z - 1) * 0.12); k.position.set(40, 1.9, d); k.lookAt(40, 1.35, 0);
+      } else {
+        if (schnitt < 2) { schnitt = 2; name.className = 'ar-cut-name'; vs.classList.add('rein'); if (K) K.effekt('los'); }
+        const d = weit * (1.05 - (z - 2) * 0.1); k.position.set(0, 1.9, d); k.lookAt(0, 1.45, 0);
+      }
+    };
+    CUT.b.groesse();
+    await new Promise(r => setTimeout(r, 3000 / (window.CUT_TEMPO || 1)));
+    CUT.el.classList.add('weg');
+    await new Promise(r => setTimeout(r, 250));
+    CUT.el.hidden = true; CUT.b.jeBild = null; CUT.b.szene.remove(g); CUT.gruppe = null; CUT.laeuft = false;
+  }
+
   /* ---------- Feiern: Pokale und Coins zählen hoch, mit Fanfare ---------- */
   const beuteHtml = () => `<div class="ar-beute"><span class="ar-pop2"><img src="arena/pokal.svg" alt=""><b id="arBP">0</b></span><span class="ar-pop3">${coin}<b id="arBC">+0</b></span></div>`;
   function feiern(sieg, delta, coins) {
@@ -639,6 +704,6 @@
   else zeichnen();
 
   // für Tests
-  window.ArenaUI = { editor, profil, arenaWeg, einstellungen, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

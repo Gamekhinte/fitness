@@ -22,10 +22,16 @@
     skin: [['nichts', 'Eigener Look', 0], ['skifahrer', 'Skifahrer', 700], ['ninja', 'Ninja', 900], ['eisbaer', 'Eisbär', 1200],
       ['astronaut', 'Astronaut', 1500], ['dino', 'Dino', 1800], ['gold', 'Goldstatue', 3000]],
     emote: [['winken', 'Winken', 0], ['jubeln', 'Jubeln', 0], ['hampelmann', 'Hampelmann', 200], ['flex', 'Muskeln', 300],
-      ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]]
+      ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]],
+    // Intro: läuft in der Cutscene vor jedem Duell, mit bösem Blick
+    intro: [['starren', 'Böse starren', 0], ['zeigen', 'Auf dich zeigen', 0], ['faust', 'Faust ballen', 300], ['muskeln', 'Muskeln zeigen', 350],
+      ['trommeln', 'Brust trommeln', 400], ['lachen', 'Auslachen', 450], ['gaehnen', 'Gelangweilt gähnen', 500]],
+    // Hintergrund: hinter deiner Figur in Cutscene, Duell, Profil und Ergebnis
+    hg: [['eis', 'Eis', 0], ['papier', 'Papier', 0], ['schnee', 'Schneefall', 300], ['sterne', 'Sternennacht', 400], ['sonnenuntergang', 'Sonnenuntergang', 500],
+      ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200]]
   };
   const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
-    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken' };
+    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
 
   function pruefen(a) {
@@ -57,7 +63,7 @@
     // Brauen
     g.lineWidth = a.brauen === 'dick' ? 12 : 7;
     if (a.brauen !== 'keine') for (const [k, x] of ex.entries()) {
-      const s = k ? 1 : -1, hoch = a.brauen === 'hoch' ? -10 : 0, boese = a.brauen === 'boese' ? 8 : 0;
+      const s = k ? 1 : -1, hoch = a.brauen === 'hoch' ? -10 : 0, boese = a.brauen === 'boese' ? 14 : 0;
       g.beginPath(); g.moveTo(x - 15, ey - 30 + hoch + (s < 0 ? -boese * 0.3 : boese)); g.quadraticCurveTo(x, ey - 38 + hoch, x + 15, ey - 30 + hoch + (s < 0 ? boese : -boese * 0.3)); g.stroke();
     }
     // Gesicht-Extras
@@ -77,7 +83,7 @@
   }
 
   /* ---------- Bauen ---------- */
-  function bauen(aussehen) {
+  function bauen(aussehen, opt = {}) {
     const W = WF3D, T = W.T, a = pruefen(aussehen);
     const sk = a.skin;
     // Skins legen Farben fest
@@ -117,7 +123,8 @@
     const k = new T.Group(); k.position.y = 1.32; rumpf.add(k); rig.kopf = k;
     const R = 0.52;
     k.add(W.teil(W.kugel(R, 28, 20), haut, 0, 0, 0, 0.045));
-    const tex = new T.CanvasTexture(gesichtMalen(a, sk)); tex.colorSpace = T.SRGBColorSpace;
+    const gesicht = opt.boese ? Object.assign({}, a, { brauen: 'boese', mund: a.mund === 'grinsen' || a.mund === 'zunge' ? 'grinsen' : 'neutral', augen: a.augen === 'froh' || a.augen === 'zwinker' ? 'punkt' : a.augen }) : a;
+    const tex = new T.CanvasTexture(gesichtMalen(gesicht, sk)); tex.colorSpace = T.SRGBColorSpace;
     const gGeo = new T.SphereGeometry(R * 1.008, 28, 20, Math.PI / 2 - 1.05, 2.1, 0.62, 1.55);
     k.add(new T.Mesh(gGeo, new T.MeshBasicMaterial({ map: tex, transparent: true })));
     // Ohren
@@ -232,12 +239,75 @@
         r.kopf.rotation.x = -0.55;
         break;
       }
+      // Intros für die Cutscene
+      case 'starren': r.rumpf.rotation.x = 0.22 + s(t * 2) * 0.03; r.kopf.rotation.x = -0.25; r.armL.rotation.set(0.2, 0, -0.35); r.armR.rotation.set(0.2, 0, 0.35); r.beinL.rotation.z = -0.12; r.beinR.rotation.z = 0.12; break;
+      case 'zeigen': r.armR.rotation.set(-1.45 + s(t * 6) * 0.08, 0, 0.1); r.rumpf.rotation.x = 0.12; r.kopf.rotation.x = -0.15; r.armL.rotation.set(0, 0, -0.35); break;
+      case 'faust': { const p = Math.max(0, s(t * 7)); r.armR.rotation.set(-0.6 - p * 1.2, 0, 0.3); r.armL.rotation.set(-0.9, 0, -0.5); r.rumpf.rotation.x = 0.15; r.kopf.rotation.x = -0.2; break; }
+      case 'muskeln': { const p = 0.5 + 0.5 * s(t * 5); r.armL.rotation.set(0, 0, -1.7 - p * 0.3); r.armR.rotation.set(0, 0, 1.7 + p * 0.3); r.rumpf.scale.set(1 + p * 0.08, 1, 1 + p * 0.05); r.kopf.rotation.x = -0.2; break; }
+      case 'trommeln': { const p = s(t * 12); r.armL.rotation.set(-1.1 + p * 0.25, 0, 0.55); r.armR.rotation.set(-1.1 - p * 0.25, 0, -0.55); r.rumpf.rotation.x = -0.12; r.kopf.rotation.x = -0.3; r.huefte.position.y = 0.85 + Math.abs(p) * 0.04; break; }
+      case 'lachen': { const p = s(t * 16); r.rumpf.rotation.x = -0.25 + p * 0.05; r.kopf.rotation.x = -0.4; r.armL.rotation.set(-0.5, 0, -0.2); r.armR.rotation.set(-0.5, 0, 0.2); r.huefte.position.y = 0.85 + Math.abs(p) * 0.05; break; }
+      case 'gaehnen': { const p = (s(t * 1.6) + 1) / 2; r.armR.rotation.set(0, 0, 2.6 * p + 0.1); r.armL.rotation.set(-0.3, 0, -0.2); r.kopf.rotation.set(-0.35 * p, 0, 0.2 * p); r.rumpf.rotation.z = -0.1 * p; break; }
       case 'traurig': r.kopf.rotation.x = 0.45; r.rumpf.rotation.x = 0.15; r.armL.rotation.z = -0.05; r.armR.rotation.z = 0.05; break;
       case 'fliegen': r.armL.rotation.z = -2.4 + s(t * 14) * 0.3; r.armR.rotation.z = 2.4 - s(t * 14) * 0.3; r.beinL.rotation.x = 0.4; r.beinR.rotation.x = -0.3; break;
       default: r.rumpf.scale.set(1 + atem, 1 + atem, 1 + atem); r.armL.rotation.z = -0.12 - atem; r.armR.rotation.z = 0.12 + atem;
     }
-    if (name !== 'flex' && name !== 'idle' && name !== undefined) r.rumpf.scale.set(1, 1, 1);
+    if (name !== 'flex' && name !== 'muskeln' && name !== 'idle' && name !== undefined) r.rumpf.scale.set(1, 1, 1);
   }
 
-  window.Figur = { KATALOG: K, STANDARD, preis, pruefen, bauen, haltung };
+  /* ---------- Hintergründe (hinter der Figur in Cutscene, Duell, Profil, Ergebnis) ---------- */
+  function hintergrund(id) {
+    const W = WF3D, T = W.T, g = new T.Group(), ticks = [];
+    const flach = (w, h, f, x, y, z = 0) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ color: f })); m.position.set(x, y, z); g.add(m); return m; };
+    const kreis = (r, f, x, y, z = 0.01, n = 24) => { const m = new T.Mesh(new T.CircleGeometry(r, n), new T.MeshBasicMaterial({ color: f })); m.position.set(x, y, z); g.add(m); return m; };
+    let k = 7; const zufall = () => (k = (k * 9301 + 49297) % 233280) / 233280;
+    switch (id) {
+      case 'papier': flach(16, 10, '#F3EFE6', 0, 2); for (let i = 0; i < 9; i++) flach(16, 0.03, '#C9DCE8', 0, -2 + i * 0.7, 0.01); flach(0.04, 10, '#E8A5A5', -3.2, 2, 0.01); break;
+      case 'schnee': {
+        flach(16, 10, '#9FB8D6', 0, 2); flach(16, 2, '#FFFFFF', 0, -2.2, 0.01);
+        const flocken = []; for (let i = 0; i < 60; i++) flocken.push([kreis(0.04 + zufall() * 0.05, '#FFFFFF', zufall() * 12 - 6, 0, 0.02, 8), 0.3 + zufall() * 0.5]);
+        ticks.push(t => flocken.forEach(([f, v], i) => { f.position.y = 7 - ((t * v + i * 0.37) % 8); }));
+        break;
+      }
+      case 'sterne': {
+        flach(16, 10, '#1F2D4A', 0, 2); kreis(0.7, '#F7EFC8', 3.0, 4.0); kreis(0.62, '#1F2D4A', 3.3, 4.15, 0.02);
+        const sterne = []; for (let i = 0; i < 50; i++) sterne.push(kreis(0.02 + zufall() * 0.04, '#FFFFFF', zufall() * 12 - 6, zufall() * 8 - 1, 0.02, 6));
+        ticks.push(t => sterne.forEach((s, i) => s.scale.setScalar(0.6 + 0.4 * Math.abs(Math.sin(t * 1.5 + i)))));
+        break;
+      }
+      case 'sonnenuntergang':
+        ['#3B4A80', '#7B5CC4', '#E86AA6', '#F28A5B', '#F2C14E'].forEach((f, i) => flach(16, 1.6, f, 0, 6 - i * 1.5, 0.001 * i));
+        kreis(1.6, '#FFE38A', 0, -0.2, 0.01, 32); flach(16, 2.8, '#2B2826', 0, -2.6, 0.02);
+        break;
+      case 'graffiti':
+        flach(16, 10, '#B5654A', 0, 2);
+        for (let r = 0; r < 14; r++) for (let c = 0; c < 9; c++) flach(1.0, 0.36, (r + c) % 3 ? '#A95A42' : '#C16E52', -6 + c * 1.6 + (r % 2) * 0.8, -1.4 + r * 0.42, 0.005);
+        [['#E86AA6', -2.4, 2.4, 1.1], ['#7CD4FF', 2.2, 3.1, 0.9], ['#F2C14E', 0.4, 4.0, 0.7], ['#8CC084', -3.6, 0.6, 0.6], ['#FFFFFF', 3.4, 1.0, 0.5]].forEach(([f, x, y, r]) => kreis(r, f, x, y, 0.02, 9));
+        break;
+      case 'flammen': {
+        flach(16, 10, '#3A1410', 0, 2);
+        const fl = []; for (let i = 0; i < 14; i++) { const m = new T.Mesh(new T.ConeGeometry(0.55, 2.4, 3), new T.MeshBasicMaterial({ color: i % 2 ? '#FF7A2E' : '#F2C14E' })); m.position.set(-6.5 + i, -1.2, 0.02 + (i % 2) * 0.01); g.add(m); fl.push(m); }
+        ticks.push(t => fl.forEach((m, i) => { m.scale.y = 0.8 + 0.45 * Math.abs(Math.sin(t * 5 + i * 1.3)); m.position.y = -1.6 + m.scale.y * 1.1; }));
+        break;
+      }
+      case 'gold': {
+        flach(16, 10, '#E0A400', 0, 2);
+        const strahlen = new T.Group(); strahlen.position.set(0, 1.4, 0.01); g.add(strahlen);
+        for (let i = 0; i < 12; i++) { const m = new T.Mesh(new T.CircleGeometry(12, 3, 0, Math.PI / 12), new T.MeshBasicMaterial({ color: '#F2C14E' })); m.rotation.z = i * Math.PI / 6; strahlen.add(m); }
+        ticks.push(t => { strahlen.rotation.z = t * 0.25; });
+        break;
+      }
+      default: {   // eis
+        flach(16, 10, '#7CD4FF', 0, 2);
+        for (let i = 0; i < 14; i++) {
+          const x = zufall() * 12 - 6, y = zufall() * 7, r = 0.15 + zufall() * 0.2;
+          [0, 1, 2].forEach(n => { const b = flach(r * 2, 0.04, '#BFE6FF', x, y, 0.01); b.rotation.z = n * Math.PI / 3; });
+        }
+      }
+    }
+    g.userData.tick = t => ticks.forEach(f => f(t));
+    return g;
+  }
+
+  window.Figur = { KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund };
+
 })();
