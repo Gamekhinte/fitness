@@ -353,6 +353,7 @@
       <div class="ar-zeile"><input id="arNeuName" maxlength="20" placeholder="Spitzname" value="${ich() ? e(ich().name) : ''}" autocomplete="off"><button class="ar-knopf" id="arNameSpeichern">${ich() ? 'Ändern' : 'Los'}</button></div>
       <button class="ar-knopf breit leise2" id="arEinstFigur">Charakter bearbeiten</button>
       <button class="ar-knopf breit leise2" id="arEinstKoerper">Größe, Gewicht und Ziel</button>
+      ${window.Social ? Social.einstellungenHtml() : ''}
       <h3 class="ar-h">Datenschutz</h3>
       <p class="ar-hand klein" style="text-align:left">Beim Laufen gehen nur Meter und Zeit an den Server, nie dein Standort. Das Kamerabild beim Kraft-Modus bleibt auf deinem Handy. Dein Spitzname ist das Einzige, was andere von dir sehen.</p>`);
     const verbinden = (id, art) => {
@@ -390,7 +391,7 @@
       `<button data-feld="${feld}" data-wert="${c}" class="${a[feld] === c ? 'an' : ''}" style="background:${c}" aria-label="${titel}"></button>`).join('')}</div>`;
     const wahl = (feld, liste, titel) => `<h3 class="ar-h">${titel}</h3><div class="ar-wahl">${liste.map(([id, name, preis]) => {
       const hab = besitzt(feld, id);
-      return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${coin}${preis}</small>`}</button>`;
+      return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${typeof preis === 'number' ? coin + preis : 'Pass'}</small>`}</button>`;
     }).join('')}</div>`;
     const inhalt = {
       gesicht: () => farbe('haut', K.haut, 'Hautfarbe') + wahl('augen', K.augen, 'Augen') + wahl('brauen', K.brauen, 'Augenbrauen') + wahl('mund', K.mund, 'Mund') + wahl('gesicht', K.gesicht, 'Im Gesicht'),
@@ -402,20 +403,21 @@
       intro: () => '<p class="ar-hand">Läuft in der Cutscene vor jedem Duell. Dein Gegner sieht es.</p>' + wahl('intro', K.intro, 'Intro'),
       hg: () => '<p class="ar-hand">Hinter deiner Figur in Cutscene, Duell und Ergebnis.</p>' + wahl('hg', K.hg, 'Hintergrund')
     }[E.reiter]();
-    const zu = gesperrt(a);
+    const zu = gesperrt(a), kaufbar = zu.filter(t => typeof t.preis === 'number'), nurPass = zu.filter(t => typeof t.preis !== 'number');
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <div class="ar-coinzeile">${coin}<b>${F.coins}</b><span>Coins</span></div>
       <div class="ar-reiter">${REITER.map(([id, n]) => `<button data-reiter="${id}" class="${E.reiter === id ? 'an' : ''}">${n}</button>`).join('')}</div>
       ${inhalt}
       <div class="ar-fuss">
-        ${zu.length ? `<button class="ar-knopf breit gold" id="arKaufen">${e(zu[0].name)} kaufen · ${zu[0].preis} ${coin}</button>` : ''}
+        ${nurPass.length ? `<p class="ar-hand klein">${e(nurPass[0].name)} bekommst du nur im Winterpass.</p>` : ''}
+        ${kaufbar.length ? `<button class="ar-knopf breit gold" id="arKaufen">${e(kaufbar[0].name)} kaufen · ${kaufbar[0].preis} ${coin}</button>` : ''}
         <button class="ar-knopf breit" id="arFigurOk">${zu.length ? 'Erst kaufen, dann speichern' : 'Speichern'}</button>
       </div>`, 'editor', { aussehen: a, anim: E.reiter === 'emotes' ? a.emote : E.reiter === 'intro' ? a.intro : 'idle', boese: E.reiter === 'intro' }, bleiben);
     $('arBlatt').querySelectorAll('[data-feld]').forEach(b => b.onclick = () => { E.a[b.dataset.feld] = b.dataset.wert; editorMalen(true); });
     $('arBlatt').querySelectorAll('[data-reiter]').forEach(b => b.onclick = () => { E.reiter = b.dataset.reiter; editorMalen(true); });
     const kauf = $('arKaufen');
-    if (kauf && kauf.addEventListener) kauf.onclick = () => kaufen(zu[0]);
+    if (kauf && kauf.addEventListener) kauf.onclick = () => kaufen(kaufbar[0]);
     $('arFigurOk').onclick = speichern;
   }
   async function kaufen(teil) {

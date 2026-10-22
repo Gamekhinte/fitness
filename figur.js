@@ -2,7 +2,8 @@
    Eigener Charakter wie ein Mii: Hautfarbe, Augen, Brauen, Mund, Gesicht, Haare, Haarfarbe,
    Oberteil, Hose, Schuhe, Kopfbedeckung, Extra, Skin und Lieblings-Animation.
    Das Gesicht wird auf eine Leinwand gezeichnet (Tusche-Look) und auf den Kopf gelegt.
-   Gekaufte Sachen prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige. */
+   Gekaufte Sachen prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige.
+   Preis 'pass' heißt: gibt es nur im Winterpass (Server: Tabelle wf_pass_items). */
 (function () {
   const K = {
     haut: ['#F6D7B8', '#EBC199', '#D19F74', '#A9744E', '#7A4E31', '#4E3221'],
@@ -16,7 +17,8 @@
     gesicht: [['nichts', 'Nichts'], ['backen', 'Rote Backen'], ['sommersprossen', 'Sommersprossen'], ['pflaster', 'Pflaster']],
     haare: [['kurz', 'Kurz'], ['stachel', 'Stacheln'], ['lang', 'Lang'], ['locken', 'Locken'], ['dutt', 'Dutt'], ['seite', 'Seitenscheitel'], ['glatze', 'Glatze']],
     kopf: [['nichts', 'Nichts', 0], ['muetze', 'Mütze', 0], ['cap', 'Cap', 0], ['stirnband', 'Stirnband', 0],
-      ['hasenohren', 'Hasenohren', 300], ['kopfhoerer', 'Kopfhörer', 350], ['helm', 'Radhelm', 400], ['krone', 'Krone', 800]],
+      ['hasenohren', 'Hasenohren', 300], ['kopfhoerer', 'Kopfhörer', 350], ['helm', 'Radhelm', 400], ['krone', 'Krone', 800],
+      ['eismuetze', 'Eismütze', 'pass'], ['eiskrone', 'Eiskrone', 'pass']],
     extra: [['nichts', 'Nichts', 0], ['brille', 'Brille', 0], ['schal', 'Schal', 0],
       ['sonnenbrille', 'Sonnenbrille', 250], ['medaille', 'Medaille', 300], ['umhang', 'Umhang', 600]],
     skin: [['nichts', 'Eigener Look', 0], ['skifahrer', 'Skifahrer', 700], ['ninja', 'Ninja', 900], ['eisbaer', 'Eisbär', 1200],
@@ -28,7 +30,8 @@
       ['trommeln', 'Brust trommeln', 400], ['lachen', 'Auslachen', 450], ['gaehnen', 'Gelangweilt gähnen', 500]],
     // Hintergrund: hinter deiner Figur in Cutscene, Duell, Profil und Ergebnis
     hg: [['eis', 'Eis', 0], ['papier', 'Papier', 0], ['schnee', 'Schneefall', 300], ['sterne', 'Sternennacht', 400], ['sonnenuntergang', 'Sonnenuntergang', 500],
-      ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200]]
+      ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200],
+      ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass']]
   };
   const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
     haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
@@ -166,6 +169,8 @@
     const add = (geo, f, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
     const kappe = (s, anteil = 0.5) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
     if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'eismuetze') { add(kappe(1.1, 0.34), '#7CD4FF', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'eiskrone') { const r = new T.CylinderGeometry(R * 0.72, R * 0.72, 0.22, 16, 1, true); add(r, '#BFE9FF', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 7; i++) { const w = i / 7 * Math.PI * 2; add(W.kegel(0.11, i % 2 ? 0.34 : 0.52, 4), '#7CD4FF', Math.cos(w) * R * 0.68, R * (i % 2 ? 1.2 : 1.28), Math.sin(w) * R * 0.68, 0.02); } }
     if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
     if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#FFFFFF', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
     if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
@@ -278,6 +283,21 @@
         ['#3B4A80', '#7B5CC4', '#E86AA6', '#F28A5B', '#F2C14E'].forEach((f, i) => flach(16, 1.6, f, 0, 6 - i * 1.5, 0.001 * i));
         kreis(1.6, '#FFE38A', 0, -0.2, 0.01, 32); flach(16, 2.8, '#2B2826', 0, -2.6, 0.02);
         break;
+      case 'eiskristall': {
+        flach(16, 10, '#CFEFFF', 0, 2);
+        const kr = []; for (let i = 0; i < 16; i++) kr.push([kreis(0.35 + zufall() * 1.1, i % 2 ? '#FFFFFF' : '#9ED9FF', zufall() * 12 - 6, zufall() * 7 - 1, 0.01 + i * 0.001, 4), 0.5 + zufall()]);
+        ticks.push(t => kr.forEach(([m, v], i) => { m.scale.setScalar(0.9 + 0.12 * Math.sin(t * v + i)); }));
+        break;
+      }
+      case 'polarlicht': {
+        flach(16, 10, '#0F1A33', 0, 2);
+        const st = []; for (let i = 0; i < 40; i++) st.push(kreis(0.02 + zufall() * 0.035, '#FFFFFF', zufall() * 14 - 7, zufall() * 5 + 0.5, 0.02, 6));
+        const band = []; [['#3FD08A', 3.6], ['#2BB8A8', 2.7], ['#E86AA6', 1.9]].forEach(([f, y], i) => band.push([flach(18, 0.9, f, 0, y, 0.03 + i * 0.001), i]));
+        flach(16, 2.2, '#EAF4FF', 0, -2.4, 0.05);
+        for (let i = 0; i < 6; i++) kreis(0.55 + zufall() * 0.3, '#2F5D45', -6 + i * 2.4 + zufall(), -0.9, 0.06, 3).rotation.z = Math.PI / 2;
+        ticks.push(t => { band.forEach(([m, i]) => { m.position.x = Math.sin(t * 0.4 + i) * 0.9; m.rotation.z = Math.sin(t * 0.5 + i * 2) * 0.05; m.scale.y = 0.8 + 0.5 * Math.abs(Math.sin(t * 0.6 + i)); }); st.forEach((m, i) => m.scale.setScalar(0.6 + 0.4 * Math.abs(Math.sin(t * 1.4 + i)))); });
+        break;
+      }
       case 'leer': break;                // nichts dahinter (Profil zeigt dort das Banner)
       case 'graffiti':
         flach(16, 10, '#B5654A', 0, 2);

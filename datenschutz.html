@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Winterform: Datenschutz</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Patrick+Hand&display=swap">
+<style>
+:root{--papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF}
+body{margin:0;background:var(--papier);color:var(--graphit);font-family:'Patrick Hand','Comic Sans MS',cursive;font-size:19px;line-height:1.4}
+main{max-width:640px;margin:0 auto;padding:24px 16px 60px}
+h1,h2{font-family:'Lilita One','Arial Black',sans-serif;font-weight:400;margin:0 0 8px}
+h1{font-size:34px}
+h2{font-size:24px;margin-top:28px}
+.kasten{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:14px 18px;margin:14px 0}
+li{margin:8px 0}
+a{color:var(--graphit)}
+.zurueck{display:inline-block;margin-bottom:16px;padding:6px 14px;font-family:'Lilita One',sans-serif;background:var(--marker);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+<a class="zurueck" href="index.html">Zurück zur App</a>
+<h1>Datenschutz</h1>
+<div class="kasten"><b>Entwurf.</b> Vor der Veröffentlichung im Store prüfen und Verantwortlichen, Anschrift und Kontakt eintragen.</div>
+
+<h2>Verantwortlich</h2>
+<div class="kasten"><p>[NAME UND ANSCHRIFT DES VERANTWORTLICHEN]<br>[KONTAKT-E-MAIL]</p></div>
+
+<h2>Was gespeichert wird</h2>
+<div class="kasten"><ul>
+<li><b>Auf deinem Gerät:</b> Trainingsplan, Fortschritt, Einstellungen, ein zufälliger Geheim-Schlüssel für dein Spielerkonto und, wenn du ihn einträgst, dein eigener Gemini-Schlüssel.</li>
+<li><b>Auf unserem Server (Supabase):</b> dein Spitzname, deine Spieler-ID, Banner, Figur und gekaufte Kosmetik, Coins, Pokale, Bestzeiten, Zahlen aus Training und Rennen (Wiederholungen, Meter, Zeiten), Freunde, Clan-Mitgliedschaft, Pass-Fortschritt, geblockte Spieler und deine Chat-Nachrichten im Clan (nach 30 Tagen automatisch gelöscht). Vom Schlüssel speichern wir nur eine Prüfsumme.</li>
+<li><b>Meldungen:</b> Wenn jemand dich oder eine Nachricht meldet, speichern wir die Meldung mit einer Kopie der Nachricht, um sie zu prüfen.</li>
+<li><b>Nie gespeichert:</b> dein Standort. Beim Rennen gehen nur Meter und Sekunden an den Server. Das Kamerabild beim Kraft-Modus bleibt auf deinem Gerät.</li>
+</ul></div>
+
+<h2>Drittanbieter</h2>
+<div class="kasten"><ul>
+<li>Kartenkacheln von OpenStreetMap, Ortssuche über Nominatim, Fußweg-Routen über routing.openstreetmap.de (dabei sehen diese Dienste deine IP-Adresse und die abgefragten Koordinaten).</li>
+<li>Schriften von Google Fonts, Programmbibliotheken von unpkg.com und cdn.jsdelivr.net (mit der Pose-Erkennung von MediaPipe).</li>
+<li>Der KI-Coach nutzt Google Gemini nur mit deinem eigenen Schlüssel. Dabei gehen deine Profilangaben (Alter, Größe, Gewicht, Ziel, Level) an Google, nie dein Name. Im kostenlosen Tarif darf Google Anfragen zur Verbesserung nutzen.</li>
+<li>Server und Datenbank: Supabase.</li>
+</ul></div>
+
+<h2>Kinder und Jugendliche</h2>
+<div class="kasten"><p>Es gibt kein Login mit echtem Namen oder E-Mail. Der Spitzname soll kein echter Name sein. Chat gibt es nur im eigenen Clan, mit Wortfilter, Melden und Blockieren. Kontaktdaten und Links werden blockiert.</p></div>
+
+<h2>Deine Rechte</h2>
+<div class="kasten"><p>Unter Einstellungen findest du "Konto löschen". Damit werden alle Daten deines Spielerkontos auf dem Server gelöscht. Außerdem hast du die Rechte auf Auskunft, Berichtigung und Beschwerde bei einer Aufsichtsbehörde. Schreib uns dafür an die Kontaktadresse oben.</p>
+<p>Regeln und Meldewege: <a href="regeln.html">Regeln, Melden, Kontakt</a></p></div>
+</main>
+</body>
+</html>

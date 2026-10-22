@@ -93,3 +93,56 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-formen button.an,.so-symbole button.an{background:var(--marker)}
 .ar-zeile input{min-width:0;flex:1}
 #wfWerkMatch,#wfWerkRueck{margin-top:10px}
+
+/* Chat, Melden, Sicherheit */
+.so-link{display:block;text-align:center;text-decoration:none;box-sizing:border-box}
+.ar-knopf.so-gefahr{background:#F7C9B5}
+.so-regeln{margin:10px 0 4px;padding:0 0 0 22px;font-family:var(--hand);font-size:19px;line-height:1.3}
+.so-regeln li{margin:8px 0}
+.so-chatkopf{display:flex;align-items:center;gap:10px;margin:2px 44px 10px 0}
+.so-chatkopf h2{margin:0;font-size:24px;text-align:left}
+.so-chat{height:46svh;min-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#fff;border:3px solid var(--graphit);border-radius:14px}
+.so-msg{display:flex;flex-direction:column;align-items:flex-start}
+.so-msg.ich{align-items:flex-end}
+.so-blase{max-width:86%;text-align:left;padding:6px 10px 4px;background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;font-family:var(--hand);font-size:18px;line-height:1.2;word-break:break-word}
+.so-msg.ich .so-blase{background:var(--marker)}
+.so-blase b{display:block;font-family:var(--dick);font-weight:400;font-size:14px;margin-bottom:1px}
+.so-blase span{display:block}
+.so-blase small{display:block;text-align:right;font-size:12px;color:var(--mut)}
+.so-msg.ich .so-blase small{color:var(--graphit);opacity:.6}
+.so-msgaktion{display:flex;gap:6px;margin:6px 0 2px;flex-wrap:wrap}
+.so-chatzeile{margin:10px 0 4px}
+.so-gruende .ar-knopf{margin-top:10px;font-size:17px}
+.so-schalter{display:flex;align-items:center;gap:10px;margin:16px 0 4px;padding:6px 0;background:none;border:0;font-family:var(--hand);font-size:19px;color:var(--graphit)}
+.so-schalter i{display:block;width:28px;height:28px;box-sizing:border-box;background:#fff;border:3px solid var(--graphit);border-radius:8px;box-shadow:0 3px 0 var(--graphit)}
+.so-schalter.an i{background:var(--marker) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7' fill='none' stroke='%232B2826' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/80% no-repeat}
+.so-sicher .ar-knopf{flex:1}
+
+/* Winterpass */
+.ps-lab{position:relative;font-family:var(--dick);font-size:16px}
+.ar-chip.ps-neu::after{content:'';position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--rot);border:2.5px solid var(--graphit)}
+.ps-kopf{display:flex;justify-content:space-between;align-items:baseline;margin:8px 0 6px;font-family:var(--hand);font-size:18px}
+.ps-kopf b{font-family:var(--dick);font-weight:400;font-size:26px}
+.ps-balken{max-width:none;margin:0 0 4px}
+.ps-prem{text-align:center;font-family:var(--dick);font-size:18px;margin:12px 0 0}
+.ps-kopfzeile{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;margin:18px 0 6px;text-align:center;font-family:var(--dick);font-size:16px}
+.ps-liste{display:flex;flex-direction:column;gap:8px}
+.ps-reihe{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;align-items:center}
+.ps-nr{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto;font-family:var(--dick);font-size:16px;background:#fff;border:3px solid var(--graphit);border-radius:50%}
+.ps-reihe.erreicht .ps-nr{background:var(--marker)}
+.ps-reihe.jetzt .ps-nr{background:var(--gold)}
+.ps-box{position:relative;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;
+  background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand);text-align:center;line-height:1.1}
+.ps-box b{font-family:var(--dick);font-weight:400;font-size:17px}
+.ps-box small{font-size:13px;color:var(--mut)}
+.ps-box img{width:22px}
+.ps-box:disabled{opacity:1}
+.ps-box.zu{background:#EDE6D6;color:#8b847a}
+.ps-box.premium{background:#F3E3B5}
+.ps-box.bereit{background:var(--gold)}
+.ps-box.bereit:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.ps-box.geholt{background:var(--papier);color:var(--mut)}
+.ps-box.prem.zu{background:#E6DEC9}
+.ps-haken{position:absolute;right:6px;top:4px;width:18px;height:18px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='%233E7A55' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.ar-blatt h2.ar-titel{padding:0 42px}

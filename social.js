@@ -16,7 +16,7 @@
   const mit = a => Object.assign({ p_id: ich().id, p_geheim: ich().geheim }, a);
   const INK = '#2B2826';
   const pokal = '<img class="so-ico" src="arena/pokal.svg" alt="">';
-  const S = { info: null, liste: null, laedt: false, nochmal: false, pendingTag: null };
+  const S = { info: null, liste: null, blockiert: [], laedt: false, nochmal: false, pendingTag: null };
   let C = null, B = null;                         // Clan-Editor, Banner-Editor
 
   /* ---------- Farben, Banner, Avatar, Emblem ---------- */
@@ -120,7 +120,10 @@
     const c = i.clan;
     W().setCrew(c ? { id: c.id, code: c.code, name: c.name } : null);
   }
-  async function listeLaden() { S.liste = await rpc('wf_freunde_liste', mit({})); }
+  async function listeLaden() {
+    const [l, b] = await Promise.all([rpc('wf_freunde_liste', mit({})), rpc('wf_blockliste', mit({})).catch(() => S.blockiert)]);
+    S.liste = l; S.blockiert = b || [];
+  }
 
   let letzte = 0;
   async function zeichnen() {
@@ -138,6 +141,7 @@
   function malen() {
     const root = el('soWurzel'); if (!root) return;
     if (!ich()) {
+      if (el('soName')) return;                          // Namensfeld nicht unter den Fingern austauschen
       const vorCode = W().vorCode && W().vorCode();
       root.innerHTML = `<div class="so-panel so-erst">
         <h2 class="ar-titel">Wie heißt du?</h2>
@@ -224,7 +228,10 @@
       <h3 class="ar-h">Bestwerte Kraft</h3>
       <ul class="ar-liste"><li><span>Liegestütze in 60 s</span><b>${kraft.best_liegestuetze ?? '–'}</b></li><li><span>Squats in 60 s</span><b>${kraft.best_squats ?? '–'}</b></li>
         <li><span>Plank</span><b>${kraft.best_plank != null ? zeit(kraft.best_plank) : '–'}</b></li></ul>
-      ${aktionen}${ich_ ? '' : verwaltung(info)}`, 'profil', { aussehen: look }, bleiben);
+      ${aktionen}${ich_ ? '' : verwaltung(info)}
+      ${ich_ || !ich() ? '' : `<div class="so-reihe so-sicher">
+        <button class="ar-knopf leise2" data-so="melden" data-art="spieler" data-wer="${id}" data-name="${e(info.name)}">Melden</button>
+        ${S.blockiert.some(x => x.id === id) ? `<button class="ar-knopf leise2" data-so="entblocken" data-id="${id}">Entblocken</button>` : `<button class="ar-knopf leise2" data-so="blockieren" data-id="${id}" data-name="${e(info.name)}">Blockieren</button>`}</div>`}`, 'profil', { aussehen: look }, bleiben);
     $('arB3d').style.background = bannerBg(info.banner);
   }
 
@@ -335,11 +342,88 @@
         ${admin ? `<button class="ar-knopf gold" data-so="clanBearbeiten" data-id="${g.id}">Bearbeiten</button>` : ''}
         ${!ichM && frei ? `<button class="ar-knopf gruen" data-so="clanBeitreten" data-code="${e(g.code)}">Beitreten</button>` : ''}
       </div>
+      ${ichM ? `<button class="ar-knopf breit" data-so="chat" data-id="${g.id}">Clan-Chat</button>` : ''}
       <h3 class="ar-h">Diese Woche</h3>
       <div class="so-rangliste">${zeilen}</div>
       <p class="ar-hand klein">Punkte: 1 pro Wiederholung, 1 pro 20 m Laufen, 20 pro Trainingstag.</p>
-      ${ichM ? '<button class="ar-knopf breit leise2" data-so="clanVerlassen">Clan verlassen</button>' : ''}`);
+      ${ichM ? '<button class="ar-knopf breit leise2" data-so="clanVerlassen">Clan verlassen</button>' : ''}
+      ${ichM && ichM.rolle === 'leiter' ? '' : `<button class="ar-knopf breit leise2" data-so="melden" data-art="clan" data-gruppe="${g.id}" data-name="${e(g.name)}">Clan melden</button>`}`);
     C = Object.assign(C || {}, { gruppeInfo: g });
+  }
+
+  /* ---------- Chat im Clan: Regeln, Wortfilter (Server), Melden, Blockieren ---------- */
+  const CHAT = { gruppe: null, liste: [], timer: null, auswahl: null };
+  const stopChat = () => { clearInterval(CHAT.timer); CHAT.timer = null; };
+  A.vorBlatt.push(stopChat);
+  const uhrzeit = z => new Date(z).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const istAdmin = () => { const c = S.info && S.info.clan; return !!c && (c.rolle === 'leiter' || c.rolle === 'admin'); };
+
+  function regeln(gruppeId) {
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Chat-Regeln</h2>
+      <ul class="so-regeln">
+        <li>Sei freundlich. Kein Mobbing, keine Beleidigungen, keine Drohungen.</li>
+        <li>Keine Kontaktdaten, Links oder Treffpunkte. Schreib nie deinen echten Namen, deine Adresse oder Nummer.</li>
+        <li>Schimpfwörter werden automatisch rausgefiltert, manche Nachrichten gehen gar nicht erst raus.</li>
+        <li>Jede Nachricht und jeden Spieler kannst du melden oder blockieren. Meldungen prüfen wir innerhalb von 24 Stunden.</li>
+        <li>Wer sich nicht daran hält, wird stumm geschaltet oder aus dem Clan geworfen.</li>
+      </ul>
+      <button class="ar-knopf breit gold" data-so="regelnOk" data-id="${gruppeId}">Verstanden, Chat öffnen</button>
+      <a class="ar-knopf breit leise2 so-link" href="regeln.html" target="_blank" rel="noopener">Alle Regeln und Kontakt</a>`);
+  }
+
+  function chat(gruppeId) {
+    const c = S.info && S.info.clan;
+    if (!c || c.id !== gruppeId) return toast('Den Chat gibt es nur für Clan-Mitglieder');
+    if (store.get('wf-chat-aus', false)) return toast('Du hast den Chat in den Einstellungen ausgeblendet');
+    if (!store.get('wf-regeln', false)) return regeln(gruppeId);
+    CHAT.gruppe = gruppeId; CHAT.liste = []; CHAT.auswahl = null;
+    A.zeigeBlatt(`${zu}
+      <div class="so-chatkopf">${emblem(c.emblem, 34)}<h2>${e(c.name)}</h2></div>
+      <div class="so-chat" id="soChatListe"><p class="ar-hand klein">Lade...</p></div>
+      <div class="ar-zeile so-chatzeile"><input id="soChatIn" maxlength="200" placeholder="Nachricht" autocomplete="off" enterkeyhint="send"><button class="ar-knopf" data-so="chatSenden">Senden</button></div>
+      <p class="ar-hand klein">Tippe auf eine Nachricht, um sie zu melden oder den Spieler zu blockieren.</p>`);
+    chatHolen(true);
+    stopChat(); CHAT.timer = setInterval(() => chatHolen(false), 4000);
+  }
+  async function chatHolen(runter) {
+    if (!el('soChatListe') || document.querySelector('.ar-blatt').hidden) return stopChat();
+    try { CHAT.liste = await rpc('wf_chat_lesen', mit({ p_gruppe: CHAT.gruppe, p_nach: 0 })); chatMalen(runter); }
+    catch (err) { if (/Clan/.test(err.message)) { stopChat(); toast(err.message); } }
+  }
+  function chatMalen(runter) {
+    const box = el('soChatListe'); if (!box) return;
+    const unten = box.scrollHeight - box.scrollTop - box.clientHeight < 70, admin = istAdmin();
+    box.innerHTML = CHAT.liste.length ? CHAT.liste.map(m => {
+      const rolle = m.rolle === 'leiter' ? 'Leiter' : m.rolle === 'admin' ? 'Admin' : '';
+      const aktion = CHAT.auswahl === m.id ? `<div class="so-msgaktion">${m.ich ? '' :
+        `<button class="so-mini aus" data-so="melden" data-art="nachricht" data-nachricht="${m.id}" data-wer="${m.spieler}" data-name="${e(m.name)}">Melden</button><button class="so-mini aus" data-so="blockieren" data-id="${m.spieler}" data-name="${e(m.name)}">Blockieren</button>`}${m.ich || admin ? `<button class="so-mini aus" data-so="msgWeg" data-id="${m.id}">Löschen</button>` : ''}</div>` : '';
+      return `<div class="so-msg${m.ich ? ' ich' : ''}"><button class="so-blase" data-so="msgWahl" data-id="${m.id}">${m.ich ? '' : `<b>${e(m.name)}${rolle ? `<em class="so-rolle${m.rolle === 'leiter' ? ' leiter' : ''}">${rolle}</em>` : ''}</b>`}<span>${e(m.text)}</span><small>${uhrzeit(m.zeit)}</small></button>${aktion}</div>`;
+    }).join('') : '<p class="ar-hand klein">Noch nichts geschrieben. Sag Hallo.</p>';
+    if (runter || unten) box.scrollTop = box.scrollHeight;
+  }
+
+  const GRUENDE = [['beleidigung', 'Beleidigung oder Mobbing'], ['belaestigung', 'Belästigung oder Drohung'], ['unangemessen', 'Unangemessener Inhalt'], ['kontaktdaten', 'Fragt nach Kontaktdaten'], ['spam', 'Spam'], ['sonstiges', 'Etwas anderes']];
+  let REP = null;
+  function meldeSheet(m) {
+    REP = Object.assign({ block: m.art !== 'clan' }, m);
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Melden</h2>
+      <p class="ar-hand">${m.art === 'clan' ? 'Clan' : 'Spieler'} ${e(m.name || '')}: Was ist passiert?</p>
+      <div class="so-gruende">${GRUENDE.map(([id, t]) => `<button class="ar-knopf breit leise2" data-so="meldeSenden" data-grund="${id}">${t}</button>`).join('')}</div>
+      ${m.art !== 'clan' ? `<button class="so-schalter an" data-so="meldeBlock" id="soMeldeBlock"><i></i>Zusätzlich blockieren</button>` : ''}
+      <p class="ar-hand klein">Meldungen sind anonym. Wir prüfen sie innerhalb von 24 Stunden.</p>`);
+  }
+  function blockliste() {
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Geblockte Spieler</h2>
+      ${S.blockiert.length ? S.blockiert.map(b => `<div class="so-zeile"><span class="so-text"><b>${e(b.name)}</b><small>#${e(b.tag)}</small></span><button class="so-mini aus" data-so="entblocken" data-id="${b.id}" data-liste="1">Entblocken</button></div>`).join('')
+        : '<p class="ar-hand">Du hast niemanden blockiert.</p>'}`);
+  }
+  function einstellungenHtml() {
+    const aus = store.get('wf-chat-aus', false);
+    return `<h3 class="ar-h">Sicherheit</h3>
+      <button class="ar-knopf breit leise2" data-so="chatToggle">Chat: ${aus ? 'ausgeblendet' : 'an'}</button>
+      ${ich() ? '<button class="ar-knopf breit leise2" data-so="blockliste">Geblockte Spieler</button>' : ''}
+      <a class="ar-knopf breit leise2 so-link" href="regeln.html" target="_blank" rel="noopener">Regeln und Kontakt</a>
+      ${ich() ? '<button class="ar-knopf breit leise2 so-gefahr" data-so="kontoWeg">Konto löschen</button>' : ''}`;
   }
 
   /* ---------- Klicks (Startseite und Fenster) ---------- */
@@ -349,7 +433,7 @@
       if (n.length < 2) return toast('Mindestens 2 Zeichen');
       try {
         await W().registrieren(n);
-        A.figurLaden();
+        A.figurLaden(); if (window.Pass) Pass.laden();
         if (S.pendingTag) { const t = S.pendingTag; S.pendingTag = null; await anfragen(t); }
         await zeichnen();
       } catch (err) { fehler(err); }
@@ -427,8 +511,47 @@
       if (!confirm('Diesen Spieler wirklich aus dem Clan werfen?')) return;
       try { await rpc('wf_gruppe_rauswerfen', mit({ p_gruppe: S.info.clan.id, p_ziel: b.id })); toast('Rausgeworfen'); await zeichnen(); clanAnsicht(S.info.clan.id); } catch (err) { fehler(err); }
     },
-    async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); }
+    async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
+    /* Chat, Melden, Blockieren */
+    chat: b => chat(b.id),
+    async regelnOk(b) { try { await rpc('wf_regeln_ok', mit({})); store.set('wf-regeln', true); chat(b.id); } catch (err) { fehler(err); } },
+    async chatSenden() {
+      const inp = el('soChatIn'), t = inp ? inp.value.trim() : '';
+      if (!t) return;
+      try { await rpc('wf_chat_senden', mit({ p_gruppe: CHAT.gruppe, p_text: t })); inp.value = ''; await chatHolen(true); }
+      catch (err) { if (/Chat-Regeln/.test(err.message)) { store.set('wf-regeln', false); return regeln(CHAT.gruppe); } toast(err.message); }
+    },
+    msgWahl(b) { CHAT.auswahl = CHAT.auswahl === +b.id ? null : +b.id; chatMalen(false); },
+    async msgWeg(b) { try { await rpc('wf_chat_loeschen', mit({ p_nachricht: +b.id })); CHAT.auswahl = null; await chatHolen(false); } catch (err) { fehler(err); } },
+    melden: b => meldeSheet({ art: b.art, nachricht: b.nachricht ? +b.nachricht : null, wer: b.wer || null, gruppe: b.gruppe || null, name: b.name }),
+    meldeBlock() { REP.block = !REP.block; el('soMeldeBlock').classList.toggle('an', REP.block); },
+    async meldeSenden(b) {
+      try {
+        await rpc('wf_melden', mit({ p_art: REP.art, p_grund: b.grund, p_wer: REP.wer, p_nachricht: REP.nachricht, p_gruppe: REP.gruppe }));
+        if (REP.block && REP.wer) { await rpc('wf_blockieren', mit({ p_wer: REP.wer })); await zeichnen(); }
+        toast('Danke. Wir prüfen die Meldung.'); A.schliessen();
+      } catch (err) { fehler(err); }
+    },
+    async blockieren(b) {
+      if (!confirm(`${b.name || 'Diesen Spieler'} blockieren? Du siehst seine Nachrichten nicht mehr und ihr könnt euch keine Anfragen schicken.`)) return;
+      try { await rpc('wf_blockieren', mit({ p_wer: b.id })); await zeichnen(); toast('Blockiert'); if (el('soChatListe')) chatHolen(false); else A.schliessen(); } catch (err) { fehler(err); }
+    },
+    async entblocken(b) {
+      try { await rpc('wf_entblocken', mit({ p_wer: b.id })); await zeichnen(); toast('Nicht mehr blockiert'); if (b.liste) blockliste(); else A.schliessen(); } catch (err) { fehler(err); }
+    },
+    blockliste: () => blockliste(),
+    chatToggle() { store.set('wf-chat-aus', !store.get('wf-chat-aus', false)); A.einstellungen(); },
+    async kontoWeg() {
+      if (!confirm('Konto wirklich löschen? Profil, Coins, Pokale, Freunde und Clan-Mitgliedschaft sind dann für immer weg.')) return;
+      if (!confirm('Ganz sicher? Das kann nicht rückgängig gemacht werden.')) return;
+      try {
+        await rpc('wf_konto_loeschen', mit({}));
+        ['wf-ich', 'wf-crew', 'wf-figur', 'wf-pokale', 'wf-kpokale', 'wf-match', 'wf-rennen', 'wf-regeln', 'wf-modus'].forEach(k => { try { localStorage.removeItem(k); } catch (err) { /* egal */ } });
+        location.href = location.pathname;
+      } catch (err) { fehler(err); }
+    }
   };
+
   function klick(ev) {
     const b = ev.target.closest('[data-so]');
     if (!b || b.disabled) return;
@@ -444,13 +567,14 @@
     if (ev.target.id === 'soClanName' && C) C.name = ev.target.value;
     if (ev.target.id === 'soClanBeschr' && C) C.beschr = ev.target.value;
   });
+  blatt().addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.id === 'soChatIn') H.chatSenden(); });
   root().addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target.id === 'soName') H.los(); });
 
   /* ---------- Hintergrund: Anwesenheit und Auffrischen ---------- */
   setInterval(() => { if (ich() && !document.hidden) rpc('wf_ping', mit({})).catch(() => {}); }, 60000);
-  setInterval(() => { if (typeof curTab !== 'undefined' && curTab === 'crew' && !document.hidden && Date.now() - letzte > 20000) zeichnen(); }, 5000);
+  setInterval(() => { if (ich() && typeof curTab !== 'undefined' && curTab === 'crew' && !document.hidden && Date.now() - letzte > 20000) zeichnen(); }, 5000);
 
-  window.Social = { zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
+  window.Social = { einstellungenHtml, zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
 
   /* ---------- Einladungslink ?freund=ID ---------- */
   const q = new URLSearchParams(location.search);
