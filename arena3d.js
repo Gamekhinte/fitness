@@ -452,8 +452,8 @@
     const halter = new T.Group(); st.b.szene.add(halter); st.halter = halter;
     seileBauen(); kruemelBauen();
     st.b.beiGroesse = (w, h) => {
-      const k = st.b.kamera, weit = Math.max(1, 0.62 / (w / h));
-      k.position.set(13 * weit, 17 * weit, 44 * weit); k.lookAt(0, 6 * weit, 0);
+      const k = st.b.kamera, weit = Math.max(1, 0.62 / (w / h)) * 0.8;      // 0,8 = näher ran, die Insel füllt den Bildschirm
+      k.position.set(13 * weit, 17 * weit, 44 * weit); k.lookAt(0, 4.6 * weit, 0);
     };
     st.b.groesse();
     const ray = new T.Raycaster(), maus = new T.Vector2();

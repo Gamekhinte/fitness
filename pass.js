@@ -7,7 +7,7 @@
    Oben im Fenster steht der Hauptpreis in 3D, jede Kosmetik lässt sich antippen und anschauen.
    Alles rechnet der Server (wf_pass_*), dieser Teil zeigt nur an und fragt zum Abholen.
 
-   Läuft nach arena.js. Der Chip "Pass" sitzt oben auf dem Startbildschirm neben Coins, Gems und Pokalen. */
+   Läuft nach arena.js. Der Pass-Knopf sitzt auf dem Startbildschirm neben BATTLE. */
 (function () {
   if (!window.ArenaUI || !window.WF) return;
   const A = window.ArenaUI, W = () => window.WF, ich = () => W().ich();
@@ -27,18 +27,22 @@
   const seltenheit = wert => wert === HAUPTPREIS ? 'legendaer' : String(wert).startsWith('skin:') ? 'episch' : 'selten';
   const SELT_NAME = { legendaer: 'Legendär', episch: 'Episch', selten: 'Selten' };
 
-  /* ---------- Banner auf dem Startbildschirm (über BATTLE) ---------- */
+  /* ---------- Pass-Knopf neben BATTLE ---------- */
   function chip() {
     const battle = el('arBattle'); if (!battle) return;
     let c = el('arPass');
     if (!c) {
-      c = document.createElement('button'); c.className = 'ar-passband'; c.id = 'arPass'; c.setAttribute('aria-label', 'Winterpass öffnen');
-      battle.parentNode.insertBefore(c, battle);
+      let reihe = battle.parentNode;
+      if (!reihe.classList.contains('ar-aktion')) {
+        reihe = document.createElement('div'); reihe.className = 'ar-aktion';
+        battle.parentNode.insertBefore(reihe, battle); reihe.appendChild(battle);
+      }
+      c = document.createElement('button'); c.className = 'ar-passknopf'; c.id = 'arPass'; c.setAttribute('aria-label', 'Winterpass öffnen');
+      reihe.appendChild(c);
       c.onclick = () => sheet();
     }
     const n = bereit(), lv = P && P.aktiv ? P.stufe : 0, anteil = P && P.aktiv ? (P.stufe >= P.stufen ? 100 : (P.xp % P.xp_pro_stufe) / P.xp_pro_stufe * 100) : 0;
-    const tag = !P || !P.aktiv ? 'Bald' : n > 0 ? `${n} abholen` : P.premium ? 'Premium aktiv' : 'Premium';
-    c.innerHTML = `<span class="pb-gem">${gem}</span><span class="pb-text"><b>Winterpass · Stufe ${lv}</b><i class="pb-balken"><u style="width:${anteil}%"></u></i></span><span class="pb-tag${n > 0 ? ' neu' : ''}">${tag}</span>`;
+    c.innerHTML = `<span class="pk-gem">${gem}</span><b>Pass ${lv}</b><i class="pk-balken"><u style="width:${anteil}%"></u></i>${n > 0 ? `<em class="pk-punkt">${n}</em>` : ''}`;
     c.classList.toggle('ps-neu', n > 0);
   }
   const geholt = (st, sp) => P.abgeholt.some(a => a.stufe === st && a.spur === sp);
