@@ -282,3 +282,39 @@ body.papier main{padding-top:0}
 .sh-kats{margin:0 0 10px;padding:2px 0 8px}
 
 .sh-karte.gross{width:100%}
+
+/* Shop kompakt */
+.sh-restock{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px;padding:6px 12px;background:#FFF1C4;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand);font-size:17px}
+.sh-restock b{font-family:var(--dick);font-weight:400;font-size:22px;color:var(--rot)}
+.sh-hl{display:flex;align-items:stretch;gap:0;width:100%;padding:0;overflow:hidden;text-align:left;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand)}
+.sh-hl:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.sh-hl .sh-bild{flex:none;width:36%;aspect-ratio:auto;height:150px;border-bottom:0;border-right:3px solid var(--graphit)}
+.sh-hl.gems .sh-bild{background:#C9F2EC}
+.sh-hl-text{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:8px 12px}
+.sh-hl-text em{align-self:flex-start;font-style:normal;font-family:var(--dick);font-size:13px;padding:0 7px;background:var(--gold);border:2px solid var(--graphit);border-radius:5px}
+.sh-hl-text b{font-family:var(--dick);font-weight:400;font-size:24px;line-height:1.1}
+.sh-hl-text small{font-size:16px;color:var(--mut)}
+.sh-hl.hat{opacity:.75}
+.sh-raster.vier{grid-template-columns:repeat(4,1fr);gap:8px}
+.sh-karte.klein .sh-bild{aspect-ratio:3/4}
+.sh-raster.vier .sh-karte b{font-size:13px;margin:4px 3px 0}
+.sh-raster.vier .sh-preis{font-size:14px;margin:4px 4px 0;padding:2px 4px;gap:3px}
+.sh-raster.vier .sh-preis img{width:15px}
+.sh-raster:not(.vier) .sh-karte.klein .sh-bild{aspect-ratio:4/3}
+.sh-abschnitt{margin:14px 2px 6px}
+.sh-abschnitt h3{font-size:20px}
+.sh-unten{margin-top:16px}
+.sh-unten .sh-pass{margin-bottom:0}
+/* Titel */
+.so-titel{display:inline-block;margin:2px 0 0;padding:0 8px;font-family:var(--dick);font-size:14px;font-style:normal;letter-spacing:.3px;color:var(--graphit);background:#EDE6D6;border:2px solid var(--graphit);border-radius:6px}
+.so-titel.selten{background:var(--marker)}
+.so-titel.episch{background:#F2A9C8}
+.so-titel.legendaer{background:var(--gold)}
+.so-titelzeile .so-text b{white-space:normal}
+.so-chattitel{display:inline-block;margin-left:6px;font-family:var(--hand);font-size:12px;color:var(--mut)}
+
+.sh-woche{display:grid;gap:10px}
+.sh-hl.klein .sh-bild{width:26%;height:100px}
+.sh-hl.klein .sh-hl-text{gap:1px;padding:6px 12px}
+.sh-hl.klein .sh-hl-text b{font-size:20px}
+.sh-hl.klein .sh-preis{margin:3px 0 0;font-size:16px}

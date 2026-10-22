@@ -131,7 +131,7 @@
     if (!ich()) { malen(); return; }
     if (S.laedt) { S.nochmal = true; return; }
     S.laedt = true;
-    try { await Promise.all([infoLaden(), listeLaden()]); letzte = Date.now(); } catch (err) { /* offline: alter Stand bleibt */ }
+    try { await Promise.all([infoLaden(), listeLaden()]); letzte = Date.now(); titelPruefen(true); } catch (err) { /* offline: alter Stand bleibt */ }
     S.laedt = false;
     malen();
     if (S.nochmal) { S.nochmal = false; zeichnen(); }
@@ -210,6 +210,7 @@
     const rolleText = r => r === 'leiter' ? 'Leiter' : r === 'admin' ? 'Admin' : 'Mitglied';
     const wert = (n, t) => `<div>${A.rahmen(100, 64, 12, 21 + String(t).length)}<b>${n}</b><span>${t}</span></div>`;
     const aktionen = ich_ ? `<button class="ar-knopf breit" data-so="matches">Letzte Matches</button>
+        <button class="ar-knopf breit leise2" data-so="titel">Titel ändern</button>
         <button class="ar-knopf breit leise2" data-so="banner">Banner ändern</button>
         <button class="ar-knopf breit leise2" data-so="figur">Charakter bearbeiten</button>`
       : freund ? `<button class="ar-knopf breit leise2" data-so="freundWeg" data-id="${id}">Freundschaft beenden</button>`
@@ -219,6 +220,7 @@
     A.zeigeBlatt(`${zu}
       <div class="so-plakette">
         <h2>${e(info.name)}</h2>
+        ${info.titel ? `<span class="so-titel ${info.titel_seltenheit || 'normal'}">${e(info.titel)}</span>` : ''}
         <button class="so-tag" data-so="idkopie" data-tag="${e(info.tag)}">#${e(info.tag)}</button>
         ${c ? `<button class="so-clanzeile" data-so="clanAnsicht" data-id="${c.id}">${emblem(c.emblem, 34)}<span><b>${e(c.name)}</b><small>${rolleText(c.rolle)}</small></span></button>`
             : '<p class="so-kein">Kein Clan</p>'}
@@ -353,6 +355,28 @@
     C = Object.assign(C || {}, { gruppeInfo: g });
   }
 
+  /* ---------- Titel: freischalten und tragen ---------- */
+  let titelZeit = 0;
+  async function titelPruefen(still) {
+    if (!ich() || (still && Date.now() - titelZeit < 300000)) return null;
+    titelZeit = Date.now();
+    try {
+      const r = await rpc('wf_titel_liste', mit({}));
+      r.titel.filter(t => t.neu && t.id !== 'neuling').slice(0, 2).forEach(t => toast(`Neuer Titel: ${t.name}`));
+      return r;
+    } catch (err) { return null; }
+  }
+  async function titelSheet() {
+    const r = await titelPruefen(false);
+    if (!r) return toast('Titel konnten nicht geladen werden');
+    const SELT = { normal: 'Normal', selten: 'Selten', episch: 'Episch', legendaer: 'Legendär' };
+    const frei = r.titel.filter(t => t.frei).length;
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Titel</h2>
+      <p class="ar-hand">${frei} von ${r.titel.length} freigeschaltet. Dein Titel steht unter deinem Namen, andere sehen ihn im Profil und im Chat.</p>
+      ${r.titel.map(t => `<div class="so-zeile so-titelzeile${t.frei ? '' : ' aus'}"><span class="so-text"><b>${e(t.name)} <em class="so-titel ${t.seltenheit}">${SELT[t.seltenheit]}</em></b><small>${e(t.beschreibung)}</small></span>
+        ${t.frei ? (t.id === r.gewaehlt ? '<span class="so-bot">Getragen</span>' : `<button class="so-mini" data-so="titelWaehlen" data-id="${t.id}">Tragen</button>`) : '<span class="so-bot">Gesperrt</span>'}</div>`).join('')}`);
+  }
+
   /* ---------- Matchverlauf: letzte Rennen und Duelle, Gegner direkt hinzufügen ---------- */
   const ZEIT_UEB = { liegestuetze: 'Liegestütze', squats: 'Squats', plank: 'Plank' };
   const datum = z => { const d = new Date(z), h = new Date(), gestern = new Date(h - 864e5); const t = x => x.toDateString();
@@ -425,7 +449,7 @@
       const rolle = m.rolle === 'leiter' ? 'Leiter' : m.rolle === 'admin' ? 'Admin' : '';
       const aktion = CHAT.auswahl === m.id ? `<div class="so-msgaktion">${m.ich ? '' :
         `<button class="so-mini aus" data-so="melden" data-art="nachricht" data-nachricht="${m.id}" data-wer="${m.spieler}" data-name="${e(m.name)}">Melden</button><button class="so-mini aus" data-so="blockieren" data-id="${m.spieler}" data-name="${e(m.name)}">Blockieren</button>`}${m.ich || admin ? `<button class="so-mini aus" data-so="msgWeg" data-id="${m.id}">Löschen</button>` : ''}</div>` : '';
-      return `<div class="so-msg${m.ich ? ' ich' : ''}"><button class="so-blase" data-so="msgWahl" data-id="${m.id}">${m.ich ? '' : `<b>${e(m.name)}${rolle ? `<em class="so-rolle${m.rolle === 'leiter' ? ' leiter' : ''}">${rolle}</em>` : ''}</b>`}<span>${e(m.text)}</span><small>${uhrzeit(m.zeit)}</small></button>${aktion}</div>`;
+      return `<div class="so-msg${m.ich ? ' ich' : ''}"><button class="so-blase" data-so="msgWahl" data-id="${m.id}">${m.ich ? '' : `<b>${e(m.name)}${rolle ? `<em class="so-rolle${m.rolle === 'leiter' ? ' leiter' : ''}">${rolle}</em>` : ''}</b>${m.titel ? `<small class="so-chattitel">${e(m.titel)}</small>` : ''}`}<span>${e(m.text)}</span><small>${uhrzeit(m.zeit)}</small></button>${aktion}</div>`;
     }).join('') : '<p class="ar-hand klein">Noch nichts geschrieben. Sag Hallo.</p>';
     if (runter || unten) box.scrollTop = box.scrollHeight;
   }
@@ -542,6 +566,8 @@
     },
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
     matches: () => matches(),
+    titel: () => titelSheet(),
+    async titelWaehlen(b) { try { await rpc('wf_titel_waehlen', mit({ p_titel: b.id })); await titelSheet(); } catch (err) { fehler(err); } },
     async matchFreund(b) { if (await anfragen(b.tag)) matches(); },
     /* Chat, Melden, Blockieren */
     chat: b => chat(b.id),

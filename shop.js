@@ -52,7 +52,13 @@
   function auswahl() {
     const items = alle(), r = rng(heuteSeed()), rw = rng(wocheSeed() * 7 + 3);
     const pool = (...kats) => items.filter(i => kats.includes(i.kat));
-    const nimm = (liste, zufall, ausser) => { const f = liste.filter(i => !ausser.has(i.key)); const l = f.length ? f : liste; return l[Math.floor(zufall() * l.length)]; };
+    // Bevorzugt Teile, die du noch nicht hast, damit das Sortiment jeden Tag etwas Neues zeigt
+    const nimm = (liste, zufall, ausser) => {
+      let f = liste.filter(i => !ausser.has(i.key) && !hat(i));
+      if (!f.length) f = liste.filter(i => !ausser.has(i.key));
+      if (!f.length) f = liste;
+      return f[Math.floor(zufall() * f.length)];
+    };
     const benutzt = new Set(), pick = (liste, z) => { const i = nimm(liste, z, benutzt); benutzt.add(i.key); return i; };
     const highlight = pick(items.filter(i => i.kat === 'skin' && (i.art === 'gems' || i.wert >= 900)), r);
     const taeglich = [pick(pool('skin'), r), pick(pool('kopf', 'extra'), r), pick(pool('emote', 'intro'), r), pick(pool('hg'), r)];
@@ -116,12 +122,15 @@
   tab.innerHTML = '<div id="shWurzel"></div>';
   document.querySelector('main').appendChild(tab);
 
-  let kategorie = 'alle';
   const preis = it => it.art === 'gems' ? `${gem}${it.wert}` : `${A.coin}${it.wert}`;
-  const karte = (it, gross) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${gross ? ' gross' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
+  const kategorieName = it => (KATS.find(x => x[0] === it.kat) || [0, ''])[1];
+  const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
       <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span>
-      <b>${e(it.name)}</b><small>${e((KATS.find(x => x[0] === it.kat) || [0, ''])[1])}</small>
+      <b>${e(it.name)}</b>
       <span class="sh-preis">${hat(it) ? 'Gekauft' : preis(it)}</span></button>`;
+  const highlight = (it, klein) => `<button class="sh-hl ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
+      <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span>
+      <span class="sh-hl-text"><em>${klein ? 'Woche' : 'Highlight'}</em><b>${e(it.name)}</b><small>${e(kategorieName(it))}</small><span class="sh-preis">${hat(it) ? 'Gekauft' : preis(it)}</span></span></button>`;
 
   function rest() {
     const d = new Date(), n = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1) - d;
@@ -129,37 +138,43 @@
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
+  let zuletztTag = heuteSeed();
   function zeichnen() {
     const w = el('shWurzel'); if (!w) return;
     const a = auswahl(), F = A.F();
-    const liste = a.items.filter(i => kategorie === 'alle' || i.kat === kategorie);
+    zuletztTag = heuteSeed();
     w.innerHTML = `
       <div class="sh-kopf">
         <h2>Shop</h2>
         <span class="sh-konto"><span>${A.coin}<b>${F.coins}</b></span><span>${gem}<b>${F.gems || 0}</b></span></span>
       </div>
-      <button class="sh-pass" data-sh="pass"><span class="sh-pass-gem">${gem}</span><span><b>Winterpass</b><small>Belohnungen, Gems und Outfits abholen</small></span><i>Ansehen</i></button>
-      <div class="sh-abschnitt"><h3>Highlight</h3></div>
-      ${karte(a.highlight, true)}
-      <div class="sh-abschnitt"><h3>Heute</h3><span class="sh-uhr" id="shUhr">${rest()}</span></div>
-      <div class="sh-raster">${a.taeglich.map(i => karte(i)).join('')}</div>
+      <div class="sh-restock"><span>Neues Sortiment in</span><b id="shUhr">${rest()}</b></div>
+      ${highlight(a.highlight)}
+      <div class="sh-abschnitt"><h3>Heute</h3></div>
+      <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
-      <div class="sh-raster">${a.woche.map(i => karte(i)).join('')}</div>
-      <div class="sh-abschnitt"><h3>Alles</h3></div>
-      <div class="ar-reiter sh-kats"><button data-sh="kat" data-kat="alle" class="${kategorie === 'alle' ? 'an' : ''}">Alle</button>${KATS.map(([k, n]) => `<button data-sh="kat" data-kat="${k}" class="${kategorie === k ? 'an' : ''}">${n}</button>`).join('')}</div>
-      <div class="sh-raster drei">${liste.map(i => karte(i)).join('')}</div>`;
+      <div class="sh-woche">${a.woche.map(i => highlight(i, true)).join('')}</div>
+      <div class="sh-unten">
+        <button class="sh-pass" data-sh="pass"><span class="sh-pass-gem">${gem}</span><span><b>Winterpass</b><small>Belohnungen, Gems und Outfits</small></span><i>Ansehen</i></button>
+        <button class="ar-knopf breit leise2" data-sh="alle">Alle Teile ansehen</button>
+      </div>`;
     bilderStarten(w);
   }
   tab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-sh]'); if (!b) return;
     const a = b.dataset.sh;
-    if (a === 'kat') { kategorie = b.dataset.kat; zeichnen(); }
+    if (a === 'alle') A.editor('skins');
     else if (a === 'pass') { if (window.Pass) Pass.sheet(); }
     else if (a === 'anprobe') {
       const it = alle().find(i => i.key === b.dataset.key);
       if (it) A.shopVorschau(it.kat, it.id, REITER[it.kat]);
     }
   });
-  setInterval(() => { const u = el('shUhr'); if (u && typeof curTab !== 'undefined' && curTab === 'shop') u.textContent = rest(); }, 1000);
+  // Countdown, und um Mitternacht automatisch ein neues Sortiment
+  setInterval(() => {
+    if (typeof curTab === 'undefined' || curTab !== 'shop') return;
+    if (heuteSeed() !== zuletztTag) return zeichnen();
+    const u = el('shUhr'); if (u) u.textContent = rest();
+  }, 1000);
   window.Shop = { zeichnen, auswahl, foto, _test: { cache } };
 })();
