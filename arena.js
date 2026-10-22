@@ -123,13 +123,13 @@
   ak.dataset.tab = 'arena'; ak.className = 'mitte'; ak.textContent = 'Arena';
   nav.insertBefore(ak, nav.querySelector('[data-tab="crew"]') || nav.querySelector('[data-tab="coach"]'));
   ak.onclick = () => showTab('arena');
-  const ICONS = { today: 'heute', catalog: 'training', arena: 'arena', crew: 'crew', coach: 'coach' };
+  const ICONS = { shop: 'shop', catalog: 'training', arena: 'arena', crew: 'crew', coach: 'coach' };
   nav.querySelectorAll('button').forEach(b => {
     const n = ICONS[b.dataset.tab]; if (!n) return;
     const alt = b.querySelector('svg'); if (alt) alt.remove();
     b.insertAdjacentHTML('afterbegin', `<span class="ar-icon" style="--bild:url(arena/nav_${n}.svg)"></span>`);
   });
-  TABORDER.splice(0, TABORDER.length, 'today', 'catalog', 'arena', 'crew', 'coach');
+  TABORDER.splice(0, TABORDER.length, 'shop', 'catalog', 'arena', 'crew', 'coach');
 
   const altShow = showTab;
   showTab = function (t) {
@@ -440,6 +440,12 @@
     if (kauf && kauf.addEventListener) kauf.onclick = () => kaufen(kaufbar[0]);
     $('arFigurOk').onclick = speichern;
   }
+  // Anprobe aus dem Shop: Editor mit dem Teil an deiner Figur, dort wird gekauft
+  function shopVorschau(kat, id, reiter) {
+    E = { a: Object.assign({}, F.aussehen, { [kat]: id }), reiter: reiter || 'skins' };
+    if (kat === 'kopf' || kat === 'extra') E.a.skin = 'nichts';
+    editorMalen(false);
+  }
   async function kaufen(teil) {
     if (!ich()) { toast('Erst Spitznamen eintragen, dann kannst du kaufen'); return profil(); }
     const gems = teil.art === 'gems', hab = gems ? (F.gems || 0) : F.coins;
@@ -740,6 +746,6 @@
   requestAnimationFrame(() => setTimeout(() => window.Lade && Lade.weg(), 350));
 
   // für Tests
-  window.ArenaUI = { istBotName, vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { shopVorschau, istBotName, vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

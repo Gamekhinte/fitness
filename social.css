@@ -239,3 +239,46 @@ body.papier main{padding-top:0}
 .coach-sperre{margin-top:30px;padding:18px 16px;text-align:center;background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
 .coach-sperre h2{margin:0 0 6px}
 .coach-sperre p{font-family:var(--hand);font-size:19px;line-height:1.3;margin:0 0 6px}
+
+/* Shop */
+#tab-shop{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.sh-kopf{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.sh-kopf h2{margin:0;font-size:34px}
+.sh-konto{display:flex;gap:8px}
+.sh-konto span{display:flex;align-items:center;gap:6px;padding:5px 11px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--dick);font-size:19px}
+.sh-konto b{font-weight:400}
+.sh-konto img{width:20px}
+.sh-pass{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 6px;padding:8px 12px;text-align:left;background:var(--gold);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand)}
+.sh-pass:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.sh-pass-gem img{width:34px;display:block}
+.sh-pass span:nth-child(2){flex:1;min-width:0}
+.sh-pass b{display:block;font-family:var(--dick);font-weight:400;font-size:19px;line-height:1.1}
+.sh-pass small{font-size:15px;line-height:1.1;display:block}
+.sh-pass i{font-style:normal;font-family:var(--dick);font-size:14px;padding:3px 9px;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:7px}
+.sh-abschnitt{display:flex;align-items:baseline;justify-content:space-between;margin:20px 2px 8px}
+.sh-abschnitt h3{margin:0;font-size:23px}
+.sh-uhr{font-family:var(--dick);font-size:17px;color:var(--rot)}
+.sh-raster{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sh-raster.drei{grid-template-columns:repeat(3,1fr);gap:9px}
+.sh-karte{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:center;padding:0 0 8px;overflow:hidden;
+  background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand)}
+.sh-karte:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.sh-bild{display:block;aspect-ratio:180/220;background:var(--marker);border-bottom:3px solid var(--graphit)}
+.sh-karte.gems .sh-bild{background:#C9F2EC}
+.sh-karte.gross .sh-bild{aspect-ratio:auto;height:240px}
+.sh-bild img{width:100%;height:100%;object-fit:contain;display:block;opacity:0}
+.sh-bild img.da{opacity:1}
+.sh-karte b{display:block;margin:6px 6px 0;font-family:var(--dick);font-weight:400;font-size:17px;line-height:1.1}
+.sh-karte small{display:block;font-size:14px;color:var(--mut)}
+.sh-preis{display:flex;align-items:center;justify-content:center;gap:5px;margin:6px 8px 0;padding:3px 8px;font-family:var(--dick);font-size:18px;background:#FFF1C4;border:2.5px solid var(--graphit);border-radius:8px}
+.sh-preis img{width:20px}
+.sh-karte.gems .sh-preis{background:#C9F2EC}
+.sh-karte.hat{opacity:.72}
+.sh-karte.hat .sh-preis{background:#EDE6D6;font-size:15px}
+.sh-raster.drei .sh-karte b{font-size:15px}
+.sh-raster.drei .sh-karte small{display:none}
+.sh-raster.drei .sh-preis{font-size:15px;margin:5px 5px 0}
+.sh-raster.drei .sh-preis img{width:16px}
+.sh-kats{margin:0 0 10px;padding:2px 0 8px}
+
+.sh-karte.gross{width:100%}
