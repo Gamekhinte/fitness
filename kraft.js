@@ -425,7 +425,7 @@
     if (s.status === 'bereit' && s.start_in != null && !D.startAt) D.startAt = Date.now() + s.start_in * 1000;
     if (s.status === 'fertig' || s.status === 'abgebrochen') return ergebnis(s);
   }
-  const gName = (s, seite) => s.aufzeichnung ? (s.geist_name === 'Trainingsgeist' ? 'Trainingspartner' : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
+  const gName = (s, seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Trainingspartner' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerName = s => gName(s, D.seite);
   const gegnerWert = s => s.aufzeichnung ? (s.geist_wert || 0) : (D.seite === 'a' ? s.b_wert : s.a_wert);
   const PACE = { haut: '#A9744E', haare: 'locken', haarfarbe: '#2B2826', augen: 'wach', mund: 'grinsen', oberteil: '#D9643A', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'stirnband', hg: 'graffiti' };

@@ -538,7 +538,7 @@
   }
 
   const gegnerMeter = s => s.aufzeichnung ? (s.geist_m || 0) : (R.seite === 'a' ? s.b_m : s.a_m);
-  const gegnerName = (s, seite = R && R.seite) => s.aufzeichnung ? (s.geist_name === 'Trainingsgeist' ? 'Pace-Läufer' : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
+  const gegnerName = (s, seite = R && R.seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Pace-Läufer' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerPokale = s => s.aufzeichnung ? s.geist_pokale : (R.seite === 'a' ? s.b_pokale : s.a_pokale);
   const gegnerAuf = s => !s.aufzeichnung && (R.seite === 'a' ? s.b_auf : s.a_auf);
   function aufgegeben(delta) {
