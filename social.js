@@ -214,7 +214,8 @@
         <button class="ar-knopf breit leise2" data-so="titel">Titel ändern</button>
         <button class="ar-knopf breit leise2" data-so="banner">Banner ändern</button>
         <button class="ar-knopf breit leise2" data-so="figur">Charakter bearbeiten</button>`
-      : freund ? `<button class="ar-knopf breit leise2" data-so="freundWeg" data-id="${id}">Freundschaft beenden</button>`
+      : freund ? `<button class="ar-knopf breit gold" data-so="einsVsEins" data-id="${id}" data-name="${e(info.name)}">1 gegen 1</button>
+        <button class="ar-knopf breit leise2" data-so="freundWeg" data-id="${id}">Freundschaft beenden</button>`
       : angefragt ? '<button class="ar-knopf breit leise2" disabled>Anfrage gesendet</button>'
       : anfrageDa ? `<button class="ar-knopf breit gruen" data-so="ja" data-id="${id}" data-zurueck="1">Anfrage annehmen</button>`
       : `<button class="ar-knopf breit gruen" data-so="freundNeu" data-id="${id}" data-tag="${e(info.tag)}">Freund hinzufügen</button>`;
@@ -356,15 +357,19 @@
     C = Object.assign(C || {}, { gruppeInfo: g });
   }
 
-  /* ---------- Weltrangliste: nur echte Spieler (Bots stehen hier nie drin) ---------- */
-  const WELT = { art: 'pokale', zeit: 'woche' };
+  /* ---------- Weltrangliste: echte Spieler und gekennzeichnete Bots (abschaltbar) ---------- */
+  const WELT = { art: 'pokale', zeit: 'woche', bots: store.get('wf-welt-bots', true) !== false };
   const WELT_ARTEN = [['pokale', 'Pokale'], ['wdh', 'Wiederholungen'], ['km', 'Kilometer'], ['siege', 'Siege']];
   const weltWert = (art, w) => art === 'km' ? `${(w / 1000).toFixed(1).replace('.', ',')} km` : art === 'wdh' ? `${w} Wdh.` : art === 'siege' ? `${w} Siege` : `${w}`;
   async function welt() {
     const gesamtNur = WELT.art === 'pokale' || WELT.art === 'siege';
     let r;
-    try { r = await rpc('wf_weltrangliste', { p_art: WELT.art, p_zeitraum: gesamtNur ? 'gesamt' : WELT.zeit, p_spieler: ich() ? ich().id : null }); } catch (err) { return fehler(err); }
-    const zeile = x => `<button class="so-zeile so-rang so-weltzeile${ich() && x.id === ich().id ? ' ich' : ''}" data-so="profil" data-id="${x.id}">
+    try { r = await rpc('wf_weltrangliste', { p_art: WELT.art, p_zeitraum: gesamtNur ? 'gesamt' : WELT.zeit, p_spieler: ich() ? ich().id : null, p_bots: WELT.bots }); } catch (err) { return fehler(err); }
+    const zeile = x => x.bot ? `<div class="so-zeile so-rang so-weltzeile so-weltbot">
+        <span class="so-nr m${x.rang <= 3 ? x.rang : 0}">${x.rang}</span>
+        <span class="so-text"><b>${e(x.name)}</b><small>Simulierter Bot</small></span>
+        <span class="so-bot">Bot</span><span class="so-punkte">${e(weltWert(WELT.art, x.wert))}</span></div>`
+      : `<button class="so-zeile so-rang so-weltzeile${ich() && x.id === ich().id ? ' ich' : ''}" data-so="profil" data-id="${x.id}">
         <span class="so-nr m${x.rang <= 3 ? x.rang : 0}">${x.rang}</span>
         <span class="so-text"><b>${e(x.name)}</b><small>${x.titel ? e(x.titel) : ''}${x.clan ? `${x.titel ? ' · ' : ''}${e(x.clan.name)}` : ''}</small></span>
         <span class="so-punkte">${e(weltWert(WELT.art, x.wert))}</span></button>`;
@@ -375,7 +380,8 @@
       ${r.liste.length ? r.liste.map(zeile).join('') : '<p class="ar-hand">Noch niemand drin. Du kannst der Erste sein.</p>'}
       ${r.ich && !imTop ? `<div class="so-weltich">Du bist auf Platz ${r.ich.rang} mit ${e(weltWert(WELT.art, r.ich.wert))}</div>` : ''}
       ${ich() && !r.ich && !r.versteckt ? '<p class="ar-hand klein">Du hast hier noch keinen Wert. Training und Battles zählen.</p>' : ''}
-      <p class="ar-hand klein">${r.teilnehmer} ${r.teilnehmer === 1 ? 'Spieler' : 'Spieler'} in dieser Liste. Es zählen nur echte Spieler.</p>
+      <p class="ar-hand klein">${r.teilnehmer} echte Spieler${WELT.bots ? ` und ${r.bots} Bots (simulierte Werte, mit Bot markiert)` : ''} in dieser Liste.</p>
+      <button class="ar-knopf breit leise2" data-so="weltBots">${WELT.bots ? 'Bots ausblenden' : 'Bots anzeigen'}</button>
       ${ich() ? `<button class="ar-knopf breit leise2" data-so="weltSichtbar" data-an="${r.versteckt ? '1' : '0'}">${r.versteckt ? 'Wieder in der Rangliste zeigen' : 'Mich in der Rangliste ausblenden'}</button>` : ''}`);
   }
 
@@ -504,6 +510,45 @@
       ${ich() ? '<button class="ar-knopf breit leise2 so-gefahr" data-so="kontoWeg">Konto löschen</button>' : ''}`;
   }
 
+
+  /* ---------- 1 gegen 1 mit Freunden: alles, was es auch im Wettkampf gibt ---------- */
+  const EINS = [['lauf', '1000', '1 km Lauf'], ['lauf', '3000', '3 km Lauf'], ['lauf', '10000', '10 km Lauf'],
+    ['kraft', 'liegestuetze', 'Liegestütze'], ['kraft', 'squats', 'Squats'], ['kraft', 'plank', 'Plank']];
+  const eins = (art, wert) => (EINS.find(x => x[0] === art && x[1] === String(wert)) || [0, 0, wert])[2];
+  function einsWahl(id, name) {
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">1 gegen 1</h2>
+      <p class="ar-hand">${e(name)} bekommt eine Einladung. Das zählt nicht für Pokale und kostet nichts.</p>
+      <div class="so-einsliste">${EINS.map(([art, wert, text]) => `<button class="ar-knopf breit leise2" data-so="herausfordern" data-art="${art}" data-wert="${wert}" data-id="${id}" data-name="${e(name)}">${text}</button>`).join('')}</div>
+      <p class="ar-hand klein">Beim Lauf geht es sofort los, bei Kraft stellst du zuerst die Kamera ein.</p>`);
+  }
+  async function herausfordern(b) {
+    if (b.art === 'kraft') { A.schliessen(); return window.KraftUI.herausfordern(b.wert, b.id, b.name); }
+    const r = await rpc('wf_herausfordern', mit({ p_an: b.id, p_art: 'lauf', p_wert: b.wert }));
+    A.schliessen(); A.rennenStarten(r.id, +b.wert, true);
+  }
+  let einladungen = [];
+  const banner = document.createElement('div');
+  banner.id = 'soEinladung'; banner.hidden = true; document.body.appendChild(banner);
+  function bannerMalen() {
+    const x = einladungen[0];
+    banner.hidden = !x;
+    if (!x) return;
+    banner.innerHTML = `<b>${e(x.von.name)} fordert dich heraus</b><span>${e(eins(x.art, x.wert))}${einladungen.length > 1 ? ` · +${einladungen.length - 1} weitere` : ''}</span>
+      <div><button class="ar-knopf gruen" data-so="einAnnehmen" data-id="${x.id}">Annehmen</button><button class="ar-knopf leise2" data-so="einAblehnen" data-id="${x.id}">Nein</button></div>`;
+  }
+  function beschaeftigt() {
+    return !!store.get('wf-rennen', null) || !!(window.KraftUI && KraftUI._test.D);
+  }
+  async function einladungenHolen() {
+    if (!ich() || document.hidden) return;
+    try { einladungen = await rpc('wf_herausforderungen', mit({})) || []; } catch (err) { return; }
+    if (beschaeftigt()) { banner.hidden = true; return; }
+    bannerMalen();
+  }
+  banner.addEventListener('click', klick);
+  setInterval(einladungenHolen, 7000);
+  setTimeout(einladungenHolen, 3000);
+
   /* ---------- Klicks (Startseite und Fenster) ---------- */
   const H = {
     async los() {
@@ -517,6 +562,19 @@
       } catch (err) { fehler(err); }
     },
     profil: b => profil(b.id),
+    einsVsEins: b => einsWahl(b.id, b.name),
+    herausfordern: b => herausfordern(b),
+    async einAnnehmen(b) {
+      const x = einladungen.find(i => i.id === b.id); if (!x) return;
+      einladungen = einladungen.filter(i => i.id !== b.id); bannerMalen();
+      if (x.art === 'kraft') { A.schliessen(); return window.KraftUI.annehmen(x.wert, x.id); }
+      const r = await rpc('wf_herausforderung_annehmen', mit({ p_art: 'lauf', p_match: x.id }));
+      A.schliessen(); A.rennenStarten(r.id, r.klasse, true);
+    },
+    async einAblehnen(b) {
+      const x = einladungen.find(i => i.id === b.id); einladungen = einladungen.filter(i => i.id !== b.id); bannerMalen();
+      if (x) await rpc('wf_herausforderung_ablehnen', mit({ p_art: x.art, p_match: x.id }));
+    },
     clan: () => S.info && S.info.clan ? clanAnsicht(S.info.clan.id) : clanStart(),
     clanAnsicht: b => clanAnsicht(b.id),
     duell: () => duellOeffnen(),
@@ -592,6 +650,7 @@
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
     matches: () => matches(),
     welt: () => welt(),
+    weltBots() { WELT.bots = !WELT.bots; store.set('wf-welt-bots', WELT.bots); return welt(); },
     weltArt(b) { WELT.art = b.art; return welt(); },
     weltZeit(b) { WELT.zeit = b.zeit; return welt(); },
     async weltSichtbar(b) { try { await rpc('wf_bestenliste_sichtbar', mit({ p_sichtbar: b.an === '1' })); toast(b.an === '1' ? 'Du bist wieder in der Rangliste' : 'Du bist ausgeblendet'); welt(); } catch (err) { fehler(err); } },

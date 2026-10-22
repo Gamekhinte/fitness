@@ -356,3 +356,31 @@ body.papier main{padding-top:0}
 .so-nr.m3{background:#E0A678;border-radius:8px}
 .so-weltzeile .so-punkte{min-width:70px;font-size:17px}
 .so-weltich{position:sticky;bottom:-6px;margin:10px 0 4px;padding:8px 10px;text-align:center;font-family:var(--dick);font-size:17px;background:#DFF3FF;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
+
+.so-weltbot{opacity:.85;cursor:default}
+.so-weltbot .so-bot{flex:none;margin-right:6px}
+
+/* Diamanten-Outfits und Glücksrad */
+.sh-abschnitt small{font-family:var(--hand);font-size:14px;color:var(--mut);margin-left:8px}
+.sh-rad-karte{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:10px 12px;text-align:left;background:#FAF6EB;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand);color:var(--graphit)}
+.sh-rad-karte.bereit{background:#FFF1C4}
+.sh-rad-karte b{display:block;font-family:var(--dick);font-weight:400;font-size:19px}
+.sh-rad-karte small{display:block;font-size:14px;color:var(--mut)}
+.sh-rad-karte span:nth-child(2){flex:1;min-width:0}
+.sh-rad-karte i{font-style:normal;font-family:var(--dick);font-size:16px;padding:5px 10px;background:var(--marker);border:3px solid var(--graphit);border-radius:10px}
+.sh-rad-icon img{width:30px}
+.sh-rad{position:relative;max-width:300px;margin:10px auto 6px}
+.sh-rad-svg{width:100%;display:block}
+.sh-rad-zeiger{position:absolute;left:50%;top:-8px;width:0;height:0;margin-left:-13px;z-index:2;border-left:13px solid transparent;border-right:13px solid transparent;border-top:24px solid var(--rot);filter:drop-shadow(0 2px 0 var(--graphit))}
+.sh-rad-erg{min-height:34px;text-align:center;font-family:var(--dick);font-size:22px;margin:6px 0}
+.sh-rad-erg img{width:22px;vertical-align:-4px;margin-right:4px}
+.sh-chancen img{width:18px;vertical-align:-3px;margin-right:4px}
+
+/* 1 gegen 1 und Einladung */
+.so-einsliste{display:grid;gap:8px;margin:8px 0}
+#soEinladung{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2500;padding:10px 12px;background:#FFF1C4;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand);color:var(--graphit)}
+#soEinladung[hidden]{display:none}
+#soEinladung b{display:block;font-family:var(--dick);font-weight:400;font-size:19px}
+#soEinladung span{display:block;font-size:16px;margin-bottom:8px}
+#soEinladung div{display:flex;gap:8px}
+#soEinladung .ar-knopf{flex:1;margin:0;padding:8px;font-size:17px}

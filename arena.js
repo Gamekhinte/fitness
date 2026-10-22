@@ -511,10 +511,10 @@
     try { starten(await wf().rpc('wf_rennen_suchen', mit({ p_klasse: klasse })), klasse); }
     catch (err) { toast(err.message); }
   }
-  function starten(id, klasse) {
-    R = { id, klasse, t0: Date.now(), gefragt: false, startAt: 0, los: false, gemeldet: 0, gegnerStufe: 0, stand: null,
+  function starten(id, klasse, privat) {
+    R = { privat: !!privat, id, klasse, t0: Date.now(), gefragt: false, startAt: 0, los: false, gemeldet: 0, gegnerStufe: 0, stand: null,
       gesagt: {}, tempoIch: 0, tempoGegner: 0, letzt: { m: 0, g: 0, t: Date.now() } };
-    store.set('wf-rennen', id);
+    store.set('wf-rennen', id); store.set('wf-rennen-privat', !!privat);
     malen();
     clearInterval(starten.uhr); clearInterval(starten.poll);
     starten.uhr = setInterval(uhr, 1000);
@@ -529,7 +529,11 @@
     if (!s || !R || s.id !== R.id) return;
     R.stand = s;
     R.seite = s.a === ich().id ? 'a' : 'b';
-    if (s.status === 'suche' && !R.gefragt && Date.now() - R.t0 > 20000) {
+    if (s.status === 'suche' && R.privat && !R.gefragt && Date.now() - R.t0 > 180000) {
+      R.gefragt = true;
+      wf().rpc('wf_rennen_aufgeben', mit({ p_rennen: R.id })).then(abfragen).catch(() => {});
+    }
+    if (s.status === 'suche' && !R.privat && !R.gefragt && Date.now() - R.t0 > 20000) {
       R.gefragt = true;
       wf().rpc('wf_rennen_aufzeichnung', mit({ p_rennen: R.id })).then(abfragen).catch(() => { R && (R.gefragt = false); });
     }
@@ -595,7 +599,11 @@
     const aufgeben = '<button class="ar-knopf leise" id="arAufgeben">Aufgeben</button>';
     if (!s || s.status === 'suche') {
       const sek = Math.floor((Date.now() - R.t0) / 1000);
-      zeigeBlatt(`<h2 class="ar-titel">Suche Gegner<span class="ar-punkte">${'.'.repeat(1 + sek % 3)}</span></h2>
+      if (R.privat) zeigeBlatt(`<h2 class="ar-titel">Warte auf deinen Freund<span class="ar-punkte">${'.'.repeat(1 + sek % 3)}</span></h2>
+        <p class="ar-hand gross">${k[1]} · ${sek} s</p>
+        <p class="ar-hand">Er hat eine Einladung bekommen. Nach 3 Minuten ohne Antwort endet sie von selbst.</p>
+        <button class="ar-knopf leise" id="arAufgeben">Einladung zurückziehen</button>`, 'suche', { aussehen: F.aussehen }, true);
+      else zeigeBlatt(`<h2 class="ar-titel">Suche Gegner<span class="ar-punkte">${'.'.repeat(1 + sek % 3)}</span></h2>
         <p class="ar-hand gross">${k[1]} · ${sek} s</p>
         <div class="ar-einsatz"><span><img src="arena/pokal.svg" alt="">ca. +${30 * k[3]}</span><span>${coin}+${25 * k[4]}</span></div>
         <p class="ar-tipp">${TIPPS[Math.floor(sek / 5) % TIPPS.length]}</p>
@@ -735,7 +743,7 @@
   // Ein laufendes Rennen nach dem Neuladen wieder aufnehmen
   const offen = store.get('wf-rennen', null);
   if (offen && ich()) wf().rpc('wf_rennen_stand', { p_rennen: offen }).then(s => {
-    if (s && (s.status === 'suche' || s.status === 'bereit')) starten(s.id, s.klasse);
+    if (s && (s.status === 'suche' || s.status === 'bereit')) starten(s.id, s.klasse, store.get('wf-rennen-privat', false));
     else store.set('wf-rennen', null);
   }).catch(() => {});
 
@@ -747,6 +755,6 @@
   requestAnimationFrame(() => setTimeout(() => window.Lade && Lade.weg(), 350));
 
   // für Tests
-  window.ArenaUI = { shopVorschau, istBotName, vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { rennenStarten: (id, klasse, privat) => starten(id, klasse, privat), shopVorschau, istBotName, vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

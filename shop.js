@@ -149,18 +149,22 @@
         <span class="sh-konto"><span>${A.coin}<b>${F.coins}</b></span><span>${gem}<b>${F.gems || 0}</b></span></span>
       </div>
       <div id="shTag"></div>
+      <button class="sh-rad-karte" data-sh="rad" id="shRadKnopf"><span class="sh-rad-icon">${gem}</span><span><b>Glücksrad</b><small id="shRadText">Einmal am Tag gratis drehen</small></span><i id="shRadI">Drehen</i></button>
       <div class="sh-restock"><span>Neues Sortiment in</span><b id="shUhr">${rest()}</b></div>
       ${highlight(a.highlight)}
       <div class="sh-abschnitt"><h3>Heute</h3></div>
       <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
       <div class="sh-woche">${a.woche.map(i => highlight(i, true)).join('')}</div>
+      <div class="sh-abschnitt"><h3>Diamanten-Outfits</h3><small>Immer im Shop</small></div>
+      <div class="sh-raster drei">${a.items.filter(i => i.art === 'gems').sort((x, y) => x.wert - y.wert).map(i => karte(i, true)).join('')}</div>
       <div class="sh-unten">
         <button class="sh-pass" data-sh="pass"><span class="sh-pass-gem">${gem}</span><span><b>Winterpass</b><small>Belohnungen, Gems und Outfits</small></span><i>Ansehen</i></button>
         <button class="ar-knopf breit leise2" data-sh="alle">Alle Teile ansehen</button>
       </div>`;
     bilderStarten(w);
     tagLaden();
+    radPruefen();
   }
 
   /* ---------- Täglicher Login und Tagesaufgaben (Server: wf_login_*, wf_quests, wf_quest_holen) ---------- */
@@ -205,11 +209,73 @@
     } catch (err) { toast(err.message); }
   }
   setTimeout(tagLaden, 2500);
+  setTimeout(radPruefen, 3000);
   setInterval(() => { if (!document.hidden && A.ich()) tagLaden(); }, 60000);
+
+  /* ---------- Glücksrad: einmal am Tag gratis, keine bezahlten Drehungen (Server: wf_spin_*) ---------- */
+  const FARBEN = ['#FFF1C4', '#C9F2EC', '#F6D8A8', '#DFF3FF', '#FFF1C4', '#C9F2EC', '#F6D8A8', '#DFF3FF'];
+  let rad = null, dreht = false;
+  async function radPruefen() {
+    if (!A.ich()) return;
+    try { rad = await A.wf().rpc('wf_spin_status', A.mit({})); } catch (err) { return; }
+    const t = el('shRadText'), i = el('shRadI'), k = document.getElementById('shRadKnopf');
+    if (t) t.textContent = rad.bereit ? 'Dein Gratis-Dreh wartet' : 'Morgen wieder einen Gratis-Dreh';
+    if (i) i.textContent = rad.bereit ? 'Drehen' : 'Ansehen';
+    if (k) k.classList.toggle('bereit', !!rad.bereit);
+  }
+  function radSvg(preise) {
+    const n = preise.length, w = 360 / n, r = 150, c = 160;
+    const pt = (grad, rr) => { const a = (grad - 90) * Math.PI / 180; return [c + rr * Math.cos(a), c + rr * Math.sin(a)]; };
+    let h = '';
+    preise.forEach((p, i) => {
+      const [x1, y1] = pt(i * w, r), [x2, y2] = pt((i + 1) * w, r), mitte = i * w + w / 2, [tx, ty] = pt(mitte, r * 0.66);
+      const wert = p.gems ? p.gems : p.coins;
+      h += `<path d="M${c} ${c} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${p.gems ? '#C9F2EC' : FARBEN[i % 4 === 0 ? 0 : 2]}" stroke="#2B2A33" stroke-width="3"/>
+        <g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(${mitte})"><text text-anchor="middle" y="-4" font-family="var(--dick)" font-size="22" fill="#2B2A33">${wert}</text>
+        <image href="arena/${p.gems ? 'gem' : 'coin'}.svg" x="-10" y="2" width="20" height="20"/></g>`;
+    });
+    return `<svg class="sh-rad-svg" viewBox="0 0 320 320" id="shRadSvg"><circle cx="160" cy="160" r="154" fill="#FAF6EB" stroke="#2B2A33" stroke-width="4"/><g id="shRadDreh" style="transform-origin:160px 160px">${h}</g><circle cx="160" cy="160" r="14" fill="#F2B632" stroke="#2B2A33" stroke-width="4"/></svg>`;
+  }
+  async function radOeffnen() {
+    if (!A.ich()) return toast('Erstelle zuerst im Clan-Tab dein Profil');
+    await radPruefen();
+    if (!rad) return;
+    const summe = rad.preise.reduce((a, p) => a + p.gewicht, 0);
+    const chancen = rad.preise.map(p => `<li><span>${p.gems ? gem + p.gems : A.coin + p.coins}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
+    A.zeigeBlatt(`<button class="ar-zu" data-zu aria-label="Schließen">×</button><h2 class="ar-titel">Glücksrad</h2>
+      <div class="sh-rad"><div class="sh-rad-zeiger"></div>${radSvg(rad.preise)}</div>
+      <div id="shRadErg" class="sh-rad-erg"></div>
+      ${rad.bereit ? '<button class="ar-knopf breit gold" data-sh="radDrehen" id="shRadGo">Gratis drehen</button>' : '<p class="ar-hand">Heute schon gedreht. Morgen gibt es den nächsten Gratis-Dreh.</p>'}
+      <h3 class="ar-h">Gewinnchancen</h3>
+      <ul class="ar-liste sh-chancen">${chancen}</ul>
+      <p class="ar-hand klein">Es gibt nur diesen einen kostenlosen Dreh pro Tag. Gewinne sind Coins und Gems, keine Outfits.</p>`, 'rad');
+  }
+  async function radDrehen() {
+    if (dreht) return; dreht = true;
+    const go = document.getElementById('shRadGo'); if (go) go.disabled = true;
+    let r;
+    try { r = await A.wf().rpc('wf_spin_drehen', A.mit({})); } catch (err) { dreht = false; if (go) go.disabled = false; return toast(err.message); }
+    const n = rad.preise.length, w = 360 / n, g = document.getElementById('shRadDreh');
+    const ziel = 360 * 5 - (r.index * w + w / 2) + (Math.random() - 0.5) * w * 0.6;
+    if (g) { g.style.transition = 'transform 4.2s cubic-bezier(.12,.7,.15,1)'; requestAnimationFrame(() => { g.style.transform = `rotate(${ziel}deg)`; }); }
+    if (window.Klang) Klang.effekt('countdown');
+    setTimeout(async () => {
+      dreht = false;
+      const erg = document.getElementById('shRadErg');
+      if (erg) erg.innerHTML = `Gewonnen: ${r.gems ? gem + r.gems + ' Gems' : A.coin + r.coins + ' Coins'}`;
+      if (go) go.remove();
+      if (window.Klang) Klang.effekt('sieg');
+      await A.figurLaden(); zeichnen(); radPruefen();
+    }, 4400);
+  }
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('#arBlatt [data-sh="radDrehen"]'); if (b) radDrehen();
+  });
   tab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-sh]'); if (!b) return;
     const a = b.dataset.sh;
-    if (a === 'login') tagHolen('login');
+    if (a === 'rad') radOeffnen();
+    else if (a === 'login') tagHolen('login');
     else if (a === 'quest') tagHolen('quest', b.dataset.id);
     else if (a === 'alle') A.editor('skins');
     else if (a === 'pass') { if (window.Pass) Pass.sheet(); }

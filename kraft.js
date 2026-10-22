@@ -329,9 +329,9 @@
   }
 
   // Kamera an, Körper prüfen, dann Gegner suchen. Die Kamera bleibt bis zum Ergebnis an.
-  async function aufbau(uebung) {
+  async function aufbau(uebung, privat) {
     const ui = A();
-    D = { uebung, id: null, phase: 'aufbau', bereit: 0, stand: null, t0: 0, startAt: 0, gemeldet: 0, fertig: false, gesagt: {}, seite: 'a' };
+    D = { privat: privat || null, uebung, id: null, phase: 'aufbau', bereit: 0, stand: null, t0: 0, startAt: 0, gemeldet: 0, fertig: false, gesagt: {}, seite: 'a' };
     D.z = new Zaehler(uebung); K.zaehler = D.z;
     ui.zeigeBlatt(`
       <div class="kr-kamera" id="krKamera"><video playsinline muted></video><canvas></canvas>
@@ -353,7 +353,7 @@
   function infoAufbau() {
     const u = UEB[D.uebung];
     info(`<div class="kr-kurz"><b>${u.name}: probier ein paar Wiederholungen</b><p>${u.aufbau} Die Zahl oben zählt schon zum Testen.</p>
-      <div class="kr-reihe"><button class="ar-knopf leise" data-ende>Abbrechen</button><button class="ar-knopf" id="krSuchen" ${D.bereit >= 1 ? '' : 'disabled'}>Gegner suchen</button></div></div>`);
+      <div class="kr-reihe"><button class="ar-knopf leise" data-ende>Abbrechen</button><button class="ar-knopf" id="krSuchen" ${D.bereit >= 1 ? '' : 'disabled'}>${D.privat ? (D.privat.an ? 'Freund einladen' : 'Annehmen und starten') : 'Gegner suchen'}</button></div></div>`);
   }
   // kleine Messanzeige unten links im Bild, hilft beim Einstellen (und mir bei Fehlern)
   function messen(z) {
@@ -404,8 +404,12 @@
 
   async function suchen() {
     const ui = A();
-    try { D.id = await ui.wf().rpc('wf_kraft_suchen', ui.mit({ p_uebung: D.uebung })); }
-    catch (err) { return toast(err.message); }
+    try {
+      if (D.privat && D.privat.an) D.id = (await ui.wf().rpc('wf_herausfordern', ui.mit({ p_an: D.privat.an, p_art: 'kraft', p_wert: D.uebung }))).id;
+      else if (D.privat) D.id = (await ui.wf().rpc('wf_herausforderung_annehmen', ui.mit({ p_art: 'kraft', p_match: D.privat.match }))).id;
+      else D.id = await ui.wf().rpc('wf_kraft_suchen', ui.mit({ p_uebung: D.uebung }));
+    }
+    catch (err) { toast(err.message); if (D && D.privat) abbrechen(); return; }
     D.phase = 'suche'; D.t0 = Date.now();
     store.set('wf-kraft', D.id);
     clearInterval(D.uhr); clearInterval(D.poll);
@@ -418,7 +422,11 @@
     try { s = await ui.wf().rpc('wf_kraft_stand', { p_duell: D.id }); } catch (err) { return; }
     if (!s || !D || s.id !== D.id) return;
     D.stand = s; D.seite = s.a === ui.ich().id ? 'a' : 'b';
-    if (s.status === 'suche' && !D.gefragt && Date.now() - D.t0 > 15000) {
+    if (s.status === 'suche' && D.privat && !D.gefragt && Date.now() - D.t0 > 180000) {
+      D.gefragt = true;
+      ui.wf().rpc('wf_kraft_aufgeben', ui.mit({ p_duell: D.id })).then(abfragen).catch(() => {});
+    }
+    if (s.status === 'suche' && !D.privat && !D.gefragt && Date.now() - D.t0 > 15000) {
       D.gefragt = true;
       ui.wf().rpc('wf_kraft_aufzeichnung', ui.mit({ p_duell: D.id })).then(abfragen).catch(() => { if (D) D.gefragt = false; });
     }
@@ -478,7 +486,7 @@
     if (D.phase === 'suche' && (!s || s.status === 'suche')) {
       const sek = Math.floor((Date.now() - D.t0) / 1000);
       mitte('');
-      info(`<div class="kr-kurz"><b>Suche Gegner${'.'.repeat(1 + sek % 3)}</b><p>${u.name} · ${sek} s · bleib in Position</p>
+      info(`<div class="kr-kurz"><b>${D.privat ? 'Warte auf deinen Freund' : 'Suche Gegner'}${'.'.repeat(1 + sek % 3)}</b><p>${u.name} · ${sek} s · bleib in Position</p>
         <div class="kr-reihe"><button class="ar-knopf leise" id="krAufgeben">Abbrechen</button></div></div>`);
       return;
     }
@@ -563,5 +571,5 @@
     ui.nachDuell();
   }
 
-  window.KraftUI = { battle, Zaehler, UEB, abbrechen, _test: { K, get D() { return D; }, suchen: () => suchen() } };
+  window.KraftUI = { herausfordern: (uebung, an, name) => aufbau(uebung, { an, name }), annehmen: (uebung, match) => aufbau(uebung, { match }), battle, Zaehler, UEB, abbrechen, _test: { K, get D() { return D; }, suchen: () => suchen() } };
 })();
