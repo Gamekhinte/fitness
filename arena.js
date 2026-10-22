@@ -331,7 +331,7 @@
       ${ich() ? `<h2>${e(ich().name)}</h2>` : '<h2>Neu hier</h2>'}
       <p class="ar-hand">Laufen: Arena ${i + 1} · ${ARENEN[i].name} · Kraft: Arena ${arenaZu(kraftPokale) + 1} · ${NAMEN_KRAFT[arenaZu(kraftPokale)]}</p>
       <button class="ar-knopf breit" id="arZumEditor">Charakter bearbeiten</button>
-      ${ich() ? '' : `<p class="ar-hand">Wie sollen dich die anderen sehen? Kein echter Name.</p>
+      ${ich() ? '' : `<p class="ar-hand">Wie sollen dich die anderen nennen? Spitzname oder Vorname.</p>
         <div class="ar-zeile"><input id="arNameIn" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" id="arNameOk">Los</button></div>`}
       <div class="ar-werte">
         <div>${rahmen(100, 70, 12, 21)}<b>${p.pokale}</b><span>Lauf-Pokale</span></div>

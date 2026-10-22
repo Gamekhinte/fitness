@@ -145,7 +145,7 @@
       const vorCode = W().vorCode && W().vorCode();
       root.innerHTML = `<div class="so-panel so-erst">
         <h2 class="ar-titel">Wie heißt du?</h2>
-        <p class="ar-hand">Ein Spitzname, kein echter Name. Du bekommst eine eigene ID, über die dich deine Freunde finden.${vorCode ? ' Danach trittst du dem Clan bei.' : ''}</p>
+        <p class="ar-hand">Ein Spitzname oder dein Vorname, ohne Nachnamen und Kontaktdaten. Du bekommst eine eigene ID, über die dich deine Freunde finden.${vorCode ? ' Danach trittst du dem Clan bei.' : ''}</p>
         <div class="ar-zeile"><input id="soName" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" data-so="los">Los</button></div>
         <button class="so-spaeter" data-konto="anmelden">Schon ein Konto? Anmelden</button></div>`;
       return;
@@ -176,6 +176,7 @@
         ${l.gesendet.length ? `<p class="so-gesendet">Anfrage gesendet an ${l.gesendet.map(g => e(g.name)).join(', ')}</p>` : ''}
         <div class="so-fuss"><button class="ar-knopf" data-so="einladen">Einladen</button><button class="ar-knopf gruen" data-so="hinzu">Freund hinzufügen</button></div>
       </div>
+      <button class="ar-knopf breit gold so-weltknopf" data-so="welt">Weltrangliste</button>
       <p class="so-id">Deine ID <button data-so="idkopie" data-tag="${e(tag)}">#${e(tag)}</button></p>`;
   }
 
@@ -355,6 +356,29 @@
     C = Object.assign(C || {}, { gruppeInfo: g });
   }
 
+  /* ---------- Weltrangliste: nur echte Spieler (Bots stehen hier nie drin) ---------- */
+  const WELT = { art: 'pokale', zeit: 'woche' };
+  const WELT_ARTEN = [['pokale', 'Pokale'], ['wdh', 'Wiederholungen'], ['km', 'Kilometer'], ['siege', 'Siege']];
+  const weltWert = (art, w) => art === 'km' ? `${(w / 1000).toFixed(1).replace('.', ',')} km` : art === 'wdh' ? `${w} Wdh.` : art === 'siege' ? `${w} Siege` : `${w}`;
+  async function welt() {
+    const gesamtNur = WELT.art === 'pokale' || WELT.art === 'siege';
+    let r;
+    try { r = await rpc('wf_weltrangliste', { p_art: WELT.art, p_zeitraum: gesamtNur ? 'gesamt' : WELT.zeit, p_spieler: ich() ? ich().id : null }); } catch (err) { return fehler(err); }
+    const zeile = x => `<button class="so-zeile so-rang so-weltzeile${ich() && x.id === ich().id ? ' ich' : ''}" data-so="profil" data-id="${x.id}">
+        <span class="so-nr m${x.rang <= 3 ? x.rang : 0}">${x.rang}</span>
+        <span class="so-text"><b>${e(x.name)}</b><small>${x.titel ? e(x.titel) : ''}${x.clan ? `${x.titel ? ' · ' : ''}${e(x.clan.name)}` : ''}</small></span>
+        <span class="so-punkte">${e(weltWert(WELT.art, x.wert))}</span></button>`;
+    const imTop = r.ich && r.liste.some(x => ich() && x.id === ich().id);
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Weltrangliste</h2>
+      <div class="ar-reiter so-weltreiter">${WELT_ARTEN.map(([id, n]) => `<button data-so="weltArt" data-art="${id}" class="${WELT.art === id ? 'an' : ''}">${n}</button>`).join('')}</div>
+      ${gesamtNur ? '' : `<div class="so-weltzeit"><button data-so="weltZeit" data-zeit="woche" class="${WELT.zeit === 'woche' ? 'an' : ''}">Diese Woche</button><button data-so="weltZeit" data-zeit="gesamt" class="${WELT.zeit === 'gesamt' ? 'an' : ''}">Gesamt</button></div>`}
+      ${r.liste.length ? r.liste.map(zeile).join('') : '<p class="ar-hand">Noch niemand drin. Du kannst der Erste sein.</p>'}
+      ${r.ich && !imTop ? `<div class="so-weltich">Du bist auf Platz ${r.ich.rang} mit ${e(weltWert(WELT.art, r.ich.wert))}</div>` : ''}
+      ${ich() && !r.ich && !r.versteckt ? '<p class="ar-hand klein">Du hast hier noch keinen Wert. Training und Battles zählen.</p>' : ''}
+      <p class="ar-hand klein">${r.teilnehmer} ${r.teilnehmer === 1 ? 'Spieler' : 'Spieler'} in dieser Liste. Es zählen nur echte Spieler.</p>
+      ${ich() ? `<button class="ar-knopf breit leise2" data-so="weltSichtbar" data-an="${r.versteckt ? '1' : '0'}">${r.versteckt ? 'Wieder in der Rangliste zeigen' : 'Mich in der Rangliste ausblenden'}</button>` : ''}`);
+  }
+
   /* ---------- Titel: freischalten und tragen ---------- */
   let titelZeit = 0;
   async function titelPruefen(still) {
@@ -414,7 +438,7 @@
     A.zeigeBlatt(`${zu}<h2 class="ar-titel">Chat-Regeln</h2>
       <ul class="so-regeln">
         <li>Sei freundlich. Kein Mobbing, keine Beleidigungen, keine Drohungen.</li>
-        <li>Keine Kontaktdaten, Links oder Treffpunkte. Schreib nie deinen echten Namen, deine Adresse oder Nummer.</li>
+        <li>Keine Kontaktdaten, Links oder Treffpunkte. Schreib keine Nachnamen, Adressen oder Nummern.</li>
         <li>Schimpfwörter werden automatisch rausgefiltert, manche Nachrichten gehen gar nicht erst raus.</li>
         <li>Jede Nachricht und jeden Spieler kannst du melden oder blockieren. Meldungen prüfen wir innerhalb von 24 Stunden.</li>
         <li>Wer sich nicht daran hält, wird stumm geschaltet oder aus dem Clan geworfen.</li>
@@ -567,6 +591,10 @@
     },
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
     matches: () => matches(),
+    welt: () => welt(),
+    weltArt(b) { WELT.art = b.art; return welt(); },
+    weltZeit(b) { WELT.zeit = b.zeit; return welt(); },
+    async weltSichtbar(b) { try { await rpc('wf_bestenliste_sichtbar', mit({ p_sichtbar: b.an === '1' })); toast(b.an === '1' ? 'Du bist wieder in der Rangliste' : 'Du bist ausgeblendet'); welt(); } catch (err) { fehler(err); } },
     haptik() { Extras.setzeHaptik(!Extras.haptikAn); A.einstellungen(); },
     teilen: b => W().teilen(b.text, location.origin + location.pathname),
     titel: () => titelSheet(),
@@ -634,7 +662,7 @@
   setInterval(() => { if (ich() && !document.hidden) rpc('wf_ping', mit({})).catch(() => {}); }, 60000);
   setInterval(() => { if (ich() && typeof curTab !== 'undefined' && curTab === 'crew' && !document.hidden && Date.now() - letzte > 20000) zeichnen(); }, 5000);
 
-  window.Social = { matches, einstellungenHtml, zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
+  window.Social = { welt, matches, einstellungenHtml, zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
 
   /* ---------- Einladungslink ?freund=ID ---------- */
   const q = new URLSearchParams(location.search);

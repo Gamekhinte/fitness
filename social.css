@@ -343,3 +343,16 @@ body.papier main{padding-top:0}
 .nav button.badge{position:relative}
 .nav button.badge::after{content:'';position:absolute;top:5px;right:12px;width:13px;height:13px;border-radius:50%;background:var(--rot);border:2.5px solid var(--graphit)}
 .sh-quests{margin-bottom:12px}
+
+/* Weltrangliste */
+.so-weltknopf{margin:12px 0 0}
+.so-weltreiter{margin:6px -16px 4px}
+.so-weltzeit{display:flex;gap:8px;margin:4px 0 8px}
+.so-weltzeit button{flex:1;padding:6px;font-family:var(--dick);font-size:16px;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:10px;box-shadow:0 3px 0 var(--graphit)}
+.so-weltzeit button.an{background:var(--marker)}
+.so-weltzeile{padding:6px 8px;margin:6px 0}
+.so-nr.m1{background:var(--gold);border-radius:8px}
+.so-nr.m2{background:#D5D9DD;border-radius:8px}
+.so-nr.m3{background:#E0A678;border-radius:8px}
+.so-weltzeile .so-punkte{min-width:70px;font-size:17px}
+.so-weltich{position:sticky;bottom:-6px;margin:10px 0 4px;padding:8px 10px;text-align:center;font-family:var(--dick);font-size:17px;background:#DFF3FF;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
