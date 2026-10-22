@@ -3,7 +3,8 @@
    Oberteil, Hose, Schuhe, Kopfbedeckung, Extra, Skin und Lieblings-Animation.
    Das Gesicht wird auf eine Leinwand gezeichnet (Tusche-Look) und auf den Kopf gelegt.
    Gekaufte Sachen prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige.
-   Preis 'pass' heißt: gibt es nur im Winterpass (Server: Tabelle wf_pass_items). */
+   Preis 'pass' heißt: gibt es nur im Winterpass (Server: Tabelle wf_pass_items).
+   Preis 'g120' heißt: 120 Gems (Server: wf_shop_gems). Zahl = Coins. */
 (function () {
   const K = {
     haut: ['#F6D7B8', '#EBC199', '#D19F74', '#A9744E', '#7A4E31', '#4E3221'],
@@ -22,7 +23,8 @@
     extra: [['nichts', 'Nichts', 0], ['brille', 'Brille', 0], ['schal', 'Schal', 0],
       ['sonnenbrille', 'Sonnenbrille', 250], ['medaille', 'Medaille', 300], ['umhang', 'Umhang', 600]],
     skin: [['nichts', 'Eigener Look', 0], ['skifahrer', 'Skifahrer', 700], ['ninja', 'Ninja', 900], ['eisbaer', 'Eisbär', 1200],
-      ['astronaut', 'Astronaut', 1500], ['dino', 'Dino', 1800], ['gold', 'Goldstatue', 3000]],
+      ['astronaut', 'Astronaut', 1500], ['dino', 'Dino', 1800], ['gold', 'Goldstatue', 3000],
+      ['ritter', 'Silberritter', 'g120'], ['cyber', 'Cyber-Läufer', 'g150'], ['drache', 'Feuerdrache', 'g200'], ['eiskoenig', 'Eiskönig', 'pass']],
     emote: [['winken', 'Winken', 0], ['jubeln', 'Jubeln', 0], ['hampelmann', 'Hampelmann', 200], ['flex', 'Muskeln', 300],
       ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]],
     // Intro: läuft in der Cutscene vor jedem Duell, mit bösem Blick
@@ -31,7 +33,7 @@
     // Hintergrund: hinter deiner Figur in Cutscene, Duell, Profil und Ergebnis
     hg: [['eis', 'Eis', 0], ['papier', 'Papier', 0], ['schnee', 'Schneefall', 300], ['sterne', 'Sternennacht', 400], ['sonnenuntergang', 'Sonnenuntergang', 500],
       ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200],
-      ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass']]
+      ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80']]
   };
   const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
     haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
@@ -96,6 +98,10 @@
     if (sk === 'eisbaer') { haut = '#FFFFFF'; ober = '#FFFFFF'; hose = '#FFFFFF'; schuh = '#FFFFFF'; haare = 'glatze'; kopf = 'baerohren'; }
     if (sk === 'astronaut') { ober = '#F4F4F4'; hose = '#F4F4F4'; schuh = '#B9B4AC'; kopf = 'raumhelm'; }
     if (sk === 'dino') { haut = '#8CC084'; ober = '#3E7A55'; hose = '#3E7A55'; schuh = '#3E7A55'; haare = 'glatze'; kopf = 'dino'; }
+    if (sk === 'ritter') { ober = '#B9C2CC'; hose = '#8D98A5'; schuh = '#6E7782'; kopf = 'ritterhelm'; extra = 'nichts'; }
+    if (sk === 'cyber') { ober = '#1F2D4A'; hose = '#0F1A33'; schuh = '#0F1A33'; haare = 'glatze'; kopf = 'visier'; extra = 'nichts'; }
+    if (sk === 'drache') { ober = '#C4472D'; hose = '#8F2F1C'; schuh = '#F2C14E'; haare = 'glatze'; kopf = 'drachenhoerner'; extra = 'nichts'; }
+    if (sk === 'eiskoenig') { ober = '#BFE9FF'; hose = '#7CD4FF'; schuh = '#FFFFFF'; kopf = 'eiskrone'; extra = 'nichts'; }
     if (sk === 'gold') { haut = '#F2C14E'; ober = '#F2C14E'; hose = '#E0A400'; schuh = '#E0A400'; hf = '#E0A400'; }
 
     // aussen: Platz in der Welt (setzt der Aufrufer), wurzel: wird von den Animationen bewegt
@@ -142,6 +148,34 @@
     }
     if (sk === 'astronaut') rumpf.add(W.teil(W.box(0.5, 0.6, 0.25), '#D0D0D0', 0, 0.5, -0.42, 0.03));
     if (sk === 'eisbaer') { k.add(W.teil(W.kugel(0.14), '#F1EDE4', 0, -0.17, R * 0.9, 0.02)); k.add(W.teil(W.kugel(0.05), '#2B2826', 0, -0.13, R * 1.02, 0)); }
+    const neon = new T.MeshBasicMaterial({ color: 0x3FE0FF });
+    if (sk === 'ritter') {
+      for (const sd of [-1, 1]) rumpf.add(W.teil(W.kugel(0.17, 14, 10), '#B9C2CC', sd * 0.45, 0.8, 0, 0.03));
+      rumpf.add(W.teil(W.box(0.1, 0.34, 0.04), '#D9643A', 0, 0.55, 0.375, 0.02)); rumpf.add(W.teil(W.box(0.3, 0.1, 0.04), '#D9643A', 0, 0.6, 0.375, 0.02));
+      const schild = W.rohr(0.26, 0.06, 6); schild.rotateX(Math.PI / 2); rig.armL.add(W.teil(schild, '#D9643A', -0.1, -0.35, 0.16, 0.03));
+      const mitte = W.rohr(0.1, 0.08, 6); mitte.rotateX(Math.PI / 2); rig.armL.add(W.teil(mitte, '#F2C14E', -0.1, -0.35, 0.2, 0.02));
+    }
+    if (sk === 'cyber') {
+      const streifen = (b, x, y, z, w, h) => { const m = new T.Mesh(W.box(w, h, 0.02), neon); m.position.set(x, y, z); b.add(m); };
+      streifen(rumpf, 0, 0.45, 0.375, 0.08, 0.5); streifen(rumpf, -0.2, 0.5, 0.35, 0.05, 0.3); streifen(rumpf, 0.2, 0.5, 0.35, 0.05, 0.3);
+      for (const sd of [-1, 1]) { streifen(sd < 0 ? rig.armL : rig.armR, 0, -0.3, 0.1, 0.04, 0.4); streifen(sd < 0 ? rig.beinL : rig.beinR, 0, -0.25, 0.14, 0.05, 0.4); }
+    }
+    if (sk === 'drache') {
+      for (const sd of [-1, 1]) {
+        const fluegel = new T.Group(); fluegel.position.set(sd * 0.28, 0.8, -0.36); fluegel.rotation.set(0, sd * 0.55, sd * -0.5); rumpf.add(fluegel);
+        fluegel.add(W.teil(W.box(0.7, 0.05, 0.55), '#F08A3A', sd * 0.35, 0.05, 0, 0.03));
+        fluegel.add(W.teil(W.box(0.74, 0.07, 0.07), '#8F2F1C', sd * 0.37, 0.07, 0.28, 0.02));
+        fluegel.add(W.teil(W.box(0.07, 0.07, 0.6), '#8F2F1C', sd * 0.02, 0.07, 0, 0.02));
+      }
+      const schwanz = W.kegel(0.2, 0.9, 8); schwanz.rotateX(-Math.PI / 2 - 0.4);
+      huefte.add(W.teil(schwanz, '#C4472D', 0, 0.0, -0.62, 0.03));
+      huefte.add(W.teil(W.kegel(0.13, 0.25, 4), '#F2C14E', 0, 0.2, -1.05, 0.02));
+    }
+    if (sk === 'eiskoenig') {
+      rumpf.add(W.teil(W.box(0.82, 1.1, 0.06), '#7CD4FF', 0, 0.35, -0.42, 0.035));
+      const kragen = new T.TorusGeometry(0.36, 0.1, 8, 20); kragen.rotateX(Math.PI / 2); rumpf.add(W.teil(kragen, '#FFFFFF', 0, 0.92, 0, 0.025));
+      for (const sd of [-1, 1]) { const kr = rumpf.add(W.teil(W.kegel(0.1, 0.32, 4), '#BFE9FF', sd * 0.5, 0.95, 0, 0.02)); }
+    }
     rig.anim = a.emote; rig.aussehen = a;
     aussen.userData.rig = rig;
     return aussen;
@@ -171,6 +205,20 @@
     if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
     if (typ === 'eismuetze') { add(kappe(1.1, 0.34), '#7CD4FF', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
     if (typ === 'eiskrone') { const r = new T.CylinderGeometry(R * 0.72, R * 0.72, 0.22, 16, 1, true); add(r, '#BFE9FF', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 7; i++) { const w = i / 7 * Math.PI * 2; add(W.kegel(0.11, i % 2 ? 0.34 : 0.52, 4), '#7CD4FF', Math.cos(w) * R * 0.68, R * (i % 2 ? 1.2 : 1.28), Math.sin(w) * R * 0.68, 0.02); } }
+    if (typ === 'ritterhelm') {
+      add(kappe(1.14, 0.48), '#B9C2CC', 0, 0.02, 0).rotation.x = -0.1;
+      add(W.box(0.07, 0.3, 0.05), '#8D98A5', 0, R * 0.25, R * 1.02, 0.02);
+      add(W.kegel(0.1, 0.55, 6), '#D9643A', 0, R * 1.08, -0.12, 0.02).rotation.x = -0.4;
+      for (const sd of [-1, 1]) add(W.box(0.07, 0.4, 0.3), '#8D98A5', sd * R * 1.02, -0.08, 0.05, 0.02);
+    }
+    if (typ === 'visier') {
+      const v = new T.Mesh(W.box(0.86, 0.2, 0.1), new T.MeshBasicMaterial({ color: 0x3FE0FF, transparent: true, opacity: 0.85 })); v.position.set(0, 0.08, R * 0.93); k.add(v);
+      add(kappe(1.08, 0.36), '#1F2D4A', 0, 0.02, 0).rotation.x = -0.15;
+    }
+    if (typ === 'drachenhoerner') {
+      for (const sd of [-1, 1]) { const h = add(W.kegel(0.1, 0.5, 6), '#F2C14E', sd * 0.3, R * 0.9, -0.02, 0.025); h.rotation.z = -sd * 0.45; }
+      for (let i = 0; i < 4; i++) add(W.kegel(0.07, 0.18, 4), '#C4472D', 0, R * (1.0 - i * 0.14), -R * (0.1 + i * 0.28), 0.02).rotation.x = -0.5;
+    }
     if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
     if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#FFFFFF', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
     if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
@@ -296,6 +344,24 @@
         flach(16, 2.2, '#EAF4FF', 0, -2.4, 0.05);
         for (let i = 0; i < 6; i++) kreis(0.55 + zufall() * 0.3, '#2F5D45', -6 + i * 2.4 + zufall(), -0.9, 0.06, 3).rotation.z = Math.PI / 2;
         ticks.push(t => { band.forEach(([m, i]) => { m.position.x = Math.sin(t * 0.4 + i) * 0.9; m.rotation.z = Math.sin(t * 0.5 + i * 2) * 0.05; m.scale.y = 0.8 + 0.5 * Math.abs(Math.sin(t * 0.6 + i)); }); st.forEach((m, i) => m.scale.setScalar(0.6 + 0.4 * Math.abs(Math.sin(t * 1.4 + i)))); });
+        break;
+      }
+      case 'galaxie': {
+        flach(16, 10, '#0B1026', 0, 2);
+        const farben = ['#FFFFFF', '#7CD4FF', '#F2C14E', '#E86AA6'], st = [];
+        for (let i = 0; i < 70; i++) st.push(kreis(0.02 + zufall() * 0.045, farben[i % 4], zufall() * 14 - 7, zufall() * 8 - 1.5, 0.02, 6));
+        const planet = kreis(1.5, '#E86AA6', 3.5, 3.6, 0.03, 32); const ring = kreis(2.3, '#F2C14E', 3.5, 3.6, 0.025, 32); ring.scale.set(1, 0.22, 1); ring.rotation.z = 0.4;
+        const mond = kreis(0.6, '#7CD4FF', -3.8, 1.2, 0.03, 24);
+        kreis(0.18, '#FFFFFF', -3.5, 1.5, 0.04, 16);
+        ticks.push(t => { st.forEach((m, i) => m.scale.setScalar(0.5 + 0.5 * Math.abs(Math.sin(t * 1.3 + i)))); planet.position.y = 3.6 + Math.sin(t * 0.5) * 0.15; ring.position.y = planet.position.y; mond.position.y = 1.2 + Math.sin(t * 0.7 + 1) * 0.12; });
+        break;
+      }
+      case 'lavafluss': {
+        flach(16, 10, '#2A0E0E', 0, 2);
+        const gluten = []; for (let i = 0; i < 30; i++) gluten.push([kreis(0.04 + zufall() * 0.07, i % 2 ? '#FF7A2E' : '#F2C14E', zufall() * 12 - 6, -2 + zufall() * 6, 0.02, 8), 0.3 + zufall() * 0.6]);
+        const strom = []; for (let i = 0; i < 3; i++) strom.push(flach(16, 0.7, ['#FF7A2E', '#F2C14E', '#D9643A'][i], 0, -1.6 - i * 0.6, 0.03 + i * 0.001));
+        for (let i = 0; i < 6; i++) kreis(0.7 + zufall() * 0.5, '#120606', -6 + i * 2.4 + zufall(), -0.6, 0.06, 3).rotation.z = Math.PI / 2;
+        ticks.push(t => { gluten.forEach(([m, v], i) => { m.position.y = -2 + ((t * v + i * 0.41) % 7); }); strom.forEach((m, i) => { m.position.x = Math.sin(t * 0.6 + i * 1.7) * 0.5; m.scale.y = 0.85 + 0.3 * Math.abs(Math.sin(t + i)); }); });
         break;
       }
       case 'leer': break;                // nichts dahinter (Profil zeigt dort das Banner)

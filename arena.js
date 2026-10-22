@@ -27,13 +27,18 @@
   const aktPokale = () => MODUS === 'kraft' ? kraftPokale : pokale;
   const arenaName = k => MODUS === 'kraft' ? NAMEN_KRAFT[k] : ARENEN[k].name;
   let profilDaten = null;
-  let F = store.get('wf-figur', null) || { aussehen: Figur.STANDARD, coins: 150, besitz: [] };
+  let F = store.get('wf-figur', null) || { aussehen: Figur.STANDARD, coins: 150, gems: 0, besitz: [] };
+  F.gems = F.gems || 0;
   F.aussehen = Figur.pruefen(F.aussehen);
 
   const arenaZu = p => { let i = 0; ARENEN.forEach((a, k) => { if (p >= a.ab) i = k; }); return i; };
   const zeit = s => s == null ? '–' : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   const meter = m => m >= 1000 ? (m / 1000).toFixed(2).replace('.', ',') + ' km' : Math.round(m) + ' m';
   const coin = '<img class="ar-coin" src="arena/coin.svg" alt="Coins">';
+  const gem = '<img class="ar-gem" src="arena/gem.svg" alt="Gems">';
+  // Preise im Katalog: Zahl = Coins, 'g120' = Gems, 'pass' = nur im Winterpass
+  const preisArt = p => typeof p === 'number' ? 'coins' : /^g\d+$/.test(p) ? 'gems' : 'pass';
+  const preisWert = p => typeof p === 'number' ? p : /^g\d+$/.test(p) ? +p.slice(1) : 0;
 
   /* ---------- Handgezeichneter Rahmen ---------- */
   function wackelPfad(w, h, r, saat) {
@@ -62,6 +67,7 @@
     <div class="ar-buehne">
       <div class="ar-oben">
         <button class="ar-chip" id="arCoins" aria-label="Shop und Charakter">${rahmen(120, 48, 14, 7, '#fff')}${coin}<b id="arCoinZahl">0</b></button>
+        <button class="ar-chip" id="arGems" aria-label="Gems und besondere Outfits">${rahmen(110, 48, 14, 6, '#fff')}${gem}<b id="arGemZahl">0</b></button>
         <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
         <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
@@ -146,7 +152,7 @@
   function zeichnen(ohneLaden) {
     const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
     $('arPokale').textContent = pk;
-    $('arCoinZahl').textContent = F.coins;
+    $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
     $('arName').textContent = `Arena ${i + 1} · ${arenaName(i)}`;
     tab.querySelectorAll('[data-modus]').forEach(b => b.classList.toggle('an', b.dataset.modus === MODUS));
     $('arBattle').querySelector('span').textContent = 'BATTLE';
@@ -167,7 +173,18 @@
       if (profilDaten && profilDaten.pokale !== pokale) { pokale = profilDaten.pokale; store.set('wf-pokale', pokale); neu = true; }
       if (kraftDaten && kraftDaten.pokale !== kraftPokale) { kraftPokale = kraftDaten.pokale; store.set('wf-kpokale', kraftPokale); neu = true; }
       if (neu) zeichnen(true);
+      meilensteine();
     } catch (err) { /* offline: alter Stand bleibt */ }
+  }
+  // Neue Arena freigeschaltet: einmalig Gems vom Server
+  async function meilensteine() {
+    try {
+      const r = await wf().rpc('wf_meilensteine', mit({}));
+      if (r && r.gems > 0) {
+        toast(`Neue Arena! +${r.gems} Gems`); if (window.Klang) Klang.effekt('kauf');
+        figurLaden();
+      }
+    } catch (err) { /* nächstes Mal */ }
   }
   // Figur, Coins und Besitz vom Server. Hat der Server noch keine Figur, wird die vom Gerät hochgeladen.
   async function figurLaden() {
@@ -176,10 +193,10 @@
       const r = await wf().rpc('wf_figur_holen', { p_spieler: ich().id });
       if (!r) return;
       const leer = !r.aussehen || !Object.keys(r.aussehen).length;
-      F = { aussehen: leer ? F.aussehen : Figur.pruefen(r.aussehen), coins: r.coins, besitz: r.besitz || [] };
+      F = { aussehen: leer ? F.aussehen : Figur.pruefen(r.aussehen), coins: r.coins, gems: r.gems || 0, besitz: r.besitz || [] };
       store.set('wf-figur', F);
       if (leer) wf().rpc('wf_figur_speichern', mit({ p_aussehen: F.aussehen })).catch(() => {});
-      $('arCoinZahl').textContent = F.coins;
+      $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
       if (window.Arena3D) Arena3D.figur(F.aussehen);
     } catch (err) { /* offline */ }
   }
@@ -372,6 +389,7 @@
     $('arEinstKoerper').onclick = () => { schliessen(); openProfile(); };
   }
   $('arCoins').onclick = () => editor('skins');
+  $('arGems').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
   const REITER = [['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
@@ -391,7 +409,7 @@
       `<button data-feld="${feld}" data-wert="${c}" class="${a[feld] === c ? 'an' : ''}" style="background:${c}" aria-label="${titel}"></button>`).join('')}</div>`;
     const wahl = (feld, liste, titel) => `<h3 class="ar-h">${titel}</h3><div class="ar-wahl">${liste.map(([id, name, preis]) => {
       const hab = besitzt(feld, id);
-      return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${typeof preis === 'number' ? coin + preis : 'Pass'}</small>`}</button>`;
+      return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${preisArt(preis) === 'coins' ? coin + preis : preisArt(preis) === 'gems' ? gem + preisWert(preis) : 'Pass'}</small>`}</button>`;
     }).join('')}</div>`;
     const inhalt = {
       gesicht: () => farbe('haut', K.haut, 'Hautfarbe') + wahl('augen', K.augen, 'Augen') + wahl('brauen', K.brauen, 'Augenbrauen') + wahl('mund', K.mund, 'Mund') + wahl('gesicht', K.gesicht, 'Im Gesicht'),
@@ -403,15 +421,15 @@
       intro: () => '<p class="ar-hand">Läuft in der Cutscene vor jedem Duell. Dein Gegner sieht es.</p>' + wahl('intro', K.intro, 'Intro'),
       hg: () => '<p class="ar-hand">Hinter deiner Figur in Cutscene, Duell und Ergebnis.</p>' + wahl('hg', K.hg, 'Hintergrund')
     }[E.reiter]();
-    const zu = gesperrt(a), kaufbar = zu.filter(t => typeof t.preis === 'number'), nurPass = zu.filter(t => typeof t.preis !== 'number');
+    const zu = gesperrt(a).map(t => Object.assign(t, { art: preisArt(t.preis), wert: preisWert(t.preis) })), kaufbar = zu.filter(t => t.art !== 'pass'), nurPass = zu.filter(t => t.art === 'pass');
     zeigeBlatt(`
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
-      <div class="ar-coinzeile">${coin}<b>${F.coins}</b><span>Coins</span></div>
+      <div class="ar-coinzeile">${coin}<b>${F.coins}</b><span>Coins</span>${gem}<b>${F.gems || 0}</b><span>Gems</span></div>
       <div class="ar-reiter">${REITER.map(([id, n]) => `<button data-reiter="${id}" class="${E.reiter === id ? 'an' : ''}">${n}</button>`).join('')}</div>
       ${inhalt}
       <div class="ar-fuss">
         ${nurPass.length ? `<p class="ar-hand klein">${e(nurPass[0].name)} bekommst du nur im Winterpass.</p>` : ''}
-        ${kaufbar.length ? `<button class="ar-knopf breit gold" id="arKaufen">${e(kaufbar[0].name)} kaufen · ${kaufbar[0].preis} ${coin}</button>` : ''}
+        ${kaufbar.length ? `<button class="ar-knopf breit ${kaufbar[0].art === 'gems' ? 'gemknopf' : 'gold'}" id="arKaufen">${e(kaufbar[0].name)} kaufen · ${kaufbar[0].wert} ${kaufbar[0].art === 'gems' ? gem : coin}</button>` : ''}
         <button class="ar-knopf breit" id="arFigurOk">${zu.length ? 'Erst kaufen, dann speichern' : 'Speichern'}</button>
       </div>`, 'editor', { aussehen: a, anim: E.reiter === 'emotes' ? a.emote : E.reiter === 'intro' ? a.intro : 'idle', boese: E.reiter === 'intro' }, bleiben);
     $('arBlatt').querySelectorAll('[data-feld]').forEach(b => b.onclick = () => { E.a[b.dataset.feld] = b.dataset.wert; editorMalen(true); });
@@ -422,11 +440,12 @@
   }
   async function kaufen(teil) {
     if (!ich()) { toast('Erst Spitznamen eintragen, dann kannst du kaufen'); return profil(); }
-    if (F.coins < teil.preis) return toast(`Dir fehlen ${teil.preis - F.coins} Coins. Rennen und Training bringen welche.`);
+    const gems = teil.art === 'gems', hab = gems ? (F.gems || 0) : F.coins;
+    if (hab < teil.wert) return toast(gems ? `Dir fehlen ${teil.wert - hab} Gems. Der Winterpass und neue Arenen bringen welche.` : `Dir fehlen ${teil.wert - hab} Coins. Rennen und Training bringen welche.`);
     try {
-      const r = await wf().rpc('wf_kaufen', mit({ p_item: teil.kat + ':' + teil.id }));
-      F.coins = r.coins; F.besitz = r.besitz || []; store.set('wf-figur', F);
-      $('arCoinZahl').textContent = F.coins;
+      const r = await wf().rpc(gems ? 'wf_kaufen_gems' : 'wf_kaufen', mit({ p_item: teil.kat + ':' + teil.id }));
+      F.coins = r.coins; F.gems = r.gems || 0; F.besitz = r.besitz || []; store.set('wf-figur', F);
+      $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems;
       toast(`${teil.name} gehört jetzt dir`); if (window.Klang) Klang.effekt('kauf');
       editorMalen(true);
     } catch (err) { toast(err.message); }

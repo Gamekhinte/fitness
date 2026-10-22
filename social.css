@@ -146,3 +146,41 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .ps-haken{position:absolute;right:6px;top:4px;width:18px;height:18px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='%233E7A55' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .ar-blatt h2.ar-titel{padding:0 42px}
+
+/* Gems, Chips oben, Pass-Aufmachung */
+.ar-gem{width:22px;display:inline-block;vertical-align:-4px}
+.ar-oben{gap:6px}
+.ar-buehne .ar-chip{min-width:0;padding:0 10px!important;gap:5px}
+.ar-chip b{font-size:20px}
+.ar-chip img{width:22px}
+.ar-coinzeile{flex-wrap:wrap;gap:6px 6px}
+.ar-coinzeile .ar-gem{margin-left:12px}
+.ar-knopf.gemknopf{background:#3CBFB0}
+.ps-hero{text-align:center;margin:10px 0 4px;padding:8px 10px;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);background:#fff}
+.ps-hero span{display:inline-block;font-family:var(--dick);font-size:13px;letter-spacing:.5px;padding:0 8px;border:2px solid var(--graphit);border-radius:5px;background:var(--marker)}
+.ps-hero b{display:block;font-family:var(--dick);font-weight:400;font-size:26px;line-height:1.15;margin-top:3px}
+.ps-hero small{font-family:var(--hand);font-size:17px;color:var(--mut)}
+.ps-hero.episch span{background:#E86AA6}
+.ps-hero.legendaer{background:#FFF1C4}
+.ps-hero.legendaer span{background:var(--gold)}
+.ps-konto{display:flex;justify-content:center;gap:22px;margin:4px 0 2px;font-family:var(--dick);font-size:22px}
+.ps-konto span{display:flex;align-items:center;gap:6px}
+.ps-konto b{font-weight:400}
+.ps-werbung{margin:12px 0 0;padding:10px 12px;text-align:center;background:#FFF1C4;border:3px dashed var(--graphit);border-radius:14px;font-family:var(--hand);font-size:18px;line-height:1.25}
+.ps-werbung b{display:block;font-family:var(--dick);font-weight:400;font-size:20px}
+.ps-reihe.gross .ps-nr{width:42px;height:42px;font-size:19px;background:var(--gold);margin-top:0}
+.ps-reihe.gross .ps-box{min-height:70px}
+.ps-box.gems{background:#C9F2EC}
+.ps-box.gems.zu,.ps-box.gems.premium{background:#DCEBE7}
+.ps-box.gems.geholt{background:var(--papier)}
+.ps-box.item.episch{border-color:#B83B7E}
+.ps-box.item.legendaer{border-color:#C98A00;background:#FFF1C4}
+.ps-box.item.legendaer.zu,.ps-box.item.legendaer.premium{background:#F3E6B8}
+.ps-box.item.gewaehlt{outline:3px solid var(--graphit);outline-offset:2px}
+@keyframes psPuls{0%,100%{box-shadow:0 3px 0 var(--graphit),0 0 0 0 rgba(242,193,78,.8)}50%{box-shadow:0 3px 0 var(--graphit),0 0 0 7px rgba(242,193,78,0)}}
+.ps-box.bereit{animation:psPuls 1.4s ease-out infinite}
+.ps-box.item:not(:disabled){cursor:pointer}
+.ps-konfetti{position:fixed;inset:0;z-index:5000;pointer-events:none;overflow:hidden}
+.ps-konfetti i{position:absolute;top:-20px;width:10px;height:14px;border:2px solid var(--graphit);border-radius:2px;animation:psFall 1.6s ease-in forwards}
+@keyframes psFall{to{top:105%;transform:translateX(30px) rotate(540deg)}}
+@media (prefers-reduced-motion:reduce){.ps-box.bereit{animation:none}}
