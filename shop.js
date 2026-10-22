@@ -148,6 +148,7 @@
         <h2>Shop</h2>
         <span class="sh-konto"><span>${A.coin}<b>${F.coins}</b></span><span>${gem}<b>${F.gems || 0}</b></span></span>
       </div>
+      <div id="shTag"></div>
       <div class="sh-restock"><span>Neues Sortiment in</span><b id="shUhr">${rest()}</b></div>
       ${highlight(a.highlight)}
       <div class="sh-abschnitt"><h3>Heute</h3></div>
@@ -159,11 +160,58 @@
         <button class="ar-knopf breit leise2" data-sh="alle">Alle Teile ansehen</button>
       </div>`;
     bilderStarten(w);
+    tagLaden();
   }
+
+  /* ---------- Täglicher Login und Tagesaufgaben (Server: wf_login_*, wf_quests, wf_quest_holen) ---------- */
+  let tagDaten = null;
+  async function tagLaden() {
+    const box = el('shTag');
+    if (!A.ich()) { if (box) box.innerHTML = ''; return; }
+    try { tagDaten = { l: await A.wf().rpc('wf_login_status', A.mit({})), q: await A.wf().rpc('wf_quests', A.mit({})) }; } catch (err) { return; }
+    abzeichen();
+    if (!box) return;
+    const { l, q } = tagDaten;
+    const tage = l.belohnungen.map((b, i) => {
+      const n = i + 1, fertig = n < l.tag || (n === l.tag && l.geholt);
+      return `<span class="${fertig ? 'da' : ''}${n === l.tag ? ' heute' : ''}"><small>Tag ${n}</small>${b.gems ? gem + b.gems : A.coin + b.coins}</span>`;
+    }).join('');
+    const quest = x => {
+      const fertig = x.stand >= x.ziel;
+      return `<div class="sh-quest${fertig ? ' fertig' : ''}"><span class="sh-qtext"><b>${e(x.text)}</b><i class="sh-qbalken"><u style="width:${Math.min(100, x.stand / x.ziel * 100)}%"></u></i></span>
+        ${x.geholt ? '<span class="so-bot">Erledigt</span>' : fertig ? `<button class="so-mini" data-sh="quest" data-id="${e(x.id)}">+${x.coins} ${A.coin}</button>` : `<span class="sh-lohn">${A.coin}${x.coins}</span>`}</div>`;
+    };
+    box.innerHTML = `
+      <div class="sh-abschnitt"><h3>Tägliche Belohnung</h3></div>
+      <div class="sh-login"><div class="sh-tage">${tage}</div>
+        ${l.geholt ? '<p class="sh-hinweis">Heute schon abgeholt, morgen wartet die nächste.</p>' : `<button class="ar-knopf breit gold" data-sh="login">Tag ${l.tag} abholen</button>`}</div>
+      <div class="sh-abschnitt"><h3>Tagesaufgaben</h3></div>
+      <div class="sh-quests">${q.quests.map(quest).join('')}
+        <div class="sh-quest bonus${q.bonus_bereit ? ' fertig' : ''}"><span class="sh-qtext"><b>Alle drei geschafft</b></span>
+          ${q.bonus_geholt ? '<span class="so-bot">Erledigt</span>' : q.bonus_bereit ? `<button class="so-mini" data-sh="quest" data-id="bonus">+1 ${gem}</button>` : `<span class="sh-lohn">${gem}1</span>`}</div></div>`;
+  }
+  // roter Punkt am Shop-Symbol, wenn etwas abzuholen ist
+  function abzeichen() {
+    const b = document.querySelector('.nav [data-tab="shop"]'); if (!b || !tagDaten) return;
+    const { l, q } = tagDaten;
+    b.classList.toggle('badge', !l.geholt || q.quests.some(x => x.stand >= x.ziel && !x.geholt) || (q.bonus_bereit && !q.bonus_geholt));
+  }
+  async function tagHolen(was, id) {
+    try {
+      const r = await A.wf().rpc(was === 'login' ? 'wf_login_holen' : 'wf_quest_holen', was === 'login' ? A.mit({}) : A.mit({ p_quest: id }));
+      toast(`${r.coins ? '+' + r.coins + ' Coins' : ''}${r.coins && r.gems ? ' und ' : ''}${r.gems ? '+' + r.gems + ' Gems' : ''}`);
+      if (window.Klang) Klang.effekt('muenze');
+      await A.figurLaden(); zeichnen();
+    } catch (err) { toast(err.message); }
+  }
+  setTimeout(tagLaden, 2500);
+  setInterval(() => { if (!document.hidden && A.ich()) tagLaden(); }, 60000);
   tab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-sh]'); if (!b) return;
     const a = b.dataset.sh;
-    if (a === 'alle') A.editor('skins');
+    if (a === 'login') tagHolen('login');
+    else if (a === 'quest') tagHolen('quest', b.dataset.id);
+    else if (a === 'alle') A.editor('skins');
     else if (a === 'pass') { if (window.Pass) Pass.sheet(); }
     else if (a === 'anprobe') {
       const it = alle().find(i => i.key === b.dataset.key);

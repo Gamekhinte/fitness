@@ -649,6 +649,7 @@
       ${hinweis ? `<p class="ar-hand">${hinweis}</p>` : ''}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
+      ${sieg && !ungueltig && !abgelaufen && window.Social && meineZeit ? `<button class="ar-knopf breit leise2" data-so="teilen" data-text="${e(`Ich habe ${(KLASSEN.find(x => x[0] === war.klasse) || [0, ''])[1]} in ${zeit(meineZeit)} gewonnen. Schaffst du das?`)}">Sieg teilen</button>` : ''}
       ${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis',
       { aussehen: F.aussehen, anim: ungueltig ? 'idle' : sieg ? F.aussehen.emote : 'traurig', konfetti: sieg && !ungueltig });

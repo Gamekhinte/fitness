@@ -83,6 +83,7 @@
     kauf(t) { [0, 0.07, 0.14].forEach((dt, i) => EFFEKTE.muenze(t + dt * 1.5)); [72, 76, 79, 84].forEach((n, i) => ton(t + 0.25 + i * 0.07, { f: hz(n), dauer: 0.35, typ: 'triangle', laut: 0.16, hallAnteil: 0.6 })); }
   };
   function effekt(name, a) {
+    if (window.Extras) Extras.haptik(name);
     if (zustand.lautEffekte <= 0.01 || !start() || !EFFEKTE[name]) return;
     EFFEKTE[name](ctx.currentTime + 0.01, a);
   }

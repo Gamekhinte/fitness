@@ -472,6 +472,7 @@
   function einstellungenHtml() {
     const aus = store.get('wf-chat-aus', false);
     return `<h3 class="ar-h">Sicherheit</h3>
+      ${window.Extras && Extras.kann ? `<button class="ar-knopf breit leise2" data-so="haptik">Vibration: ${Extras.haptikAn ? 'an' : 'aus'}</button>` : ''}
       <button class="ar-knopf breit leise2" data-konto="oeffnen">Konto und Login</button>
       <button class="ar-knopf breit leise2" data-so="chatToggle">Chat: ${aus ? 'ausgeblendet' : 'an'}</button>
       ${ich() ? '<button class="ar-knopf breit leise2" data-so="blockliste">Geblockte Spieler</button>' : ''}
@@ -566,6 +567,8 @@
     },
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
     matches: () => matches(),
+    haptik() { Extras.setzeHaptik(!Extras.haptikAn); A.einstellungen(); },
+    teilen: b => W().teilen(b.text, location.origin + location.pathname),
     titel: () => titelSheet(),
     async titelWaehlen(b) { try { await rpc('wf_titel_waehlen', mit({ p_titel: b.id })); await titelSheet(); } catch (err) { fehler(err); } },
     async matchFreund(b) { if (await anfragen(b.tag)) matches(); },

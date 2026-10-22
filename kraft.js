@@ -558,7 +558,7 @@
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <h2 class="ar-titel ar-pop${titel === 'Gewonnen!' ? ' sieg' : ''}">${titel}</h2>
       ${titel === 'Zählt nicht' ? '' : ui.beuteHtml()}
-      ${text}${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen!' });
+      ${text}${titel === 'Gewonnen!' && window.Social && s ? `<button class="ar-knopf breit leise2" data-so="teilen" data-text="${e(`Ich habe ein Duell gewonnen: ${(war.seite === 'a' ? s.a_wert : s.b_wert)} ${u.einheit}. Schaffst du mehr?`)}">Sieg teilen</button>` : ''}${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen!' });
     ui.feiern(titel === 'Gewonnen!', delta || 0, coins);
     ui.nachDuell();
   }

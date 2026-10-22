@@ -318,3 +318,28 @@ body.papier main{padding-top:0}
 .sh-hl.klein .sh-hl-text{gap:1px;padding:6px 12px}
 .sh-hl.klein .sh-hl-text b{font-size:20px}
 .sh-hl.klein .sh-preis{margin:3px 0 0;font-size:16px}
+
+/* Tägliche Belohnung und Tagesaufgaben */
+.sh-login{padding:10px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit)}
+.sh-tage{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.sh-tage span{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 0;font-family:var(--dick);font-size:14px;background:#EDE6D6;border:2.5px solid var(--graphit);border-radius:9px}
+.sh-tage small{font-family:var(--hand);font-size:11px;color:var(--mut)}
+.sh-tage img{width:16px}
+.sh-tage span.heute{background:var(--gold)}
+.sh-tage span.da{background:#C9F2EC;opacity:.75}
+.sh-login .ar-knopf{margin-top:10px;font-size:17px;padding:8px}
+.sh-hinweis{margin:8px 0 0;text-align:center;font-family:var(--hand);font-size:16px;color:var(--mut)}
+.sh-quests{display:grid;gap:8px}
+.sh-quest{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.sh-quest.fertig{background:#FFF1C4}
+.sh-quest.bonus{background:#EDE6D6}
+.sh-quest.bonus.fertig{background:#C9F2EC}
+.sh-qtext{flex:1;min-width:0}
+.sh-qtext b{display:block;font-family:var(--dick);font-weight:400;font-size:17px;line-height:1.15}
+.sh-qbalken{display:block;height:9px;margin-top:5px;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:6px;overflow:hidden}
+.sh-qbalken u{display:block;height:100%;background:var(--marker);text-decoration:none}
+.sh-lohn{flex:none;display:flex;align-items:center;gap:4px;font-family:var(--dick);font-size:16px}
+.sh-lohn img{width:18px}
+.nav button.badge{position:relative}
+.nav button.badge::after{content:'';position:absolute;top:5px;right:12px;width:13px;height:13px;border-radius:50%;background:var(--rot);border:2.5px solid var(--graphit)}
+.sh-quests{margin-bottom:12px}
