@@ -1,11 +1,12 @@
 /* ================= WINTERFORM KLANG =================
    Alle Sounds und die Arena-Musik werden live mit der Web-Audio-API erzeugt (keine Dateien, keine Stimmen).
+   Musik: Menü-Marsch (überall in der App) und ein schnellerer Runden-Track für Rennen und Duelle.
    Effekte: tipp, wdh (wird mit jeder Wiederholung höher), fehler, countdown, los, gefunden, sieg, niederlage,
    muenze, pokal, meilenstein, plumps, kauf. Musik: fröhlicher Marsch in C-Dur, 8 Takte in Schleife.
    Browser erlauben Ton erst nach dem ersten Antippen, deshalb startet alles beim ersten Touch. */
 (function () {
   let ctx = null, master = null, musikGain = null, effektBus = null, hall = null;
-  const zustand = { lautMusik: store.get('wf-laut-musik', 0.7), lautEffekte: store.get('wf-laut-effekte', 0.9), musik: true, effekte: true, spielt: false, gewuenscht: false, timer: null, schritt: 0, naechste: 0 };
+  const zustand = { lautMusik: store.get('wf-laut-musik', 0.7), lautEffekte: store.get('wf-laut-effekte', 0.9), musik: true, effekte: true, spielt: false, gewuenscht: false, timer: null, schritt: 0, naechste: 0, titel: 'menue' };
 
   function start() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return true; }
@@ -86,8 +87,8 @@
     EFFEKTE[name](ctx.currentTime + 0.01, a);
   }
 
-  /* ---------- Arena-Musik: kleiner Marsch, 8 Takte ---------- */
-  const TEMPO = 112, SCHRITT = 60 / TEMPO / 4;              // 16tel
+  /* ---------- Musik: zwei Tracks, 8 Takte in Schleife ---------- */
+  // Menü: fröhlicher Marsch in C-Dur, 112 BPM
   const AKKORDE = [[48, 52, 55], [45, 48, 52], [41, 45, 48], [43, 47, 50], [48, 52, 55], [45, 48, 52], [41, 45, 48], [43, 47, 50]];
   // Melodie: [Schritt im Takt, Note] pro Takt
   const MELODIE = [
@@ -106,18 +107,43 @@
     const m = MELODIE[nr].find(x => x[0] === s);
     if (m) { ton(t, { f: hz(m[1]), dauer: 0.32, typ: 'sawtooth', laut: 0.11, filter: 3200, an: 0.01, ziel: z, hallAnteil: 0.5, detune: -5 }); ton(t, { f: hz(m[1]), dauer: 0.32, typ: 'triangle', laut: 0.12, ziel: z, detune: 5 }); }
   }
+
+  // Runde: treibender Track in A-Moll, 146 BPM, Kick auf jedem Schlag, Achtel-Bass, Arpeggio
+  const AK2 = [[57, 60, 64], [57, 60, 64], [53, 57, 60], [53, 57, 60], [48, 52, 55], [48, 52, 55], [55, 59, 62], [55, 59, 62]];
+  const WURZEL2 = [45, 45, 41, 41, 48, 48, 43, 43];
+  const MEL2 = [
+    [[0, 81], [3, 84], [6, 81], [10, 79], [12, 81]], [[0, 76], [3, 79], [6, 81], [10, 84], [14, 81]],
+    [[0, 77], [3, 81], [6, 84], [10, 81], [12, 77]], [[0, 79], [4, 77], [8, 76], [12, 77]],
+    [[0, 79], [3, 84], [6, 79], [10, 76], [12, 79]], [[0, 84], [4, 79], [8, 76], [12, 79]],
+    [[0, 83], [3, 79], [6, 74], [10, 79], [12, 83]], [[0, 86], [4, 83], [8, 79], [10, 83], [12, 81], [14, 83]]
+  ];
+  function taktRunde(t, nr, s) {
+    const ak = AK2[nr], z = musikGain;
+    if (s % 4 === 0) ton(t, { f: 130, f2: 42, dauer: 0.2, laut: 0.6, ziel: z });                                  // Kick auf jedem Schlag
+    if (s === 4 || s === 12) { rauschen(t, { dauer: 0.16, laut: 0.26, band: 2600, q: 0.7, ziel: z }); ton(t, { f: 240, f2: 160, dauer: 0.09, typ: 'triangle', laut: 0.16, ziel: z }); }   // Snare
+    if (s % 4 === 2) rauschen(t, { dauer: 0.07, laut: 0.09, band: 8500, q: 1.5, ziel: z });                       // offene Hi-Hat zwischen den Kicks
+    else if (s % 2 === 1) rauschen(t, { dauer: 0.02, laut: 0.035, band: 10000, q: 2, ziel: z });                  // 16tel-Tick
+    if (s % 2 === 0) ton(t, { f: hz(WURZEL2[nr] + (s % 8 === 6 ? 12 : 0)), dauer: 0.16, typ: 'sawtooth', laut: 0.3, filter: 650, q: 2, ziel: z });   // Achtel-Bass
+    if (s % 2 === 1 || s % 4 === 0) ton(t, { f: hz(ak[(s >> 1) % 3] + 12), dauer: 0.09, typ: 'square', laut: 0.04, filter: 2400, ziel: z });         // Arpeggio
+    const m = MEL2[nr].find(x => x[0] === s);
+    if (m) { ton(t, { f: hz(m[1]), dauer: 0.26, typ: 'sawtooth', laut: 0.1, filter: 3600, an: 0.008, ziel: z, hallAnteil: 0.4, detune: -6 }); ton(t, { f: hz(m[1]), dauer: 0.26, typ: 'square', laut: 0.05, filter: 2800, ziel: z, detune: 6 }); }
+  }
+  const TRACKS = { menue: { tempo: 112, fn: takt, pegel: 0.5 }, runde: { tempo: 146, fn: taktRunde, pegel: 0.36 } };
+  const schrittDauer = () => 60 / TRACKS[zustand.titel].tempo / 4;       // 16tel
   function planen() {
+    const tr = TRACKS[zustand.titel];
     while (zustand.naechste < ctx.currentTime + 0.15) {
       const s = zustand.schritt % 16, nr = Math.floor(zustand.schritt / 16) % 8;
-      takt(zustand.naechste, nr, s);
-      zustand.naechste += SCHRITT; zustand.schritt++;
+      tr.fn(zustand.naechste, nr, s);
+      zustand.naechste += schrittDauer(); zustand.schritt++;
     }
   }
+  const pegel = () => TRACKS[zustand.titel].pegel * zustand.lautMusik;
   // spielen(): startet die Schleife, wenn erlaubt; stoppen(): hält sie an. gewuenscht = die Seite will gerade Musik.
   function spielen() {
     if (zustand.lautMusik <= 0.01 || !zustand.gewuenscht || zustand.spielt || document.hidden || !start() || ctx.state !== 'running') return;
     zustand.spielt = true; zustand.schritt = 0; zustand.naechste = ctx.currentTime + 0.1;
-    musikGain.gain.cancelScheduledValues(ctx.currentTime); musikGain.gain.setValueAtTime(0.0001, ctx.currentTime); musikGain.gain.setTargetAtTime(0.5 * zustand.lautMusik, ctx.currentTime, 0.4);
+    musikGain.gain.cancelScheduledValues(ctx.currentTime); musikGain.gain.setValueAtTime(0.0001, ctx.currentTime); musikGain.gain.setTargetAtTime(pegel(), ctx.currentTime, 0.4);
     zustand.timer = setInterval(planen, 40);
   }
   function stoppen() {
@@ -125,12 +151,22 @@
     zustand.spielt = false; clearInterval(zustand.timer);
     musikGain.gain.cancelScheduledValues(ctx.currentTime); musikGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.12);
   }
-  const musikAn = () => { zustand.gewuenscht = true; spielen(); };
-  const musikAus = () => { zustand.gewuenscht = false; stoppen(); };
+  // Titel wechseln: kurz ausblenden, dann den neuen Track von vorn
+  let wechsel = null;
+  const musikAn = titel => {
+    titel = TRACKS[titel] ? titel : 'menue';
+    zustand.gewuenscht = true;
+    if (titel !== zustand.titel) {
+      const lief = zustand.spielt;
+      stoppen(); zustand.titel = titel; clearTimeout(wechsel);
+      if (lief) wechsel = setTimeout(spielen, 220); else spielen();
+    } else spielen();
+  };
+  const musikAus = () => { zustand.gewuenscht = false; clearTimeout(wechsel); stoppen(); };
   document.addEventListener('visibilitychange', () => { if (document.hidden) stoppen(); else spielen(); });
 
   window.Klang = {
-    effekt, musik: an => an ? musikAn() : musikAus(),
+    effekt, musik: (an, titel) => an ? musikAn(titel) : musikAus(), get titel() { return zustand.titel; }, get spielt() { return zustand.spielt; }, get gewuenscht() { return zustand.gewuenscht; },
     get musikAn() { return zustand.lautMusik > 0.01; },
     laut(art) { return art === 'musik' ? zustand.lautMusik : zustand.lautEffekte; },
     // Lautstärke 0 bis 1 setzen, 0 heißt aus
@@ -138,7 +174,7 @@
       v = Math.max(0, Math.min(1, v));
       if (art === 'musik') {
         zustand.lautMusik = v; store.set('wf-laut-musik', v);
-        if (v <= 0.01) stoppen(); else if (zustand.spielt) musikGain.gain.setTargetAtTime(0.5 * v, ctx.currentTime, 0.1); else spielen();
+        if (v <= 0.01) stoppen(); else if (zustand.spielt) musikGain.gain.setTargetAtTime(pegel(), ctx.currentTime, 0.1); else spielen();
       } else {
         zustand.lautEffekte = v; store.set('wf-laut-effekte', v);
         if (effektBus) effektBus.gain.setTargetAtTime(v, ctx.currentTime, 0.05);

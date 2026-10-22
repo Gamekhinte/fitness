@@ -1,0 +1,95 @@
+/* Clan-Tab im Stil von Social: Holzschild, Freundesliste, Profil mit Banner, Clan mit Emblem.
+   Gleiche Sprache wie die Arena: Papier, Tinte, dicke Ränder, harte Schatten. */
+.ar-knopf.gruen{background:#8CC084}
+.ar-knopf:disabled{opacity:.55;box-shadow:none}
+
+#soWurzel{display:block}
+.so-schild,.so-panel{position:relative;margin-top:30px}
+.so-schild::before,.so-panel::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;pointer-events:none;
+  background-image:url(arena/seil_muster.svg),url(arena/seil_muster.svg);background-repeat:repeat-y;background-size:12px 20px;background-position:16% 0,84% 0}
+.so-schild::after,.so-panel::after{content:'';position:absolute;left:0;right:0;top:-8px;height:16px;pointer-events:none;
+  background-image:url(arena/oese.svg),url(arena/oese.svg);background-repeat:no-repeat;background-size:16px 16px;background-position:calc(16% + 1px) 0,calc(84% - 1px) 0}
+
+/* Holzschild mit drei Knöpfen */
+.so-schild{display:flex;gap:8px;padding:12px 10px 14px;background-color:#C48E57;
+  background-image:repeating-linear-gradient(0deg,rgba(43,40,38,.13) 0 2px,transparent 2px 19px);
+  border:3px solid var(--graphit);border-radius:16px;box-shadow:0 5px 0 var(--graphit)}
+.so-knopf{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;padding:9px 4px 8px;
+  background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);
+  font-family:var(--dick);font-size:15px;font-weight:400;letter-spacing:.3px}
+.so-knopf:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.so-knopf b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.so-emb{display:block;flex:none}
+
+/* Liste */
+.so-panel{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:14px 14px 16px;margin-bottom:12px}
+.so-kopf{display:flex;justify-content:space-between;align-items:baseline}
+.so-kopf h2{margin:0;font-size:24px}
+.so-kopf small{font-family:var(--hand);font-size:17px;color:var(--mut)}
+.so-trenner{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.so-trenner::before,.so-trenner::after{content:'';flex:1;height:3px;background:rgba(43,40,38,.22);border-radius:2px}
+.so-trenner span{font-family:var(--dick);font-size:15px;letter-spacing:.4px}
+.so-zeile{display:flex;align-items:center;gap:10px;width:100%;margin:8px 0;padding:7px 10px;text-align:left;
+  background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand)}
+button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.so-zeile.aus{background:#EDE6D6}
+.so-avwrap{position:relative;flex:none;display:block;line-height:0}
+.so-av{display:block;box-sizing:border-box;border:3px solid var(--graphit);border-radius:12px;overflow:hidden}
+.so-av svg{display:block;width:100%;height:100%}
+.so-punkt{position:absolute;top:-5px;left:-5px;width:14px;height:14px;border-radius:50%;background:#4CC36B;border:2.5px solid var(--graphit)}
+.so-punkt.in{position:static;display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.so-text{flex:1;min-width:0;display:block}
+.so-text b{display:block;font-family:var(--dick);font-size:19px;font-weight:400;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.so-text small{display:block;font-size:16px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.so-text small.so-clan{color:var(--rot);font-family:var(--dick);font-size:14px;letter-spacing:.3px}
+.so-pk{flex:none;display:flex;align-items:center;gap:5px;font-family:var(--dick);font-size:18px}
+.so-pk b{font-weight:400}
+.so-ico{width:22px;display:block}
+.so-ja{display:flex;gap:6px;flex:none}
+.so-mini{font-family:var(--dick);font-size:15px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:10px;box-shadow:0 3px 0 var(--graphit);padding:5px 10px}
+.so-mini.aus{background:#fff}
+.so-mini:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.so-leer{margin:18px 6px 6px}
+.so-gesendet{font-family:var(--hand);font-size:16px;color:var(--mut);text-align:center;margin:12px 0 0}
+.so-fuss{display:flex;gap:10px;margin-top:14px}
+.so-fuss .ar-knopf{flex:1;padding:9px 6px;font-size:17px}
+.so-id{text-align:center;font-family:var(--hand);font-size:18px;margin:14px 0 6px}
+.so-id button{font-family:var(--dick);font-size:18px;color:var(--graphit);background:none;border:0;border-bottom:3px dashed var(--graphit);padding:0 2px}
+.so-erst .ar-zeile input{flex:1;min-width:0}
+
+/* Profil und Clan im Fenster */
+.so-plakette{text-align:center;margin:8px 0 4px;padding:12px 10px 12px;background:#fff;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit)}
+.so-plakette h2{margin:0 0 4px;font-size:28px}
+.so-tag{font-family:var(--dick);font-size:18px;color:var(--graphit);background:var(--papier);border:2px solid var(--graphit);border-radius:8px;padding:1px 10px}
+.so-tag.klein{font-size:15px;padding:0 8px}
+.so-clanzeile{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:4px 8px;text-align:left;background:none;border:0;color:var(--graphit)}
+.so-clanzeile b{display:block;font-family:var(--dick);font-size:18px;font-weight:400}
+.so-clanzeile small{display:block;font-family:var(--hand);font-size:16px;color:var(--mut)}
+.so-kein{font-family:var(--hand);font-size:17px;color:var(--mut);margin:8px 0 0}
+.so-status{font-family:var(--hand);font-size:17px;margin:8px 0 0}
+.so-clankopf .so-emb{margin:2px auto 4px}
+.so-clankopf .ar-hand{margin:2px 0}
+.so-werte{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.so-werte div{position:relative;text-align:center;padding:10px 4px 14px}
+.so-werte b{position:relative;display:block;font-family:var(--dick);font-weight:400;font-size:26px;line-height:1.1}
+.so-werte span{position:relative;font-size:16px}
+.so-reihe{display:flex;gap:10px;margin:12px 0 2px}
+.so-reihe .ar-knopf{flex:1;padding:9px 6px}
+.so-rangliste{margin:0 -4px}
+.so-rang{padding:6px 8px}
+.so-rang.ich{background:#DFF3FF}
+.so-nr{flex:none;width:24px;font-family:var(--dick);font-size:19px;text-align:center}
+.so-rangknopf{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;text-align:left;color:var(--graphit)}
+.so-punkte{flex:none;min-width:48px;text-align:right;font-family:var(--dick);font-size:20px;line-height:1}
+.so-punkte small{display:block;font-family:var(--hand);font-size:13px;color:var(--mut)}
+.so-rolle{display:inline-block;margin-left:8px;padding:0 5px;font-style:normal;font-family:var(--dick);font-size:12px;color:var(--graphit);background:var(--marker);border:2px solid var(--graphit);border-radius:5px;vertical-align:1px}
+.so-rolle.leiter{background:var(--gold)}
+.so-vorschau{text-align:center;margin:6px 0 0}
+.so-vorschau b{display:block;font-family:var(--dick);font-weight:400;font-size:24px;margin-top:4px}
+.so-formen,.so-symbole{display:grid;gap:9px}
+.so-formen{grid-template-columns:repeat(4,1fr)}
+.so-symbole{grid-template-columns:repeat(4,1fr)}
+.so-formen button,.so-symbole button{display:flex;align-items:center;justify-content:center;padding:5px 2px;background:#fff;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
+.so-formen button.an,.so-symbole button.an{background:var(--marker)}
+.ar-zeile input{min-width:0;flex:1}
+#wfWerkMatch,#wfWerkRueck{margin-top:10px}

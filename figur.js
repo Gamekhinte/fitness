@@ -278,6 +278,7 @@
         ['#3B4A80', '#7B5CC4', '#E86AA6', '#F28A5B', '#F2C14E'].forEach((f, i) => flach(16, 1.6, f, 0, 6 - i * 1.5, 0.001 * i));
         kreis(1.6, '#FFE38A', 0, -0.2, 0.01, 32); flach(16, 2.8, '#2B2826', 0, -2.6, 0.02);
         break;
+      case 'leer': break;                // nichts dahinter (Profil zeigt dort das Banner)
       case 'graffiti':
         flach(16, 10, '#B5654A', 0, 2);
         for (let r = 0; r < 14; r++) for (let c = 0; c < 9; c++) flach(1.0, 0.36, (r + c) % 3 ? '#A95A42' : '#C16E52', -6 + c * 1.6 + (r % 2) * 0.8, -1.4 + r * 0.42, 0.005);

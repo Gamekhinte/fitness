@@ -81,8 +81,11 @@
   blatt.className = 'ar-blatt'; blatt.hidden = true;
   blatt.innerHTML = '<div class="ar-blatt-in" id="arBlattIn"><div class="ar-b3d" id="arB3d"></div><div id="arBlatt"></div></div>';
   document.body.appendChild(blatt);
+  const vorBlatt = [];                                   // Aufräum-Haken, die vor dem Austausch des Fensterinhalts laufen (Social nutzt das)
   function zeigeBlatt(html, modus3d, opt, bleiben) {
     const y = blatt.scrollTop;
+    vorBlatt.forEach(f => f());
+    $('arB3d').style.background = '';
     $('arBlatt').innerHTML = html;
     blatt.hidden = false;
     blatt.scrollTop = bleiben ? y : 0;
@@ -127,12 +130,18 @@
     if (t === 'arena') zeichnen();
     musikPruefen();
   };
-  const DUELL = ['suche', 'vs', 'bahn'];
+  // Musik überall: Menü-Marsch in jedem Tab, der schnellere Runden-Track in Rennen, Kraft-Duell und Crew-Duell.
+  // Keine Musik, solange die Kamera zählt oder ein freier Lauf läuft.
   function musikPruefen() {
     if (!window.Klang) return;
-    const modus = $('arBlattIn') && $('arBlattIn').dataset.modus;
-    Klang.musik(curTab === 'arena' && (blatt.hidden || !DUELL.includes(modus)) && !(window.KraftUI && KraftUI._test.D) && !R);
+    const rennen = !!(R && R.stand && R.stand.status === 'bereit');
+    const kraft = !!(window.KraftUI && KraftUI._test.D);
+    const crewDuell = !!(wf() && wf().imDuell && wf().imDuell());
+    if (rennen || kraft || crewDuell) return Klang.musik(true, 'runde');
+    const frei = (typeof camOn !== 'undefined' && camOn) || (typeof runOn !== 'undefined' && runOn);
+    Klang.musik(!frei, 'menue');
   }
+  setInterval(musikPruefen, 1000);
 
   function zeichnen(ohneLaden) {
     const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
@@ -327,7 +336,7 @@
     $('arZumEditor').onclick = () => editor();
     $('arKoerper').onclick = () => { schliessen(); openProfile(); };
   }
-  tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = profil);
+  tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = () => ich() && window.Social ? Social.profil() : profil());
   $('arName').onclick = () => arenaWeg();
   $('arZahn').onclick = () => einstellungen();
 
@@ -704,6 +713,6 @@
   else zeichnen();
 
   // für Tests
-  window.ArenaUI = { editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

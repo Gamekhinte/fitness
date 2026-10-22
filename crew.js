@@ -70,43 +70,41 @@
     return m;
   };
 
-  /* ---------- Oberfläche ---------- */
+  /* ---------- Oberfläche ----------
+     Der sichtbare Teil (Freunde, Profil, Clan) baut social.js in #soWurzel.
+     Hier liegen nur die Bausteine für Duell, Lauf-Match und Rückblick in einem versteckten Werkzeugkasten.
+     social.js hängt sie bei Bedarf in sein Fenster um (die Knoten behalten ihre Funktionen). */
   const tab = document.createElement('section');
   tab.id = 'tab-crew'; tab.className = 'tab';
   tab.innerHTML = `
-    <div class="card">
-      <span class="label">Du</span>
-      <div class="fields"><input id="wfName" type="text" maxlength="20" placeholder="Spitzname (kein echter Name)" autocomplete="off"></div>
+    <div id="soWurzel"></div>
+    <div id="wfWerk" hidden>
+      <input id="wfName" type="text" maxlength="20" autocomplete="off">
       <p class="kmline" id="wfSerie"></p>
-      <div id="wfFrost"></div>
-    </div>
-    <div class="card">
-      <span class="label">Crew</span>
-      <div id="wfCrew"></div>
-    </div>
-    <div class="card">
-      <span class="label">Duell</span>
-      <p class="muted">60 Sekunden, so viele wie du schaffst. Die Kamera zählt mit, dann schickst du den Link.</p>
-      <div id="wfDuellIn"></div>
-      <div class="fields"><select id="wfUebung"><option>Liegestütze</option><option>Squats</option></select>
-        <button class="send" id="wfDuellLos" aria-label="Duell starten"><svg><use href="#i-plus"/></svg></button></div>
-      <div id="wfDuellOut"></div>
-    </div>
-    <div class="card">
-      <span class="label">Lauf-Match</span>
-      <p class="muted">Ihr lauft gleichzeitig, jeder wo er will. Wer zuerst die Strecke hat, gewinnt.</p>
-      <div id="wfMatch"></div>
-    </div>
-    <div class="card">
-      <span class="label">Wochen-Rückblick</span>
-      <p class="muted">Deine Woche als Bild für die Story.</p>
-      <button class="ghost" id="wfRueckblick">Bild erstellen</button>
+      <div id="wfWerkDuell">
+        <h3 class="ar-h">Duell</h3>
+        <p class="ar-hand klein">60 Sekunden, so viele wie du schaffst. Die Kamera zählt mit, dann schickst du den Link.</p>
+        <div id="wfDuellIn"></div>
+        <div class="fields"><select id="wfUebung"><option>Liegestütze</option><option>Squats</option></select>
+          <button class="send" id="wfDuellLos" aria-label="Duell starten"><svg><use href="#i-plus"/></svg></button></div>
+        <div id="wfDuellOut"></div>
+      </div>
+      <div id="wfWerkMatch">
+        <h3 class="ar-h">Lauf-Match</h3>
+        <p class="ar-hand klein">Ihr lauft gleichzeitig, jeder wo er will. Wer zuerst die Strecke hat, gewinnt.</p>
+        <div id="wfMatch"></div>
+      </div>
+      <div id="wfWerkRueck">
+        <h3 class="ar-h">Wochen-Rückblick</h3>
+        <p class="ar-hand klein">Deine Woche als Bild für die Story.</p>
+        <button class="ghost" id="wfRueckblick">Bild erstellen</button>
+      </div>
     </div>`;
   document.querySelector('main').appendChild(tab);
 
   const knopf = document.createElement('button');
   knopf.dataset.tab = 'crew';
-  knopf.innerHTML = '<svg><use href="#i-crew"/></svg>Crew';
+  knopf.innerHTML = '<svg><use href="#i-crew"/></svg>Clan';
   const nav = document.querySelector('.nav');
   nav.insertBefore(knopf, nav.querySelector('[data-tab="coach"]'));
   knopf.onclick = () => showTab('crew');
@@ -120,77 +118,26 @@
   showTab = function (t) { altShow(t); if (t === 'crew') zeichnen(); };
 
   $('wfName').value = ich ? ich.name : '';
-  $('wfName').addEventListener('change', async () => {
-    const n = $('wfName').value.trim();
-    if (n.length < 2) return;
-    try {
-      if (!ich) await sicherIch();
-      else if (n !== ich.name) { await rpc('wf_name_aendern', mit({ p_name: n })); ich.name = n; store.set(ICH_KEY, ich); }
-      if (vorCode && !crew) { const c = vorCode; vorCode = null; return beitreten(c); }   // Einladungslink: direkt beitreten
-      toast('Gespeichert');
-      zeichnen();
-    } catch (err) { toast(err.message); }
-  });
 
-  /* ---------- Serie und Crew zeichnen ---------- */
+  /* ---------- Serie ---------- */
   async function serieZeigen() {
-    if (!ich) { $('wfSerie').textContent = 'Trag einen Spitznamen ein, dann zählt deine Serie.'; return; }
+    if (!ich) return;
     try {
       const [s] = await rpc('wf_serie', { p_spieler: ich.id });
       const txt = s.eingefroren
-        ? 'Du bist eingefroren. Jemand aus deiner Crew kann dich heute auftauen, oder du startest neu.'
+        ? 'Du bist eingefroren. Jemand aus deinem Clan kann dich heute auftauen, oder du startest neu.'
         : `Serie: ${s.serie} ${s.serie === 1 ? 'Tag' : 'Tage'}${s.heute_aktiv ? '' : ', heute noch nichts'}`;
       $('wfSerie').textContent = txt;
       const h = $('wfSerieHeute'); h.hidden = false; h.textContent = txt;
     } catch (err) { $('wfSerie').textContent = ''; }
   }
 
-  async function crewZeigen() {
-    const box = $('wfCrew');
-    if (!crew) {
-      box.innerHTML = `<p class="muted">Gründe eine Crew mit deiner Klasse oder deinen Freunden, oder tritt mit einem Code bei.</p>
-        <div class="fields"><input id="wfCrewName" maxlength="30" placeholder="Name der Crew"><button class="send" id="wfGruenden" aria-label="Gründen"><svg><use href="#i-plus"/></svg></button></div>
-        <div class="fields"><input id="wfCode" maxlength="6" placeholder="Code, z.B. H5AMYQ" autocapitalize="characters" value="${e(vorCode || '')}"><button class="send" id="wfBeitreten" aria-label="Beitreten"><svg><use href="#i-send"/></svg></button></div>`;
-      $('wfGruenden').onclick = gruenden;
-      $('wfBeitreten').onclick = () => beitreten($('wfCode').value);
-      $('wfFrost').innerHTML = '';
-      return;
-    }
-    let liste = [], serien = {};
-    try {
-      liste = await rpc('wf_rangliste', { p_gruppe: crew.id });
-      await Promise.all(liste.map(async m => { try { serien[m.spieler_id] = (await rpc('wf_serie', { p_spieler: m.spieler_id }))[0]; } catch {} }));
-    } catch (err) { box.innerHTML = `<p class="muted">${e(err.message)}</p>`; return; }
-    box.innerHTML = `<p class="muted"><b style="color:var(--txt)">${e(crew.name)}</b> · Code <b style="color:var(--volt)">${e(crew.code)}</b> · diese Woche</p>
-      <table class="tbl"><thead><tr><th>#</th><th>Name</th><th>Punkte</th><th></th></tr></thead><tbody>${
-        liste.map((m, i) => {
-          const s = serien[m.spieler_id] || {}, bin = ich && m.spieler_id === ich.id;
-          const frost = s.eingefroren ? `<button class="exinfo" data-auftauen="${m.spieler_id}">Auftauen</button>` : '';
-          return `<tr><td>${i + 1}</td><td><b>${e(m.name)}${bin ? ' (du)' : ''}</b><span>${s.eingefroren ? 'eingefroren' : `Serie ${s.serie || 0}`} · ${m.wdh} Wdh · ${(m.meter / 1000).toFixed(1).replace('.', ',')} km</span>${bin ? '' : frost}</td><td>${m.punkte}</td><td></td></tr>`;
-        }).join('')}</tbody></table>
-      <p class="muted small">Punkte: 1 pro Wiederholung, 1 pro 20 m Laufen, 20 pro Trainingstag.</p>
-      <div class="btnrow"><button class="ghost" id="wfEinladen">Freunde einladen</button><button class="ghost" id="wfVerlassen">Crew verlassen</button></div>`;
-    $('wfEinladen').onclick = () => teilen(`Komm in meine Winterform-Crew "${crew.name}"`, linkMit('crew', crew.code));
-    $('wfVerlassen').onclick = verlassen;
-    box.querySelectorAll('[data-auftauen]').forEach(b => b.onclick = () => auftauen(b.dataset.auftauen));
-  }
-
   async function zeichnen() {
-    await Promise.all([serieZeigen(), crewZeigen()]);
+    await serieZeigen();
     matchZeigen();
+    if (window.Social) Social.zeichnen();
   }
 
-  async function gruenden() {
-    try {
-      await sicherIch();
-      const name = $('wfCrewName').value.trim();
-      if (name.length < 2) return toast('Name der Crew fehlt');
-      const code = await rpc('wf_gruppe_erstellen', mit({ p_name: name }));
-      const [g] = await lesen(`wf_gruppen?code=eq.${code}&select=id,code,name`);
-      crew = g; store.set(CREW_KEY, crew); zeichnen();
-      toast('Crew gegründet. Lade jetzt deine Leute ein.');
-    } catch (err) { toast(err.message); }
-  }
   async function beitreten(code) {
     try {
       await sicherIch();
@@ -200,11 +147,6 @@
       crew = g; store.set(CREW_KEY, crew); zeichnen();
       toast(`Willkommen in ${g.name}`);
     } catch (err) { toast(err.message === 'code unbekannt' ? 'Diesen Code gibt es nicht' : err.message); }
-  }
-  async function verlassen() {
-    if (!confirm('Crew wirklich verlassen?')) return;
-    try { await rpc('wf_gruppe_verlassen', mit({ p_gruppe: crew.id })); } catch {}
-    crew = null; store.set(CREW_KEY, null); zeichnen();
   }
   async function auftauen(fuer) {
     try { await rpc('wf_auftauen', mit({ p_fuer: fuer })); toast('Aufgetaut. Die Serie lebt weiter.'); zeichnen(); }
@@ -266,15 +208,15 @@
         $('wfDuellOut').innerHTML = `<p class="kmline">Dein Ergebnis: ${ergebnis} ${e(d.uebung)}. Jetzt jemanden herausfordern.</p>
           <button class="primary" id="wfDuellTeilen">Duell-Link schicken</button>`;
         $('wfDuellTeilen').onclick = () => teilen(`${ich.name} schafft ${ergebnis} ${d.uebung} in 60 Sekunden. Schaffst du mehr?`, linkMit('duell', id));
-        showTab('crew');
+        showTab('crew'); if (window.Social) Social.duellOeffnen();
       } else {
         await rpc('wf_duell_antworten', mit({ p_duell: d.id, p_ergebnis: ergebnis }));
         melden(ergebnis, 0, true);
         const sieg = ergebnis > d.gegnerErgebnis, gleich = ergebnis === d.gegnerErgebnis;
         $('wfDuellIn').innerHTML = `<p class="kmline">${gleich ? 'Unentschieden' : sieg ? 'Gewonnen' : 'Verloren'}: du ${ergebnis}, ${e(d.von)} ${d.gegnerErgebnis}.</p>`;
-        showTab('crew');
+        showTab('crew'); if (window.Social) Social.duellOeffnen();
       }
-    } catch (err) { toast(err.message); showTab('crew'); }
+    } catch (err) { toast(err.message); showTab('crew'); if (window.Social) Social.duellOeffnen(); }
   }
 
   async function duellLaden(id) {
@@ -283,7 +225,7 @@
       if (!d) return toast('Duell nicht gefunden');
       const [v] = await lesen(`wf_spieler?id=eq.${d.von}&select=name`);
       const vonName = v ? v.name : 'Jemand';
-      showTab('crew');
+      showTab('crew'); if (window.Social) Social.duellOeffnen();
       if (ich && d.von === ich.id) {
         $('wfDuellIn').innerHTML = d.gegner ? `<p class="kmline">Dein Duell ist beantwortet: ${d.ergebnis_gegner} gegen deine ${d.ergebnis_von}.</p>` : '<p class="muted">Noch keiner hat geantwortet.</p>';
         return;
@@ -371,7 +313,7 @@
     } catch (err) { toast(err.message); }
   }
   async function matchBeitreten(id) {
-    showTab('crew');
+    showTab('crew'); if (window.Social) Social.duellOeffnen();
     try {
       await sicherIch();
       await rpc('wf_match_beitreten', mit({ p_match: id }));
@@ -446,20 +388,26 @@
   if (q.get('crew') && !crew) {
     vorCode = q.get('crew').toUpperCase();
     if (ich) { const c = vorCode; vorCode = null; beitreten(c); }
-    else { showTab('crew'); toast('Trag deinen Spitznamen ein, dann bist du in der Crew'); }
+    else { showTab('crew'); toast('Trag deinen Spitznamen ein, dann bist du im Clan'); }
   }
   if (q.get('duell')) duellLaden(q.get('duell'));
   if (q.get('match')) matchBeitreten(q.get('match'));
   if (match.id) matchBeobachten();
   if (ich) serieZeigen();
 
-  // Für die Arena: gleiche Identität, gleicher Server
+  // Für Arena und Social: gleiche Identität, gleicher Server
   window.WF = {
-    rpc, ich: () => ich,
+    rpc, lesen, ich: () => ich, teilen, linkMit, auftauen, beitreten,
+    crew: () => crew, setCrew: c => { crew = c; store.set(CREW_KEY, c); },
+    vorCode: () => vorCode,
+    // läuft gerade ein Crew-Duell (Kamera) oder ein Lauf-Match?
+    imDuell: () => !!duell || !!(match.id && match.daten && match.daten._laeuft && !match.daten.sieger),
     async registrieren(name) {
       $('wfName').value = name;
-      if (!ich) await sicherIch();
-      else if (name !== ich.name) { await rpc('wf_name_aendern', mit({ p_name: name })); ich.name = name; store.set(ICH_KEY, ich); }
+      if (!ich) {
+        await sicherIch();
+        if (vorCode && !crew) { const c = vorCode; vorCode = null; beitreten(c); }
+      } else if (name !== ich.name) { await rpc('wf_name_aendern', mit({ p_name: name })); ich.name = name; store.set(ICH_KEY, ich); }
       return ich;
     }
   };
