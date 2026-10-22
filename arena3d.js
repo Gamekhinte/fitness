@@ -9,7 +9,7 @@
   const st = { b: null, halter: null, insel: null, nr: -1, set: 'lauf', seile: [], figur: null, aussehen: null, beimTippen: null };
   const phy = { y: 0, vy: 0, yaw: 0, vyaw: 0, sx: 0, vsx: 0, zieh: null, vyAlt: 0, cool: 0 };
   const fig = { y: 0, vy: 0, modus: 'stehen', zeit: 0, weg: 0 };
-  const C = { schnee: '#FFFFFF', erde: '#9C7448', erde2: '#7E5B37', bahn: '#D9643A', eis: '#BFE6FF', eis2: '#7CD4FF', wand: '#EADCC2',
+  const C = { schnee: '#F5F0E4', erde: '#9C7448', erde2: '#7E5B37', bahn: '#D9643A', eis: '#BFE6FF', eis2: '#7CD4FF', wand: '#EADCC2',
     tanne: '#3E7A55', laub: '#5FA35A', stamm: '#6B4A2E', stein: '#B9B4AC', gold: '#F2C14E', gras: '#8CC084', sand: '#EAD39C',
     holz: '#B88C52', wasser: '#5BB8E8', ink: '#2B2826', rot: '#D9643A', grau: '#8E8A84', dunkel: '#4A4440' };
 
@@ -119,7 +119,7 @@
   /* ---------- Die zehn Arenen ---------- */
   const ARENEN = [
     { name: 'Schulhof', form: 'quadrat', oben: C.schnee, kruemel: C.schnee, bau(g) {
-      const kurve = weg(g, [[-3.6, 1], [-2.6, 3.6], [1.6, 3.9], [3.8, 2.4], [3.2, 0.2], [0, -0.4], [-3, -0.5]], 1.25, C.bahn, '#FFFFFF');
+      const kurve = weg(g, [[-3.6, 1], [-2.6, 3.6], [1.6, 3.9], [3.8, 2.4], [3.2, 0.2], [0, -0.4], [-3, -0.5]], 1.25, C.bahn, '#F5F0E4');
       const s = haus(g, 0.3, -3.7, 5, 2.1, 1.5, C.wand, C.rot, true);
       fenster(s, [-1.8, -1.05, 1.05, 1.8], [0.6, 1.5], 0.78); s.add(teil(W.box(0.8, 1.15, 0.08), C.rot, 0, 0.58, 0.78, 0.025));
       s.add(teil(W.box(1.4, 0.15, 0.5), C.stein, 0, 0.07, 1.0, 0.025));
@@ -151,11 +151,11 @@
       const wm = new T.Mesh(meer, W.mat(C.wasser)); wm.position.set(2.75, 0.27, -2.75); g.add(wm);
       const basis = meer.attributes.position.array.slice();
       g.userData.tick.push(t => { const p = meer.attributes.position; for (let i = 0; i < p.count; i++) p.array[i * 3 + 1] = Math.sin(basis[i * 3] * 1.6 + t * 1.8) * 0.05 + Math.cos(basis[i * 3 + 2] * 1.3 + t) * 0.04; p.needsUpdate = true; });
-      for (let i = 0; i < 3; i++) g.add(teil(W.box(5.4, 0.04, 0.1), '#FFFFFF', 2.75, 0.33, -1.0 - i * 1.3, 0));
+      for (let i = 0; i < 3; i++) g.add(teil(W.box(5.4, 0.04, 0.1), '#F5F0E4', 2.75, 0.33, -1.0 - i * 1.3, 0));
       const kurve = weg(g, [[-4.4, 4], [-1, 4.2], [2.6, 3.8], [4.4, 2.4], [3, 1.2], [-0.6, 1.3], [-3.8, 0.6], [-4.6, 2.4]], 1.1, C.holz, '#8A6235');
       palme(g, -4.6, -3.8, 1); palme(g, -1.2, -4.2, 0.85); palme(g, 4.7, 4.5, 0.8);
       const h = new T.Group(); h.position.set(-3, 0.2, -1.8); g.add(h);
-      for (let i = 0; i < 5; i++) h.add(teil(W.box(0.36, 1.5, 1.4), i % 2 ? '#FFFFFF' : C.eis2, -0.72 + i * 0.36, 0.75, 0, 0.03));
+      for (let i = 0; i < 5; i++) h.add(teil(W.box(0.36, 1.5, 1.4), i % 2 ? '#F5F0E4' : C.eis2, -0.72 + i * 0.36, 0.75, 0, 0.03));
       h.add(teil(W.box(2.1, 0.15, 1.7), C.rot, 0, 1.6, 0, 0.03));
       [[-0.35, -0.35], [0.35, -0.35], [-0.35, 0.35], [0.35, 0.35]].forEach(([dx, dz]) => g.add(teil(W.rohr(0.05, 1.6, 6), C.holz, 0.8 + dx, 1.0, -1.0 + dz, 0.02)));
       g.add(teil(W.box(1, 0.6, 1), C.rot, 0.8, 2.1, -1.0, 0.03)); g.add(teil(W.box(1.2, 0.08, 1.2), C.schnee, 0.8, 2.45, -1.0, 0.02));
@@ -177,7 +177,7 @@
     { name: 'Stadion', form: 'quadrat', oben: '#5FA35A', kruemel: '#8CC084', bau(g) {
       const bahn = W.rundRechteck(9.4, 6, 3); bahn.holes.push(W.rundRechteck(6.6, 3.2, 1.6));
       g.add(teil(W.flach(bahn, 0.1), C.rot, 0, 0.26, 0.3, 0.03));
-      const weiss = new T.MeshBasicMaterial({ color: 0xffffff });
+      const weiss = new T.MeshBasicMaterial({ color: 0xF5F0E4 });
       for (let i = 1; i < 4; i++) { const w = 6.6 + i * 0.7, h = 3.2 + i * 0.7, r = 1.6 + i * 0.35; const s = W.rundRechteck(w + 0.05, h + 0.05, r); s.holes.push(W.rundRechteck(w - 0.05, h - 0.05, r - 0.03)); const m = new T.Mesh(W.flach(s, 0.02), weiss); m.position.set(0, 0.32, 0.3); g.add(m); }
       const kurve = W.band(ovalPunkte(0, 0.3, 4.05, 2.35, 24), 0.1, 0.3).userData.kurve;
       g.add(new T.Mesh(W.band([[0, -1.3], [0, 1.9]], 0.05, 0.25, false), weiss));
@@ -185,8 +185,8 @@
       [-2.9, 2.9].forEach(x => { [-0.5, 0.5].forEach(dz => g.add(teil(W.rohr(0.04, 0.6, 6), C.schnee, x, 0.55, 0.3 + dz, 0.015))); g.add(teil(W.box(0.06, 0.06, 1.06), C.schnee, x, 0.85, 0.3, 0.015)); });
       // Tribünen mit Fans, die hüpfen
       [-4.35, 4.55].forEach((z, k) => { for (let r = 0; r < 3; r++) g.add(teil(W.box(9.6, 0.35 + r * 0.35, 0.45), r % 2 ? '#D8D2C8' : C.stein, 0, 0.38 + r * 0.17, z + (k ? 1 : -1) * r * 0.0 + (k ? -0.45 : 0.45) * (1 - r) * 0 + (k ? r * 0.15 : -r * 0.15), 0.03)); });
-      const farben = ['#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55', '#FFFFFF', '#E86AA6'];
-      const inst = new T.InstancedMesh(W.kugel(0.14, 8, 6), new T.MeshToonMaterial({ color: 0xffffff }), 90);
+      const farben = ['#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55', '#F5F0E4', '#E86AA6'];
+      const inst = new T.InstancedMesh(W.kugel(0.14, 8, 6), new T.MeshToonMaterial({ color: 0xF5F0E4 }), 90);
       const m4 = new T.Matrix4(), fans = []; let n = 0;
       [[-4.35, -1], [4.55, 1]].forEach(([z, s]) => { for (let r = 0; r < 3; r++) for (let i = 0; i < 15; i++) { const p = [-4.3 + i * 0.6 + (r % 2) * 0.25, 0.75 + r * 0.35, z + s * r * 0.15]; m4.makeTranslation(...p); inst.setMatrixAt(n, m4); inst.setColorAt(n, new T.Color(farben[(i * 7 + r * 3) % farben.length])); fans.push([...p, i + r * 2]); n++; } });
       g.add(inst);
@@ -262,14 +262,14 @@
         const t = new T.TorusGeometry(r, 0.12, 6, 20); t.rotateX(Math.PI / 2); g.add(teil(t, '#B2ADA6', x, 0.24, z, 0.02));
         g.add(teil(W.rohr(r, 0.04, 20), '#A6A19A', x, 0.22, z, 0));
       });
-      const kurve = weg(g, ovalPunkte(0, 1.4, 3.9, 2.6, 18), 0.8, '#A6A19A', '#FFFFFF');
+      const kurve = weg(g, ovalPunkte(0, 1.4, 3.9, 2.6, 18), 0.8, '#A6A19A', '#F5F0E4');
       g.add(teil(W.rohr(1, 0.2, 16), C.grau, -2.6, 0.3, -2.8, 0.03));
-      g.add(teil(W.rohr(0.45, 2.4, 16), '#FFFFFF', -2.6, 1.6, -2.8, 0.04)); g.add(teil(W.kegel(0.45, 0.9, 16), C.rot, -2.6, 3.25, -2.8, 0.04));
+      g.add(teil(W.rohr(0.45, 2.4, 16), '#F5F0E4', -2.6, 1.6, -2.8, 0.04)); g.add(teil(W.kegel(0.45, 0.9, 16), C.rot, -2.6, 3.25, -2.8, 0.04));
       const fe = W.rohr(0.16, 0.06, 14); fe.rotateX(Math.PI / 2); g.add(teil(fe, C.eis2, -2.6, 2.1, -2.36, 0.02));
       for (let i = 0; i < 3; i++) { const w = i / 3 * Math.PI * 2, f = teil(W.box(0.06, 0.7, 0.5), C.rot, -2.6 + Math.cos(w) * 0.5, 0.75, -2.8 + Math.sin(w) * 0.5, 0.02); f.rotation.y = -w; g.add(f); }
       const kuppel = new T.Mesh(new T.SphereGeometry(1.2, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshToonMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.6 }));
       kuppel.position.set(2.4, 0.2, -2.6); g.add(kuppel);
-      g.add(teil(W.box(1.2, 0.4, 0.7), '#FFFFFF', 3.6, 0.55, 0.8, 0.03)); [[-0.4, -0.38], [0.4, -0.38], [-0.4, 0.38], [0.4, 0.38]].forEach(([dx, dz]) => { const r = W.rohr(0.16, 0.1, 12); r.rotateX(Math.PI / 2); g.add(teil(r, C.ink, 3.6 + dx, 0.36, 0.8 + dz, 0)); });
+      g.add(teil(W.box(1.2, 0.4, 0.7), '#F5F0E4', 3.6, 0.55, 0.8, 0.03)); [[-0.4, -0.38], [0.4, -0.38], [-0.4, 0.38], [0.4, 0.38]].forEach(([dx, dz]) => { const r = W.rohr(0.16, 0.1, 12); r.rotateX(Math.PI / 2); g.add(teil(r, C.ink, 3.6 + dx, 0.36, 0.8 + dz, 0)); });
       fahne(g, 0.6, -3.8, 2, 0.2, C.rot);
       const erde = new T.Group(); g.add(erde);
       erde.add(teil(W.kugel(0.9, 20, 14), C.wasser, 0, 0, 0, 0.04)); [[0.3, 0.4, 0.6], [-0.4, -0.2, 0.7], [0.1, -0.5, -0.6]].forEach(([x, y, z]) => erde.add(teil(W.kugel(0.38, 10, 8), C.gras, x, y, z, 0)));
@@ -318,7 +318,7 @@
   /* ---------- Krümel: Schnee, Sand, Asche, Mondstaub ---------- */
   const KR = { n: 90, mesh: null, teile: [], leer: null };
   function kruemelBauen() {
-    KR.mesh = new T.InstancedMesh(new T.IcosahedronGeometry(0.2, 0), new T.MeshToonMaterial({ color: 0xffffff }), KR.n);
+    KR.mesh = new T.InstancedMesh(new T.IcosahedronGeometry(0.2, 0), new T.MeshToonMaterial({ color: 0xF5F0E4 }), KR.n);
     KR.rand = new T.InstancedMesh(new T.IcosahedronGeometry(0.27, 0), new T.MeshBasicMaterial({ color: 0x2B2826, side: T.BackSide }), KR.n);
     KR.mesh.frustumCulled = KR.rand.frustumCulled = false; st.b.szene.add(KR.mesh); st.b.szene.add(KR.rand);
     KR.rand.instanceMatrix = KR.mesh.instanceMatrix;
@@ -530,8 +530,8 @@
     if (!foto) {
       const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       r.setSize(480, 340, false); r.setPixelRatio(1);
-      const s = new T.Scene(); s.add(new T.AmbientLight(0xffffff, 1.4));
-      const l = new T.DirectionalLight(0xffffff, 2.2); l.position.set(-4, 10, 7); s.add(l);
+      const s = new T.Scene(); s.add(new T.AmbientLight(0xF5F0E4, 1.4));
+      const l = new T.DirectionalLight(0xF5F0E4, 2.2); l.position.set(-4, 10, 7); s.add(l);
       const k = new T.PerspectiveCamera(26, 480 / 340, 0.1, 100); k.position.set(10, 14, 25); k.lookAt(0, 1.8, 0);
       foto = { r, s, k };
     }

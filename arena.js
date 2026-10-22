@@ -65,13 +65,15 @@
   tab.id = 'tab-arena'; tab.className = 'tab';
   tab.innerHTML = `
     <div class="ar-buehne">
+      <div class="ar-kopf">
       <div class="ar-oben">
-        <button class="ar-chip" id="arCoins" aria-label="Shop und Charakter">${rahmen(120, 48, 14, 7, '#fff')}${coin}<b id="arCoinZahl">0</b></button>
-        <button class="ar-chip" id="arGems" aria-label="Gems und besondere Outfits">${rahmen(110, 48, 14, 6, '#fff')}${gem}<b id="arGemZahl">0</b></button>
-        <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#fff')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
-        <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#fff')}<img src="arena/zahnrad.svg" alt=""></button>
+        <button class="ar-chip" id="arCoins" aria-label="Shop und Charakter">${rahmen(120, 48, 14, 7, '#FAF6EB')}${coin}<b id="arCoinZahl">0</b></button>
+        <button class="ar-chip" id="arGems" aria-label="Gems und besondere Outfits">${rahmen(110, 48, 14, 6, '#FAF6EB')}${gem}<b id="arGemZahl">0</b></button>
+        <button class="ar-chip" data-profil aria-label="Profil öffnen">${rahmen(120, 48, 14, 3, '#FAF6EB')}<img src="arena/pokal.svg" alt="Pokale"><b id="arPokale">0</b></button>
+        <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#FAF6EB')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
       <div class="ar-modus" role="tablist"><button data-modus="lauf">Laufen</button><button data-modus="kraft">Kraft</button></div>
+      </div>
       <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
       <div class="ar-unten">
         <button class="ar-name" id="arName"></button>
@@ -225,7 +227,7 @@
 
   function podest(g, x, T, W) {
     const p = new T.Group(); p.position.x = x; g.add(p);
-    p.add(W.teil(W.rohr(0.95, 0.24, 32), '#FFFFFF', 0, -0.12, 0, 0.05));
+    p.add(W.teil(W.rohr(0.95, 0.24, 32), '#FAF6EB', 0, -0.12, 0, 0.05));
     p.add(W.teil(W.rohr(0.85, 0.4, 32, 0.55), '#9C7448', 0, -0.44, 0, 0.05));
     return p;
   }
@@ -283,7 +285,7 @@
     const welt = new T.Group(); g.add(welt);
     g.add(W.teil(W.box(80, 0.2, 3.2), '#D9643A', 0, -0.1, 0, 0.04));
     g.add(W.teil(W.box(80, 0.18, 4), '#8CC084', 0, -0.12, 3.6, 0)); g.add(W.teil(W.box(80, 0.18, 4), '#8CC084', 0, -0.12, -3.6, 0));
-    const weiss = new T.MeshBasicMaterial({ color: 0xffffff });
+    const weiss = new T.MeshBasicMaterial({ color: 0xFAF6EB });
     [-1.55, 0, 1.55].forEach(z => { const l = new T.Mesh(W.box(80, 0.02, 0.06), weiss); l.position.set(0, 0.01, z); g.add(l); });
     for (let x = -40; x <= 40; x += P) {
       const q = new T.Mesh(W.box(0.12, 0.02, 3.1), weiss); q.position.set(x, 0.015, 0); welt.add(q);
@@ -294,7 +296,7 @@
     }
     const ziel = new T.Group(); g.add(ziel);
     [-1.7, 1.7].forEach(z => ziel.add(W.teil(W.rohr(0.06, 2.4, 8), '#2B2826', 0, 1.2, z, 0.015)));
-    ziel.add(W.teil(W.box(0.1, 0.45, 3.5), '#FFFFFF', 0, 2.3, 0, 0.03));
+    ziel.add(W.teil(W.box(0.1, 0.45, 3.5), '#FAF6EB', 0, 2.3, 0, 0.03));
     for (let i = 0; i < 7; i++) ziel.add(W.teil(W.box(0.11, 0.22, 0.5), '#2B2826', 0, 2.3 + (i % 2 ? 0.11 : -0.11), -1.5 + i * 0.5, 0));
     const ichF = { f: null, aussehen: null }, gegF = { f: null, aussehen: null };
     const anz = { mm: 0, gm: 0 };
@@ -493,7 +495,7 @@
       <h2 class="ar-titel">Welche Strecke?</h2>
       <p class="ar-hand">Du läufst draußen, wo du willst. Dein Gegner sieht nur deine Meter, nie wo du bist.</p>
       <div class="ar-klassen">${KLASSEN.map(([m, l, t, f], k) =>
-        `<button data-klasse="${m}">${rahmen(300, 74, 14, 31 + k, '#fff')}<b>${l}</b><span>${t}<br><small>Pokale ×${f} · max ${m * 6 / 10000} min</small></span></button>`).join('')}</div>
+        `<button data-klasse="${m}">${rahmen(300, 74, 14, 31 + k, '#FAF6EB')}<b>${l}</b><span>${t}<br><small>Pokale ×${f} · max ${m * 6 / 10000} min</small></span></button>`).join('')}</div>
       <p class="ar-hand klein">Sieg-Pokale gibt es nur, wenn du im Zeitlimit ins Ziel kommst (10 min pro km).</p>
       <p class="ar-hand klein">Wichtig: draußen laufen, App offen lassen, Bildschirm bleibt an.</p>`);
     $('arBlatt').querySelectorAll('[data-klasse]').forEach(b => b.onclick = () => suchen(+b.dataset.klasse));
@@ -732,6 +734,8 @@
   const q = new URLSearchParams(location.search);
   if (!q.get('crew') && !q.get('duell') && !q.get('match')) showTab('arena');
   else zeichnen();
+  // Ladeschirm weg, sobald die Arena gezeichnet ist
+  requestAnimationFrame(() => setTimeout(() => window.Lade && Lade.weg(), 350));
 
   // für Tests
   window.ArenaUI = { vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,

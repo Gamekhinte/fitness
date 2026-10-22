@@ -22,7 +22,7 @@
 .so-emb{display:block;flex:none}
 
 /* Liste */
-.so-panel{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:14px 14px 16px;margin-bottom:12px}
+.so-panel{background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:14px 14px 16px;margin-bottom:12px}
 .so-kopf{display:flex;justify-content:space-between;align-items:baseline}
 .so-kopf h2{margin:0;font-size:24px}
 .so-kopf small{font-family:var(--hand);font-size:17px;color:var(--mut)}
@@ -47,7 +47,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-ico{width:22px;display:block}
 .so-ja{display:flex;gap:6px;flex:none}
 .so-mini{font-family:var(--dick);font-size:15px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:10px;box-shadow:0 3px 0 var(--graphit);padding:5px 10px}
-.so-mini.aus{background:#fff}
+.so-mini.aus{background:#FAF6EB}
 .so-mini:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
 .so-leer{margin:18px 6px 6px}
 .so-gesendet{font-family:var(--hand);font-size:16px;color:var(--mut);text-align:center;margin:12px 0 0}
@@ -58,7 +58,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-erst .ar-zeile input{flex:1;min-width:0}
 
 /* Profil und Clan im Fenster */
-.so-plakette{text-align:center;margin:8px 0 4px;padding:12px 10px 12px;background:#fff;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit)}
+.so-plakette{text-align:center;margin:8px 0 4px;padding:12px 10px 12px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit)}
 .so-plakette h2{margin:0 0 4px;font-size:28px}
 .so-tag{font-family:var(--dick);font-size:18px;color:var(--graphit);background:var(--papier);border:2px solid var(--graphit);border-radius:8px;padding:1px 10px}
 .so-tag.klein{font-size:15px;padding:0 8px}
@@ -89,7 +89,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-formen,.so-symbole{display:grid;gap:9px}
 .so-formen{grid-template-columns:repeat(4,1fr)}
 .so-symbole{grid-template-columns:repeat(4,1fr)}
-.so-formen button,.so-symbole button{display:flex;align-items:center;justify-content:center;padding:5px 2px;background:#fff;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
+.so-formen button,.so-symbole button{display:flex;align-items:center;justify-content:center;padding:5px 2px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
 .so-formen button.an,.so-symbole button.an{background:var(--marker)}
 .ar-zeile input{min-width:0;flex:1}
 #wfWerkMatch,#wfWerkRueck{margin-top:10px}
@@ -101,7 +101,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-regeln li{margin:8px 0}
 .so-chatkopf{display:flex;align-items:center;gap:10px;margin:2px 44px 10px 0}
 .so-chatkopf h2{margin:0;font-size:24px;text-align:left}
-.so-chat{height:46svh;min-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#fff;border:3px solid var(--graphit);border-radius:14px}
+.so-chat{height:46svh;min-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:14px}
 .so-msg{display:flex;flex-direction:column;align-items:flex-start}
 .so-msg.ich{align-items:flex-end}
 .so-blase{max-width:86%;text-align:left;padding:6px 10px 4px;background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;font-family:var(--hand);font-size:18px;line-height:1.2;word-break:break-word}
@@ -114,7 +114,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .so-chatzeile{margin:10px 0 4px}
 .so-gruende .ar-knopf{margin-top:10px;font-size:17px}
 .so-schalter{display:flex;align-items:center;gap:10px;margin:16px 0 4px;padding:6px 0;background:none;border:0;font-family:var(--hand);font-size:19px;color:var(--graphit)}
-.so-schalter i{display:block;width:28px;height:28px;box-sizing:border-box;background:#fff;border:3px solid var(--graphit);border-radius:8px;box-shadow:0 3px 0 var(--graphit)}
+.so-schalter i{display:block;width:28px;height:28px;box-sizing:border-box;background:#FAF6EB;border:3px solid var(--graphit);border-radius:8px;box-shadow:0 3px 0 var(--graphit)}
 .so-schalter.an i{background:var(--marker) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7' fill='none' stroke='%232B2826' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/80% no-repeat}
 .so-sicher .ar-knopf{flex:1}
 
@@ -128,11 +128,11 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .ps-kopfzeile{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;margin:18px 0 6px;text-align:center;font-family:var(--dick);font-size:16px}
 .ps-liste{display:flex;flex-direction:column;gap:8px}
 .ps-reihe{display:grid;grid-template-columns:1fr 38px 1fr;gap:8px;align-items:center}
-.ps-nr{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto;font-family:var(--dick);font-size:16px;background:#fff;border:3px solid var(--graphit);border-radius:50%}
+.ps-nr{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0 auto;font-family:var(--dick);font-size:16px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:50%}
 .ps-reihe.erreicht .ps-nr{background:var(--marker)}
 .ps-reihe.jetzt .ps-nr{background:var(--gold)}
 .ps-box{position:relative;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;
-  background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand);text-align:center;line-height:1.1}
+  background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand);text-align:center;line-height:1.1}
 .ps-box b{font-family:var(--dick);font-weight:400;font-size:17px}
 .ps-box small{font-size:13px;color:var(--mut)}
 .ps-box img{width:22px}
@@ -145,7 +145,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .ps-box.prem.zu{background:#E6DEC9}
 .ps-haken{position:absolute;right:6px;top:4px;width:18px;height:18px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='%233E7A55' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
-.ar-blatt h2.ar-titel{padding:0 42px}
+.ar-blatt-in:not(.mit3d) h2.ar-titel{padding:0 42px}
 
 /* Gems, Chips oben, Pass-Aufmachung */
 .ar-gem{width:22px;display:inline-block;vertical-align:-4px}
@@ -156,7 +156,7 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .ar-coinzeile{flex-wrap:wrap;gap:6px 6px}
 .ar-coinzeile .ar-gem{margin-left:12px}
 .ar-knopf.gemknopf{background:#3CBFB0}
-.ps-hero{text-align:center;margin:10px 0 4px;padding:8px 10px;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);background:#fff}
+.ps-hero{text-align:center;margin:10px 0 4px;padding:8px 10px;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);background:#FAF6EB}
 .ps-hero span{display:inline-block;font-family:var(--dick);font-size:13px;letter-spacing:.5px;padding:0 8px;border:2px solid var(--graphit);border-radius:5px;background:var(--marker)}
 .ps-hero b{display:block;font-family:var(--dick);font-weight:400;font-size:26px;line-height:1.15;margin-top:3px}
 .ps-hero small{font-family:var(--hand);font-size:17px;color:var(--mut)}
@@ -184,3 +184,24 @@ button.so-zeile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphi
 .ps-konfetti i{position:absolute;top:-20px;width:10px;height:14px;border:2px solid var(--graphit);border-radius:2px;animation:psFall 1.6s ease-in forwards}
 @keyframes psFall{to{top:105%;transform:translateX(30px) rotate(540deg)}}
 @media (prefers-reduced-motion:reduce){.ps-box.bereit{animation:none}}
+
+/* Startbildschirm: feste Kopfleiste, an der die Seile hängen, und der Winterpass-Banner über BATTLE */
+body.papier main{padding-top:0}
+.ar-kopf{position:relative;z-index:3;flex:none;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 12px;
+  background:var(--papier);border-bottom:3px solid var(--graphit);box-shadow:0 4px 0 var(--graphit);display:flex;flex-direction:column;align-items:center;gap:10px}
+.ar-kopf .ar-oben{position:static;width:100%;justify-content:space-between}
+.ar-kopf .ar-modus{position:static;transform:none}
+.ar-kopf .ar-zahn{margin-left:0}
+.ar-3d{margin:0 -16px}
+.ar-buehne .ar-passband{position:relative;flex:none;display:flex;align-items:center;gap:10px;margin:10px 2px 0;padding:8px 12px;text-align:left;
+  background:var(--gold);color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand)}
+.ar-passband:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
+.ar-passband .pb-gem img{width:34px;display:block}
+.ar-passband .pb-text{flex:1;min-width:0}
+.ar-passband .pb-text b{display:block;font-family:var(--dick);font-weight:400;font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ar-passband .pb-balken{display:block;height:10px;margin-top:5px;background:var(--weiss,#FAF6EB);border:2.5px solid var(--graphit);border-radius:6px;overflow:hidden}
+.ar-passband .pb-balken u{display:block;height:100%;background:#3CBFB0;text-decoration:none}
+.ar-passband .pb-tag{flex:none;padding:3px 9px;font-family:var(--dick);font-size:14px;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:7px}
+.ar-passband .pb-tag.neu{background:var(--rot);color:#FAF6EB}
+.ar-passband.ps-neu{animation:psPuls 1.6s ease-out infinite}
+.ar-battle{margin-top:10px}

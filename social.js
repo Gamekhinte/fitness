@@ -20,18 +20,18 @@
   let C = null, B = null;                         // Clan-Editor, Banner-Editor
 
   /* ---------- Farben, Banner, Avatar, Emblem ---------- */
-  const FARBEN = ['#D9643A', '#F2C14E', '#7CD4FF', '#3E7A55', '#3FA9E6', '#E86AA6', '#2B2826', '#FFFFFF', '#F08A3A', '#3CBFB0', '#9C7448', '#1F3A5F'];
+  const FARBEN = ['#D9643A', '#F2C14E', '#7CD4FF', '#3E7A55', '#3FA9E6', '#E86AA6', '#2B2826', '#FAF6EB', '#F08A3A', '#3CBFB0', '#9C7448', '#1F3A5F'];
   const ganz = (v, max, std) => { v = Number(v); return Number.isInteger(v) ? Math.max(0, Math.min(max, v)) : std; };
   const bannerOk = b => ({ farbe: ganz(b && b.farbe, 11, 0), muster: ganz(b && b.muster, 5, 0) });
   const emblemOk = m => ({ form: ganz(m && m.form, 3, 0), symbol: ganz(m && m.symbol, 15, 0), c1: ganz(m && m.c1, 11, 0), c2: ganz(m && m.c2, 11, 1) });
 
   const MUSTER = [
     '',
-    '<path d="M-6 6l12-12M0 24L24 0M18 30l12-12" stroke="#fff" stroke-opacity=".35" stroke-width="5"/>',
-    '<circle cx="6" cy="6" r="3" fill="#fff" fill-opacity=".35"/><circle cx="18" cy="18" r="3" fill="#fff" fill-opacity=".35"/>',
-    '<path d="M0 12l6-6 6 6 6-6 6 6" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>',
-    '<path d="M0 12q6-8 12 0t12 0" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>',
-    '<rect width="12" height="12" fill="#fff" fill-opacity=".25"/><rect x="12" y="12" width="12" height="12" fill="#fff" fill-opacity=".25"/>'
+    '<path d="M-6 6l12-12M0 24L24 0M18 30l12-12" stroke="#FAF6EB" stroke-opacity=".35" stroke-width="5"/>',
+    '<circle cx="6" cy="6" r="3" fill="#FAF6EB" fill-opacity=".35"/><circle cx="18" cy="18" r="3" fill="#FAF6EB" fill-opacity=".35"/>',
+    '<path d="M0 12l6-6 6 6 6-6 6 6" fill="none" stroke="#FAF6EB" stroke-opacity=".35" stroke-width="3"/>',
+    '<path d="M0 12q6-8 12 0t12 0" fill="none" stroke="#FAF6EB" stroke-opacity=".35" stroke-width="3"/>',
+    '<rect width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/><rect x="12" y="12" width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/>'
   ];
   const MUSTER_NAMEN = ['Schlicht', 'Streifen', 'Punkte', 'Zickzack', 'Wellen', 'Karo'];
   function bannerBg(b) {
@@ -94,7 +94,7 @@
     <path d="${FORMEN[0]}" fill="${INK}" transform="translate(0 4)"/><path d="${FORMEN[0]}" fill="#E9E3D6" stroke="${INK}" stroke-width="3" stroke-dasharray="6 5" stroke-linejoin="round"/>
     <path d="M32 21v22M21 32h22" stroke="${INK}" stroke-width="5" stroke-linecap="round"/></svg>`;
   const schwerter = px => `<svg class="so-emb" style="width:${px}px;height:${Math.round(px * 68 / 64)}px" viewBox="0 0 64 68" aria-hidden="true"><g transform="translate(6 6) scale(2)">
-    <g transform="rotate(42 12 12)">${SYM[9]('#fff', INK)}</g><g transform="rotate(-42 12 12)">${SYM[9]('#F2C14E', INK)}</g></g></svg>`;
+    <g transform="rotate(42 12 12)">${SYM[9]('#FAF6EB', INK)}</g><g transform="rotate(-42 12 12)">${SYM[9]('#F2C14E', INK)}</g></g></svg>`;
 
   /* ---------- Hilfen ---------- */
   function vor(zuletzt) {

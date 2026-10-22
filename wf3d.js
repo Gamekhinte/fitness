@@ -82,8 +82,8 @@
     const r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: !!opt.foto });
     r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     const szene = new T.Scene();
-    szene.add(new T.AmbientLight(0xffffff, 1.4));
-    const sonne = new T.DirectionalLight(0xffffff, 2.2); sonne.position.set(-4, 10, 7); szene.add(sonne);
+    szene.add(new T.AmbientLight(0xF5F0E4, 1.4));
+    const sonne = new T.DirectionalLight(0xF5F0E4, 2.2); sonne.position.set(-4, 10, 7); szene.add(sonne);
     const kamera = new T.PerspectiveCamera(opt.fov || 30, 1, 0.1, 300);
     const b = { r, szene, kamera, el, jeBild: null, beiGroesse: null };
     b.einhaengen = neu => {

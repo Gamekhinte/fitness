@@ -27,18 +27,19 @@
   const seltenheit = wert => wert === HAUPTPREIS ? 'legendaer' : String(wert).startsWith('skin:') ? 'episch' : 'selten';
   const SELT_NAME = { legendaer: 'Legendär', episch: 'Episch', selten: 'Selten' };
 
-  /* ---------- Chip auf dem Startbildschirm ---------- */
+  /* ---------- Banner auf dem Startbildschirm (über BATTLE) ---------- */
   function chip() {
-    const oben = document.querySelector('.ar-oben'); if (!oben) return;
+    const battle = el('arBattle'); if (!battle) return;
     let c = el('arPass');
     if (!c) {
-      c = document.createElement('button'); c.className = 'ar-chip'; c.id = 'arPass'; c.setAttribute('aria-label', 'Winterpass');
-      c.innerHTML = `${A.rahmen(90, 48, 14, 11, '#fff')}<span class="ps-lab">Pass</span><b id="arPassStufe">0</b>`;
-      oben.insertBefore(c, el('arZahn'));
+      c = document.createElement('button'); c.className = 'ar-passband'; c.id = 'arPass'; c.setAttribute('aria-label', 'Winterpass öffnen');
+      battle.parentNode.insertBefore(c, battle);
       c.onclick = () => sheet();
     }
-    el('arPassStufe').textContent = P && P.aktiv ? P.stufe : '0';
-    c.classList.toggle('ps-neu', !!(P && P.aktiv && bereit() > 0));
+    const n = bereit(), lv = P && P.aktiv ? P.stufe : 0, anteil = P && P.aktiv ? (P.stufe >= P.stufen ? 100 : (P.xp % P.xp_pro_stufe) / P.xp_pro_stufe * 100) : 0;
+    const tag = !P || !P.aktiv ? 'Bald' : n > 0 ? `${n} abholen` : P.premium ? 'Premium aktiv' : 'Premium';
+    c.innerHTML = `<span class="pb-gem">${gem}</span><span class="pb-text"><b>Winterpass · Stufe ${lv}</b><i class="pb-balken"><u style="width:${anteil}%"></u></i></span><span class="pb-tag${n > 0 ? ' neu' : ''}">${tag}</span>`;
+    c.classList.toggle('ps-neu', n > 0);
   }
   const geholt = (st, sp) => P.abgeholt.some(a => a.stufe === st && a.spur === sp);
   const bereit = () => P && P.aktiv ? P.belohnungen.filter(r => r.stufe <= P.stufe && (r.spur === 'frei' || P.premium) && !geholt(r.stufe, r.spur)).length : 0;
@@ -60,7 +61,7 @@
   /* ---------- Konfetti ---------- */
   function feier() {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const farben = ['#F2C14E', '#7CD4FF', '#D9643A', '#3CBFB0', '#E86AA6', '#FFFFFF'];
+    const farben = ['#F2C14E', '#7CD4FF', '#D9643A', '#3CBFB0', '#E86AA6', '#FAF6EB'];
     const box = document.createElement('div'); box.className = 'ps-konfetti';
     for (let i = 0; i < 36; i++) {
       const k = document.createElement('i');
@@ -114,17 +115,16 @@
       <h2 class="ar-titel">${e(P.name)}</h2>
       <p class="ar-hand">Noch ${P.tage_rest} ${P.tage_rest === 1 ? 'Tag' : 'Tage'}</p>
       <div class="ps-konto"><span>${A.coin}<b>${A.F().coins}</b></span><span>${gem}<b>${A.F().gems || 0}</b></span></div>
+      ${P.premium ? '<p class="ps-prem">Premium-Spur aktiv</p>'
+        : `<div class="ps-werbung"><b>Premium-Spur</b><span>${e(premItems.slice(-3).reverse().join(', '))} und ${premGems} ${gem}</span></div>`}
       <div class="ps-kopf"><b>Stufe ${P.stufe}${max ? ' (Maximum)' : ''}</b><span>${max ? 'Alles geschafft' : `${imStufe} von ${P.xp_pro_stufe} XP`}</span></div>
       <div class="ar-weg ps-balken"><i style="width:${max ? 100 : imStufe / P.xp_pro_stufe * 100}%"></i></div>
       <p class="ar-hand klein">XP gibt es fürs Training (Wiederholungen, Kilometer, Trainingstage) und für jedes gewertete Rennen und Duell.</p>
       ${n ? `<button class="ar-knopf breit gold" data-pass="alle">Alle abholen (${n})</button>` : ''}
-      ${P.premium ? '<p class="ps-prem">Premium-Spur aktiv</p>'
-        : `<div class="ps-werbung"><b>Premium-Spur</b><span>${e(premItems.slice(-3).reverse().join(', '))} und ${premGems} ${gem}</span></div>
-           <button class="ar-knopf breit" data-pass="premium">Premium-Spur freischalten · ${P.premium_preis} ${A.coin}</button>
-           <p class="ar-hand klein">Nur Kosmetik und Währung, kein Vorteil im Rennen. Bezahlt wird mit Coins, die du im Spiel verdienst. Gems bekommst du auch ohne Premium (${freiGems} in der freien Spur) und für jede neue Arena.</p>`}
       <p class="ar-hand klein">Tippe auf ein Outfit oder eine Kosmetik, um sie oben anzuschauen.</p>
       <div class="ps-kopfzeile"><span>Frei</span><span></span><span>Premium</span></div>
-      <div class="ps-liste">${reihen.join('')}</div>`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
+      <div class="ps-liste">${reihen.join('')}</div>
+      ${P.premium ? '' : `<div class="ar-fuss"><button class="ar-knopf breit gold" data-pass="premium">Premium-Spur freischalten · ${P.premium_preis} ${A.coin}</button></div>`}`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
     $('arB3d').style.background = '#1F3A5F';
     if (!bleiben && P.stufe >= 4) setTimeout(() => { const j = el('psJetzt'); if (j && j.scrollIntoView) j.scrollIntoView({ block: 'center' }); }, 60);   // ab Stufe 4 zur aktuellen Stufe, sonst oben beim Hauptpreis
     if (nachOben) { const b = document.querySelector('.ar-blatt'); if (b) b.scrollTop = 0; }

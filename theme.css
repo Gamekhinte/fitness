@@ -1,6 +1,6 @@
 /* Winterform im Arena-Look für die ganze App: Papier, Tinte, dicke Ränder, harte Schatten, Eisblau als Marker.
    Überschreibt styles.css, ohne die Struktur anzufassen. */
-:root{--bg:#F3EFE6;--card:#FFFFFF;--line:#2B2826;--volt:#1C6FA6;--txt:#2B2826;--mut:#6B645C;
+:root{--bg:#F3EFE6;--card:#FAF6EB;--line:#2B2826;--volt:#1C6FA6;--txt:#2B2826;--mut:#6B645C;
   --papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--gold:#F2C14E;--rot:#D9643A;
   --dick:'Lilita One','Arial Black',sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}
 html,body{background:var(--papier);color:var(--graphit)}
@@ -10,11 +10,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 .top{padding:16px 18px 6px}
 .logo{font-family:var(--dick);font-weight:400;font-size:24px;letter-spacing:1px;color:var(--graphit)}
 .logo span{color:var(--graphit);background:var(--marker);padding:0 4px;border-radius:4px}
-.pill{font-family:var(--dick);font-weight:400;font-size:15px;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 4px 0 var(--graphit);padding:6px 12px}
+.pill{font-family:var(--dick);font-weight:400;font-size:15px;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 4px 0 var(--graphit);padding:6px 12px}
 
 /* Karten: weiße Kästen mit Tuscherand und Schatten */
 main{padding:6px 16px calc(116px + var(--safe))}
-.card{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:16px;margin:0 0 18px}
+.card{background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:16px;margin:0 0 18px}
 .card:last-child{border-bottom:3px solid var(--graphit)}
 .label{font-family:var(--dick);font-weight:400;font-size:21px;letter-spacing:.3px;color:var(--graphit)}
 .label#todayDate,.label#proteinTotal{font-family:var(--hand);font-size:17px;color:var(--mut)}
@@ -31,16 +31,16 @@ h3{font-family:var(--dick);font-weight:400;font-size:18px;color:var(--graphit);l
 .primary:active,.send:active,.add:active,.launch:active,.ghost:active,.chip:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
 .send{background:var(--marker);color:var(--graphit);border-radius:14px}
 .add{background:var(--marker);color:var(--graphit);border-radius:12px}
-.launch,.explain,.exinfo{background:#fff;color:var(--graphit);border-radius:10px;font-weight:800}
-.ghost{background:#fff;color:var(--graphit);border-radius:12px;font-weight:700}
-.chip{background:#fff;color:var(--graphit);border-radius:12px}
+.launch,.explain,.exinfo{background:#FAF6EB;color:var(--graphit);border-radius:10px;font-weight:800}
+.ghost{background:#FAF6EB;color:var(--graphit);border-radius:12px;font-weight:700}
+.chip{background:#FAF6EB;color:var(--graphit);border-radius:12px}
 .chip.on{background:var(--marker);color:var(--graphit);border-color:var(--graphit)}
 
 /* Felder */
-input,select{background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px}
+input,select{background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px}
 input::placeholder{color:#9A938A}
 .grid2 label,.full{color:var(--graphit)}
-.qty{background:#fff;border:3px solid var(--graphit);border-radius:12px}
+.qty{background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px}
 .qty button{color:var(--graphit)}
 
 /* Listen in Karten: gestrichelte Trennlinien wie im Profil */
@@ -56,10 +56,10 @@ input::placeholder{color:#9A938A}
 .tbl th{color:var(--mut);border-bottom:3px solid var(--graphit)}
 .tbl td{border-bottom:2px dashed rgba(43,40,38,.25)}
 .tbl tr:last-child td{border-bottom:0}
-.wd{background:#fff;border:2.5px solid var(--graphit);border-radius:12px;color:var(--graphit);box-shadow:0 3px 0 var(--graphit)}
+.wd{background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:12px;color:var(--graphit);box-shadow:0 3px 0 var(--graphit)}
 .wd.now{background:var(--marker);border-color:var(--graphit);color:var(--graphit)}
 .wd.miss{color:var(--rot)}
-.bar{background:#fff;border:2.5px solid var(--graphit);height:12px;border-radius:7px}
+.bar{background:#FAF6EB;border:2.5px solid var(--graphit);height:12px;border-radius:7px}
 .bar i{background:var(--marker)}
 
 /* Coach */
@@ -72,14 +72,14 @@ input::placeholder{color:#9A938A}
 #map{border:3px solid var(--graphit);border-radius:16px;box-shadow:0 5px 0 var(--graphit)}
 .leaflet-tile-pane{filter:none}
 .leaflet-container{background:#E9E4D8}
-.breath{background:#fff;border:3px solid var(--graphit);color:var(--graphit);box-shadow:0 5px 0 var(--graphit)}
+.breath{background:#FAF6EB;border:3px solid var(--graphit);color:var(--graphit);box-shadow:0 5px 0 var(--graphit)}
 .breath.on{background:var(--marker);color:var(--graphit);box-shadow:0 2px 0 var(--graphit)}
-.sos{background:#fff;border:3px solid var(--graphit)}
+.sos{background:#FAF6EB;border:3px solid var(--graphit)}
 .sos-t{color:var(--graphit);font-family:var(--dick);font-weight:400}
 
 /* Kamera bleibt dunkel, das Bild braucht Kontrast */
 .cam-wrap{border:3px solid var(--graphit);border-radius:16px}
-.hud,.angle,.form{color:#fff}
+.hud,.angle,.form{color:#FAF6EB}
 .hud b{color:var(--marker)}
 
 /* Fenster, Meldungen */
@@ -88,19 +88,19 @@ input::placeholder{color:#9A938A}
 .toast{background:var(--papier);color:var(--graphit);border:3px solid var(--graphit);box-shadow:0 4px 0 var(--graphit);font-family:var(--hand);font-size:18px;font-weight:400}
 
 /* Crew */
-#wfLeiste{background:#fff;border:3px solid var(--graphit);box-shadow:0 5px 0 var(--graphit)}
+#wfLeiste{background:#FAF6EB;border:3px solid var(--graphit);box-shadow:0 5px 0 var(--graphit)}
 #wfLeiste b{font-family:var(--dick);font-weight:400;color:var(--graphit)}
 #wfLeiste span{color:var(--graphit)}
 #tab-crew .tbl td:nth-child(3){color:var(--graphit);font-family:var(--dick);font-weight:400;font-size:16px}
 
 /* Navigation überall wie in der Arena */
-.nav{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
+.nav{background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit)}
 .nav button{color:var(--graphit);font-family:var(--hand);font-size:13px;font-weight:400;letter-spacing:0;border:2px solid transparent}
 .nav button.active{background:var(--marker);border:2px solid var(--graphit);color:var(--graphit)}
 
 /* ===== Hängende Schilder: Kopf hängt an Seilen von oben, jede Karte an der darüber ===== */
 .tab:not(#tab-arena)>.card,.tab:not(#tab-arena)>.acc,#catalogList{position:relative;margin-top:30px;transform-origin:50% -30px}
-#tab-catalog>.acc,#catalogList{background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:2px 16px;margin-bottom:18px}
+#tab-catalog>.acc,#catalogList{background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:2px 16px;margin-bottom:18px}
 #catalogList .acc:last-child{border-bottom:0}
 .tab:not(#tab-arena)>.card::before,.tab:not(#tab-arena)>.acc::before,#catalogList::before,
 body:not(.papier) .top::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;pointer-events:none;
@@ -109,7 +109,7 @@ body:not(.papier) .top::before{content:'';position:absolute;left:0;right:0;top:-
 body:not(.papier) .top::after{content:'';position:absolute;left:0;right:0;top:-8px;height:16px;pointer-events:none;
   background-image:url(arena/oese.svg),url(arena/oese.svg);background-repeat:no-repeat;background-size:16px 16px;background-position:calc(16% + 1px) 0,calc(84% - 1px) 0}
 /* Kopf als Schild, Seile gehen bis zum oberen Rand */
-body:not(.papier) .top{position:relative;margin:calc(26px + env(safe-area-inset-top,0px)) 16px 0;background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:10px 12px 10px 16px}
+body:not(.papier) .top{position:relative;margin:calc(26px + env(safe-area-inset-top,0px)) 16px 0;background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:10px 12px 10px 16px}
 body:not(.papier) .top::before{top:-200px;height:200px}
 body:not(.papier) main{padding-top:0}
 /* Beim Öffnen schwingen die Schilder einmal kurz aus und hängen dann still */

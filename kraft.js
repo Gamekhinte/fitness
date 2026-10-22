@@ -306,7 +306,7 @@
     }
     for (const i of [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]) {
       if ((lm[i].visibility ?? 1) < 0.4) continue;
-      const [x, y] = P(i); g.fillStyle = '#FFFFFF'; g.strokeStyle = '#2B2826'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); g.stroke();
+      const [x, y] = P(i); g.fillStyle = '#FAF6EB'; g.strokeStyle = '#2B2826'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); g.stroke();
     }
   }
 
@@ -324,7 +324,7 @@
       <h2 class="ar-titel">Welche Übung?</h2>
       <p class="ar-hand">Die Kamera zählt nur saubere Wiederholungen. Dein Bild bleibt auf deinem Handy, es wird nichts hochgeladen.</p>
       <div class="ar-klassen">${Object.entries(UEB).map(([id, u], k) =>
-        `<button data-uebung="${id}">${ui.rahmen(300, 74, 14, 61 + k, '#fff')}<b>${u.name}</b><span>${id === 'plank' ? 'Länger halten gewinnt' : '60 Sekunden'}<br><small>Sieg ca. +30 Pokale</small></span></button>`).join('')}</div>`);
+        `<button data-uebung="${id}">${ui.rahmen(300, 74, 14, 61 + k, '#FAF6EB')}<b>${u.name}</b><span>${id === 'plank' ? 'Länger halten gewinnt' : '60 Sekunden'}<br><small>Sieg ca. +30 Pokale</small></span></button>`).join('')}</div>`);
     document.querySelectorAll('[data-uebung]').forEach(b => b.onclick = () => aufbau(b.dataset.uebung));
   }
 
@@ -428,7 +428,7 @@
   const gName = (s, seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Trainingspartner' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerName = s => gName(s, D.seite);
   const gegnerWert = s => s.aufzeichnung ? (s.geist_wert || 0) : (D.seite === 'a' ? s.b_wert : s.a_wert);
-  const PACE = { haut: '#A9744E', haare: 'locken', haarfarbe: '#2B2826', augen: 'wach', mund: 'grinsen', oberteil: '#D9643A', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'stirnband', hg: 'graffiti' };
+  const PACE = { haut: '#A9744E', haare: 'locken', haarfarbe: '#2B2826', augen: 'wach', mund: 'grinsen', oberteil: '#D9643A', hose: '#2B2826', schuhe: '#FAF6EB', kopf: 'stirnband', hg: 'graffiti' };
   const gegnerFigur = s => { const f = s.aufzeichnung ? s.geist_figur : (D.seite === 'a' ? s.b_figur : s.a_figur); return Figur.pruefen(f && Object.keys(f).length ? f : PACE); };
 
   /* ---------- Gegner-Avatar im Kamerabild: macht seine Wiederholungen mit (nur die Figur, nie der echte Gegner) ---------- */

@@ -5,7 +5,7 @@
 (function () {
   if (!window.Arena3D) return;
   const F = { holz: '#C8A27A', holz2: '#A9825A', dunkelholz: '#7A5535', beton: '#A8A39B', gummi: '#3A3836', fliese: '#D8D2C8',
-    weiss: '#FFFFFF', ink: '#2B2826', rot: '#D9643A', blau: '#3FA9E6', eis: '#7CD4FF', gold: '#F2C14E', gruen: '#3E7A55',
+    weiss: '#F5F0E4', ink: '#2B2826', rot: '#D9643A', blau: '#3FA9E6', eis: '#7CD4FF', gold: '#F2C14E', gruen: '#3E7A55',
     hellgruen: '#8CC084', rosa: '#E86AA6', lila: '#7B5CC4', stahl: '#8E8A84', chrom: '#C9C5BE', sand: '#EAD39C', gras: '#6EA85A' };
   const UEBUNGEN = ['kniebeuge', 'liegestuetz', 'plank'];
 
@@ -25,8 +25,8 @@
       if (o.waende !== false) {
         h.box(g, 11.2, hoch, 0.3, o.wand, 0, 0.2 + hoch / 2, -4.95, 0.05);
         h.box(g, 0.3, hoch, 10.2, o.wand2 || o.wand, -5.45, 0.2 + hoch / 2, 0, 0.05);
-        h.box(g, 11, 0.18, 0.06, o.leiste || '#FFFFFF', 0, 0.29, -4.78, 0.01);
-        h.box(g, 0.06, 0.18, 10, o.leiste || '#FFFFFF', -5.28, 0.29, 0, 0.01);
+        h.box(g, 11, 0.18, 0.06, o.leiste || '#F5F0E4', 0, 0.29, -4.78, 0.01);
+        h.box(g, 0.06, 0.18, 10, o.leiste || '#F5F0E4', -5.28, 0.29, 0, 0.01);
       }
       return hoch;
     };
@@ -56,14 +56,14 @@
       [[0, 0.75, 0, 0.3], [0.15, 0.62, 0.08, 0.22], [-0.14, 0.6, -0.05, 0.24]].forEach(([dx, dy, dz, r]) => h.kugel(g, r * s, F.gruen, x + dx * s, 0.2 + dy * s, z + dz * s));
     };
     h.poster = (g, x, y, f1, f2, wandX) => {
-      if (wandX) { h.box(g, 0.04, 0.9, 0.7, '#FFFFFF', -5.28, y, x, 0.015); h.box(g, 0.02, 0.5, 0.45, f1, -5.25, y + 0.08, x, 0); h.box(g, 0.02, 0.1, 0.45, f2, -5.25, y - 0.3, x, 0); }
-      else { h.box(g, 0.7, 0.9, 0.04, '#FFFFFF', x, y, -4.78, 0.015); h.box(g, 0.45, 0.5, 0.02, f1, x, y + 0.08, -4.75, 0); h.box(g, 0.45, 0.1, 0.02, f2, x, y - 0.3, -4.75, 0); }
+      if (wandX) { h.box(g, 0.04, 0.9, 0.7, '#F5F0E4', -5.28, y, x, 0.015); h.box(g, 0.02, 0.5, 0.45, f1, -5.25, y + 0.08, x, 0); h.box(g, 0.02, 0.1, 0.45, f2, -5.25, y - 0.3, x, 0); }
+      else { h.box(g, 0.7, 0.9, 0.04, '#F5F0E4', x, y, -4.78, 0.015); h.box(g, 0.45, 0.5, 0.02, f1, x, y + 0.08, -4.75, 0); h.box(g, 0.45, 0.1, 0.02, f2, x, y - 0.3, -4.75, 0); }
     };
     h.fenster = (g, x, y, w, hh) => {
-      h.box(g, w + 0.2, hh + 0.2, 0.08, '#FFFFFF', x, y, -4.78, 0.02);
+      h.box(g, w + 0.2, hh + 0.2, 0.08, '#F5F0E4', x, y, -4.78, 0.02);
       h.box(g, w, hh, 0.03, '#BFE6FF', x, y, -4.73, 0);
-      h.box(g, 0.06, hh, 0.04, '#FFFFFF', x, y, -4.71, 0); h.box(g, w, 0.06, 0.04, '#FFFFFF', x, y, -4.71, 0);
-      h.box(g, w + 0.4, 0.08, 0.25, '#FFFFFF', x, y - hh / 2 - 0.14, -4.66, 0.015);
+      h.box(g, 0.06, hh, 0.04, '#F5F0E4', x, y, -4.71, 0); h.box(g, w, 0.06, 0.04, '#F5F0E4', x, y, -4.71, 0);
+      h.box(g, w + 0.4, 0.08, 0.25, '#F5F0E4', x, y - hh / 2 - 0.14, -4.66, 0.015);
     };
     h.bank = (g, x, z, ry = 0, f = F.ink) => {
       const grp = new T.Group(); grp.position.set(x, 0.2, z); grp.rotation.y = ry; g.add(grp);
@@ -110,7 +110,7 @@
     };
     h.fans = (g, positionen) => {
       const farben = [F.rot, F.blau, F.gold, F.gruen, F.weiss, F.rosa];
-      const inst = new T.InstancedMesh(W.kugel(0.15, 8, 6), new T.MeshToonMaterial({ color: 0xffffff }), positionen.length);
+      const inst = new T.InstancedMesh(W.kugel(0.15, 8, 6), new T.MeshToonMaterial({ color: 0xF5F0E4 }), positionen.length);
       const m4 = new T.Matrix4();
       positionen.forEach((p, i) => { m4.makeTranslation(...p); inst.setMatrixAt(i, m4); inst.setColorAt(i, new T.Color(farben[(i * 7) % farben.length])); });
       g.add(inst);
@@ -122,7 +122,7 @@
   const wandSeile = hoch => [hoch + 0.2, hoch + 0.2, hoch + 0.2, 0.42];   // hinten links, hinten rechts, vorne links an Wandkanten
 
   const KRAFT = [
-    { name: 'Schlafzimmer', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {   // Federn aus dem Kissen
+    { name: 'Schlafzimmer', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {   // Federn aus dem Kissen
       const h = mk(H), { T, W, teil } = H;
       const hoch = h.raum(g, { boden: F.holz, wand: '#DDE7EE', wand2: '#E9E2F2', muster: 'dielen' });
       h.fenster(g, 1.6, 2.1, 1.8, 1.3);
@@ -131,9 +131,9 @@
       h.box(g, 2.8, 0.06, 0.06, F.dunkelholz, 1.6, 3.0, -4.66, 0.01);
       // Bett mit Decke und Kissen
       h.box(g, 2.2, 0.45, 3.2, F.dunkelholz, -3.9, 0.45, -3.2, 0.04);
-      h.box(g, 2.1, 0.3, 3.0, '#FFFFFF', -3.9, 0.8, -3.2, 0.03);
+      h.box(g, 2.1, 0.3, 3.0, '#F5F0E4', -3.9, 0.8, -3.2, 0.03);
       h.box(g, 2.16, 0.12, 2.0, F.blau, -3.9, 0.98, -2.7, 0.03);
-      h.box(g, 1.4, 0.25, 0.6, '#FFFFFF', -3.9, 1.07, -4.3, 0.03);
+      h.box(g, 1.4, 0.25, 0.6, '#F5F0E4', -3.9, 1.07, -4.3, 0.03);
       h.box(g, 2.2, 1.2, 0.15, F.dunkelholz, -3.9, 0.8, -4.8, 0.03);
       // Nachttisch mit Lampe und Wecker
       h.box(g, 0.7, 0.6, 0.6, F.holz2, -2.4, 0.5, -4.3, 0.03);
@@ -145,16 +145,16 @@
       h.box(g, 0.7, 0.04, 0.45, F.stahl, 4.0, 1.17, -4.25, 0.015); const sc = h.box(g, 0.7, 0.45, 0.03, F.ink, 4.0, 1.4, -4.48, 0.015); sc.rotation.x = -0.2;
       h.box(g, 0.6, 0.08, 0.6, F.blau, 4.2, 0.7, -3.4, 0.02); h.box(g, 0.6, 0.7, 0.08, F.blau, 4.2, 1.05, -3.1, 0.02); h.zyl(g, 0.04, 0.5, F.ink, 4.2, 0.42, -3.4, 0);
       // Regal mit Büchern, Wanduhr, Poster
-      h.box(g, 0.3, 0.06, 1.8, '#FFFFFF', -5.15, 2.3, 0.4, 0.015);
+      h.box(g, 0.3, 0.06, 1.8, '#F5F0E4', -5.15, 2.3, 0.4, 0.015);
       ['#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55', '#E86AA6', '#7B5CC4'].forEach((f, i) => h.box(g, 0.24, 0.42 - (i % 3) * 0.06, 0.16, f, -5.12, 2.55 - (i % 3) * 0.03, -0.3 + i * 0.22, 0.012));
-      h.zyl(g, 0.32, 0.06, '#FFFFFF', -1.4, 2.6, -4.76, 0.02, 20, 'x'); h.box(g, 0.03, 0.22, 0.02, F.ink, -1.4, 2.66, -4.71, 0); h.box(g, 0.16, 0.03, 0.02, F.ink, -1.34, 2.6, -4.71, 0);
+      h.zyl(g, 0.32, 0.06, '#F5F0E4', -1.4, 2.6, -4.76, 0.02, 20, 'x'); h.box(g, 0.03, 0.22, 0.02, F.ink, -1.4, 2.66, -4.71, 0); h.box(g, 0.16, 0.03, 0.02, F.ink, -1.34, 2.6, -4.71, 0);
       h.poster(g, 2.4, 2.1, F.blau, F.gold, true); h.poster(g, -2.0, 1.9, F.rot, F.ink, true);
       // Teppich, Yogamatte, kleine Hanteln, Klamotten, Turnschuhe, Pflanze
       h.zyl(g, 1.6, 0.03, '#F7C9B5', 0.6, 0.22, 1.0, 0.015, 30);
       h.matte(g, 0.6, 1.0, 0.9, 2.2, F.rosa, Math.PI / 2);
       h.hantel(g, 2.2, 0.33, 1.7, 0.4, F.rosa); h.hantel(g, 2.4, 0.33, 2.2, 0.2, F.rosa);
       [[F.blau, 0], [F.ink, 0.12], [F.rot, 0.22]].forEach(([f, dy], i) => h.box(g, 0.8 - i * 0.15, 0.1, 0.6 - i * 0.1, f, -3.8, 0.27 + dy, 1.4, 0.015, i * 0.4));
-      [[3.6, 3.6], [4.0, 3.7]].forEach(([x, z]) => { h.box(g, 0.25, 0.16, 0.55, '#FFFFFF', x, 0.29, z, 0.02); h.box(g, 0.27, 0.05, 0.57, F.rot, x, 0.22, z, 0.01); });
+      [[3.6, 3.6], [4.0, 3.7]].forEach(([x, z]) => { h.box(g, 0.25, 0.16, 0.55, '#F5F0E4', x, 0.29, z, 0.02); h.box(g, 0.27, 0.05, 0.57, F.rot, x, 0.22, z, 0.01); });
       h.pflanze(g, 4.6, -1.6, 1.1);
       // Tür in der linken Wand
       h.box(g, 0.1, 2.3, 1.2, F.holz, -5.25, 1.35, 3.4, 0.025); h.kugel(g, 0.06, F.gold, -5.18, 1.3, 2.95, 0.01);
@@ -190,12 +190,12 @@
       ['#D9643A', '#3FA9E6', '#3E7A55'].forEach((f, i) => h.box(g, 0.6, 0.04, 0.08, f, -4.4, 0.72, 3.25 + i * 0.12, 0));
       return info([0.6, 1.4], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
-    { name: 'Fitnessstudio', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {
+    { name: 'Fitnessstudio', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {
       const h = mk(H);
       const hoch = h.raum(g, { boden: '#5F5B55', wand: '#EADCC2', wand2: '#D8D2C8', muster: 'fliesen', leiste: F.ink });
       // Spiegelwand mit Streifen, Uhr
       h.box(g, 6, 2, 0.04, '#BFE6FF', 1.6, 1.4, -4.77, 0.02);
-      for (let i = 0; i < 4; i++) h.box(g, 0.04, 2, 0.05, '#FFFFFF', -0.6 + i * 1.5, 1.4, -4.74, 0);
+      for (let i = 0; i < 4; i++) h.box(g, 0.04, 2, 0.05, '#F5F0E4', -0.6 + i * 1.5, 1.4, -4.74, 0);
       h.box(g, 11, 0.3, 0.05, F.rot, 0, 2.75, -4.77, 0.01); h.box(g, 11, 0.12, 0.05, F.gold, 0, 2.95, -4.77, 0);
       // Laufbänder, Kabelzug, Bankdrücken, Hantelregal, Scheibenbaum, Spinde, Wasserspender, Handtücher
       h.laufband(g, 3.4, -3.4, 0); h.laufband(g, 4.5, -3.4, 0);
@@ -211,7 +211,7 @@
       h.zyl(g, 0.06, 1.4, F.ink, 2.4, 0.9, 0.6, 0.015); h.zyl(g, 0.35, 0.06, F.ink, 2.4, 0.23, 0.6, 0.015);
       [[0.5, F.rot], [0.9, F.blau], [1.3, F.gold]].forEach(([y, f]) => h.zyl(g, 0.38, 0.08, f, 2.4, y, 0.6, 0.02, 20));
       h.spinde(g, 2.0, 4, F.blau);
-      h.box(g, 0.45, 1.1, 0.45, '#FFFFFF', 4.6, 0.75, 0.0, 0.025); h.zyl(g, 0.17, 0.4, F.eis, 4.6, 1.5, 0.0, 0.02);
+      h.box(g, 0.45, 1.1, 0.45, '#F5F0E4', 4.6, 0.75, 0.0, 0.025); h.zyl(g, 0.17, 0.4, F.eis, 4.6, 1.5, 0.0, 0.02);
       [F.rot, F.blau, F.gold].forEach((f, i) => h.box(g, 0.4, 0.08, 0.3, f, 4.6, 0.25 + i * 0.09, 1.0, 0.012));
       h.kettlebell(g, 1.4, 2.8, 1, F.gold); h.kettlebell(g, 1.9, 3.1, 0.9, F.rot);
       h.matte(g, 0.2, 1.2, 0.9, 2.2, F.ink, Math.PI / 2);
@@ -242,7 +242,7 @@
       h.matte(g, 0.3, 0.8, 0.9, 2.2, F.gruen, Math.PI / 2);
       return info([0.3, 0.8], 0.2);
     } },
-    { name: 'Boxhalle', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {
+    { name: 'Boxhalle', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {
       const h = mk(H);
       const hoch = h.raum(g, { boden: F.holz2, wand: '#8E4E3A', wand2: '#B5654A', muster: 'dielen', leiste: F.ink, hoehe: 3.6 });
       // Backsteinfugen
@@ -252,7 +252,7 @@
       const ecken = [[-0.6, -3.8, F.rot], [3.8, -3.8, F.blau], [-0.6, 0.6, F.blau], [3.8, 0.6, F.rot]];
       ecken.forEach(([x, z, f]) => h.zyl(g, 0.09, 1.5, f, x, 1.45, z, 0.015));
       [1.05, 1.4, 1.75].forEach((y, i) => {
-        const f = ['#FFFFFF', F.rot, F.blau][i];
+        const f = ['#F5F0E4', F.rot, F.blau][i];
         h.box(g, 4.4, 0.05, 0.05, f, 1.6, y, -3.8, 0); h.box(g, 4.4, 0.05, 0.05, f, 1.6, y, 0.6, 0);
         h.box(g, 0.05, 0.05, 4.4, f, -0.6, y, -1.6, 0); h.box(g, 0.05, 0.05, 4.4, f, 3.8, y, -1.6, 0);
       });
@@ -270,7 +270,7 @@
       h.matte(g, -1.6, 2.6, 0.9, 2.2, F.ink, Math.PI / 2);
       return info([-1.6, 2.6], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
-    { name: 'Turnhalle', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {
+    { name: 'Turnhalle', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {
       const h = mk(H);
       const hoch = h.raum(g, { boden: '#D9B98A', wand: '#E9E2D2', wand2: '#C9DCE8', leiste: F.ink, hoehe: 3.8 });
       // Spielfeldlinien
@@ -282,10 +282,10 @@
       // Ringe am Seil, Kletterseil, Kasten, Matten, Langbank, Basketballkorb, Bälle
       [-0.4, 0.4].forEach(dx => { h.zyl(g, 0.02, 1.5, F.holz, -2.6 + dx, 3.1, -2.0, 0); const r = new H.T.TorusGeometry(0.16, 0.035, 6, 16); g.add(H.teil(r, F.holz, -2.6 + dx, 2.2, -2.0, 0.01)); });
       h.zyl(g, 0.06, 3.2, '#D8B27A', -4.2, 2.3, -3.6, 0.015);
-      [0.42, 0.37, 0.32, 0.28].forEach((y, i) => h.box(g, 1.3 - i * 0.08, 0.3, 0.8 - i * 0.04, i === 3 ? '#FFFFFF' : F.holz, 3.4, 0.35 + i * 0.3, -1.6, 0.02));
+      [0.42, 0.37, 0.32, 0.28].forEach((y, i) => h.box(g, 1.3 - i * 0.08, 0.3, 0.8 - i * 0.04, i === 3 ? '#F5F0E4' : F.holz, 3.4, 0.35 + i * 0.3, -1.6, 0.02));
       h.box(g, 2.2, 0.25, 1.4, F.blau, 3.2, 0.33, 1.2, 0.025); h.box(g, 2.2, 0.25, 1.4, F.blau, 3.2, 0.58, 1.1, 0.025);
       h.box(g, 3.2, 0.1, 0.3, F.holz, -2.8, 0.55, 3.0, 0.02); [-4.0, -1.6].forEach(x => h.box(g, 0.1, 0.35, 0.3, F.holz, x, 0.35, 3.0, 0));
-      h.box(g, 0.08, 0.9, 1.3, '#FFFFFF', -5.2, 2.7, 0.2, 0.02); const ring = new H.T.TorusGeometry(0.26, 0.03, 6, 18); ring.rotateX(Math.PI / 2); g.add(H.teil(ring, F.rot, -4.85, 2.45, 0.2, 0));
+      h.box(g, 0.08, 0.9, 1.3, '#F5F0E4', -5.2, 2.7, 0.2, 0.02); const ring = new H.T.TorusGeometry(0.26, 0.03, 6, 18); ring.rotateX(Math.PI / 2); g.add(H.teil(ring, F.rot, -4.85, 2.45, 0.2, 0));
       [[-1.6, 3.6, F.rot], [-0.8, 4.0, F.gold], [4.6, 3.8, F.blau]].forEach(([x, z, f]) => h.kugel(g, 0.24, f, x, 0.44, z, 0.02));
       h.matte(g, 0.4, 1.6, 0.9, 2.2, F.blau, Math.PI / 2);
       return info([0.4, 1.6], 0.2, { seilY: wandSeile(hoch), innen: true });
@@ -297,7 +297,7 @@
       const wm = new T.Mesh(meer, W.mat('#5BB8E8')); wm.position.set(0, 0.27, -3.5); g.add(wm);
       const basis = meer.attributes.position.array.slice();
       g.userData.tick.push(t => { const p = meer.attributes.position; for (let i = 0; i < p.count; i++) p.array[i * 3 + 1] = Math.sin(basis[i * 3] * 1.2 + t * 1.6) * 0.05; p.needsUpdate = true; });
-      for (let i = 0; i < 3; i++) h.box(g, 11, 0.04, 0.08, '#FFFFFF', 0, 0.32, -2.0 - i * 0.8, 0);
+      for (let i = 0; i < 3; i++) h.box(g, 11, 0.04, 0.08, '#F5F0E4', 0, 0.32, -2.0 - i * 0.8, 0);
       // Holzplattform mit Langhantel und Scheiben
       h.box(g, 3.6, 0.12, 2.4, F.holz, 1.6, 0.27, 0.0, 0.025);
       for (let i = -1; i <= 1; i++) h.box(g, 3.6, 0.01, 0.03, F.dunkelholz, 1.6, 0.335, i * 0.8, 0);
@@ -307,13 +307,13 @@
       [-3.6, -2.0].forEach(x => h.zyl(g, 0.08, 2.6, F.dunkelholz, x, 1.5, -1.0, 0.015)); h.zyl(g, 0.04, 1.6, F.chrom, -2.8, 2.75, -1.0, 0.01, 8, 'z');
       H.palme(g, -4.6, 1.6, 1); H.palme(g, 4.6, 3.6, 0.85); H.palme(g, -1.0, 4.2, 0.75);
       [[-0.35, -0.35], [0.35, -0.35], [-0.35, 0.35], [0.35, 0.35]].forEach(([dx, dz]) => h.zyl(g, 0.05, 1.6, F.holz, 4.4 + dx, 1.0, -0.8 + dz, 0.01));
-      h.box(g, 1, 0.6, 1, F.rot, 4.4, 2.1, -0.8, 0.03); h.box(g, 1.2, 0.08, 1.2, '#FFFFFF', 4.4, 2.45, -0.8, 0.02);
-      h.box(g, 0.8, 0.03, 1.5, F.rosa, 2.6, 0.22, 3.4, 0.01); h.box(g, 0.6, 0.4, 0.4, F.blau, 3.4, 0.4, 2.4, 0.025); h.box(g, 0.62, 0.08, 0.42, '#FFFFFF', 3.4, 0.64, 2.4, 0.01);
+      h.box(g, 1, 0.6, 1, F.rot, 4.4, 2.1, -0.8, 0.03); h.box(g, 1.2, 0.08, 1.2, '#F5F0E4', 4.4, 2.45, -0.8, 0.02);
+      h.box(g, 0.8, 0.03, 1.5, F.rosa, 2.6, 0.22, 3.4, 0.01); h.box(g, 0.6, 0.4, 0.4, F.blau, 3.4, 0.4, 2.4, 0.025); h.box(g, 0.62, 0.08, 0.42, '#F5F0E4', 3.4, 0.64, 2.4, 0.01);
       h.zyl(g, 0.04, 1.5, F.ink, -3.0, 0.95, 3.4, 0.01); const sch = W.kegel(0.9, 0.4, 10); g.add(H.teil(sch, F.gold, -3.0, 1.8, 3.4, 0.03));
       h.matte(g, -1.0, 1.8, 0.9, 2.2, F.blau, Math.PI / 2);
       return info([-1.0, 1.8], 0.2);
     } },
-    { name: 'Crossfit-Box', form: 'quadrat', kruemel: '#FFFFFF', bau(g, H) {  // Kreidestaub
+    { name: 'Crossfit-Box', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {  // Kreidestaub
       const h = mk(H);
       const hoch = h.raum(g, { boden: F.gummi, wand: '#8E8A84', wand2: '#5F5B55', leiste: F.gold, hoehe: 3.6 });
       for (let i = -5; i <= 5; i++) h.box(g, 0.02, 0.01, 10, '#4A4440', i, 0.205, 0, 0);
@@ -330,9 +330,9 @@
       g.add(new H.T.Mesh(new H.T.TubeGeometry(kurve, 30, 0.07, 6), H.W.mat(F.ink)));
       const k2 = new H.T.CatmullRomCurve3([[-4.6, 0.35, 4.2], [-3.0, 0.25, 4.5], [-1.8, 0.3, 4.2], [-0.6, 0.25, 4.4]].map(p => new H.T.Vector3(...p)));
       g.add(new H.T.Mesh(new H.T.TubeGeometry(k2, 30, 0.07, 6), H.W.mat(F.ink)));
-      h.box(g, 2.4, 1.4, 0.06, '#FFFFFF', 2.6, 2.0, -4.77, 0.02);
+      h.box(g, 2.4, 1.4, 0.06, '#F5F0E4', 2.6, 2.0, -4.77, 0.02);
       [[0.5, F.ink], [0.3, F.rot], [0.1, F.blau], [-0.1, F.ink], [-0.3, F.ink]].forEach(([dy, f], i) => h.box(g, 1.6 - i * 0.2, 0.06, 0.02, f, 2.4, 2.0 + dy, -4.73, 0));
-      h.zyl(g, 0.22, 0.35, '#FFFFFF', 1.0, 0.38, 0.6, 0.02, 14); h.box(g, 0.2, 0.12, 0.15, '#F4F4F4', 1.0, 0.6, 0.6, 0);
+      h.zyl(g, 0.22, 0.35, '#F5F0E4', 1.0, 0.38, 0.6, 0.02, 14); h.box(g, 0.2, 0.12, 0.15, '#F4F4F4', 1.0, 0.6, 0.6, 0);
       h.matte(g, 0.0, 1.2, 0.9, 2.2, F.gold, Math.PI / 2);
       return info([0.0, 1.2], 0.2, { seilY: wandSeile(hoch), innen: true });
     } },
@@ -353,9 +353,9 @@
       const birnen = [];
       for (let i = 0; i <= 24; i++) { const p = kette.getPointAt(i / 24); const b = new T.Mesh(W.kugel(0.07, 8, 6), new T.MeshBasicMaterial({ color: 0xFFE38A })); b.position.copy(p); b.position.y -= 0.08; g.add(b); birnen.push(b); }
       g.userData.tick.push(t => birnen.forEach((b, i) => b.material.color.setHSL(0.13, 1, 0.68 + 0.12 * Math.sin(t * 2 + i))));
-      h.box(g, 2.2, 0.6, 2.2, '#FFFFFF', 3.6, 0.5, 3.0, 0.03); h.box(g, 1.9, 0.05, 1.9, '#5BB8E8', 3.6, 0.79, 3.0, 0);
+      h.box(g, 2.2, 0.6, 2.2, '#F5F0E4', 3.6, 0.5, 3.0, 0.03); h.box(g, 1.9, 0.05, 1.9, '#5BB8E8', 3.6, 0.79, 3.0, 0);
       h.box(g, 2.6, 0.1, 1.8, F.ink, -1.2, 0.27, -3.2, 0.02); h.langhantel(g, -1.2, 0.75, -3.2, 2.2, [F.ink, F.rot]);
-      const liege = h.box(g, 0.7, 0.12, 1.8, '#FFFFFF', -4.2, 0.5, 2.2, 0.02); h.box(g, 0.7, 0.08, 0.6, F.blau, -4.2, 0.6, 1.6, 0.01);
+      const liege = h.box(g, 0.7, 0.12, 1.8, '#F5F0E4', -4.2, 0.5, 2.2, 0.02); h.box(g, 0.7, 0.08, 0.6, F.blau, -4.2, 0.6, 1.6, 0.01);
       H.fahne(g, 4.8, -1.8, 2.2, 0.2, F.eis);
       h.matte(g, 1.0, 0.6, 0.9, 2.2, F.lila, Math.PI / 2);
       return info([1.0, 0.6], 0.2);
@@ -367,11 +367,11 @@
       h.box(g, 4.4, 0.16, 4.4, F.ink, 1.0, 0.28, -0.8, 0.03); h.box(g, 2.2, 0.17, 4.2, F.holz, 1.0, 0.29, -0.8, 0.015);
       h.langhantel(g, 1.0, 0.8, -1.6, 2.8, [F.rot, F.blau, F.gold, F.gruen]);
       // Kampfrichter-Lampen, Tisch, Siegertreppchen, Anzeigetafel, Flaggen, Tribünen mit Publikum, Scheinwerfer
-      h.box(g, 2.4, 0.8, 0.6, '#FFFFFF', 1.0, 0.6, 3.6, 0.025);
-      [0.3, 1.0, 1.7].forEach((x, i) => { h.box(g, 0.3, 0.3, 0.1, F.ink, x, 1.25, 3.7, 0.01); h.kugel(g, 0.1, i === 1 ? F.rot : '#FFFFFF', x, 1.25, 3.62, 0.01); });
+      h.box(g, 2.4, 0.8, 0.6, '#F5F0E4', 1.0, 0.6, 3.6, 0.025);
+      [0.3, 1.0, 1.7].forEach((x, i) => { h.box(g, 0.3, 0.3, 0.1, F.ink, x, 1.25, 3.7, 0.01); h.kugel(g, 0.1, i === 1 ? F.rot : '#F5F0E4', x, 1.25, 3.62, 0.01); });
       [[-3.2, 0.6, 2, F.gold], [-4.1, 0.4, 3, '#C9C5BE'], [-2.3, 0.3, 1, '#C98A55']].forEach(([x, hh, n, f]) => { h.box(g, 0.85, hh, 0.85, f, x, 0.2 + hh / 2, 1.6, 0.025); });
       h.box(g, 3.4, 1.4, 0.15, F.ink, 1.0, 3.2, -4.75, 0.03); h.box(g, 3.1, 1.1, 0.04, '#3E7A55', 1.0, 3.2, -4.66, 0);
-      [[0.3, F.gold], [1.0, '#FFFFFF'], [1.7, F.gold]].forEach(([x, f]) => h.box(g, 0.4, 0.5, 0.02, f, x, 3.2, -4.63, 0));
+      [[0.3, F.gold], [1.0, '#F5F0E4'], [1.7, F.gold]].forEach(([x, f]) => h.box(g, 0.4, 0.5, 0.02, f, x, 3.2, -4.63, 0));
       [-3.0, -1.6, 3.4, 4.6].forEach((x, i) => { h.box(g, 0.04, 1.3, 0.04, F.chrom, x, 3.0, -4.7, 0); h.box(g, 0.6, 0.4, 0.02, [F.rot, F.gold, F.blau, F.gruen][i], x + 0.32, 3.45, -4.7, 0.01); });
       for (let r = 0; r < 3; r++) { h.box(g, 0.6, 0.4 + r * 0.4, 9.6, r % 2 ? '#3F5A8A' : '#2F4A7A', -4.95 + r * 0.55, 0.4 + r * 0.2, 0, 0.025); }
       const fans = [];

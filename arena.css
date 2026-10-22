@@ -28,11 +28,11 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-unten{text-align:center;padding-top:2px}
 .ar-name{display:block;margin:0 auto 6px;font-family:var(--dick)!important;font-size:22px;letter-spacing:.5px}
 .ar-name::after{content:' ›'}
-.ar-weg{max-width:260px;height:14px;margin:0 auto;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 3px 0 var(--graphit)}
+.ar-weg{max-width:260px;height:14px;margin:0 auto;border:3px solid var(--graphit);border-radius:8px;overflow:hidden;background:#FAF6EB;box-shadow:0 3px 0 var(--graphit)}
 .ar-weg i{display:block;height:100%;width:0;background:var(--marker)}
 .ar-unten small{display:block;font-size:16px;margin-top:5px;opacity:.8}
 .ar-battle{position:relative;flex:none;width:72%;height:74px;margin:12px auto 4px}
-.ar-battle span{position:relative;display:block;font-family:var(--dick);font-size:40px;letter-spacing:2px;line-height:70px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.ar-battle span{position:relative;display:block;font-family:var(--dick);font-size:40px;letter-spacing:2px;line-height:70px;color:#FAF6EB;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
 .ar-battle:active{transform:translateY(3px)}
 .ar-coin{width:22px;vertical-align:-4px}
 
@@ -54,14 +54,14 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-hand{font-size:19px;line-height:1.3;text-align:center;margin:8px 0}
 .ar-hand.gross{font-size:30px}
 .ar-hand.klein{font-size:16px;opacity:.8}
-.ar-zu{position:absolute;right:10px;top:8px;z-index:4;width:40px;height:40px;font-family:var(--dick);font-size:24px;line-height:1;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-zu{position:absolute;right:10px;top:8px;z-index:4;width:40px;height:40px;font-family:var(--dick);font-size:24px;line-height:1;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
 .ar-zeile{display:flex;gap:8px;margin:6px 0 10px}
-.ar-zeile input{background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;font-family:var(--hand);font-size:20px;padding:8px 12px}
+.ar-zeile input{background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;font-family:var(--hand);font-size:20px;padding:8px 12px}
 .ar-knopf{font-family:var(--dick);font-size:19px;letter-spacing:.5px;background:var(--marker);color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:9px 16px;box-shadow:0 4px 0 var(--graphit)}
 .ar-knopf:active{transform:translateY(3px);box-shadow:0 1px 0 var(--graphit)}
 .ar-knopf.breit{display:block;width:100%;margin-top:14px}
-.ar-knopf.leise{display:block;margin:20px auto 0;background:#fff}
-.ar-knopf.leise2{background:#fff}
+.ar-knopf.leise{display:block;margin:20px auto 0;background:#FAF6EB}
+.ar-knopf.leise2{background:#FAF6EB}
 .ar-knopf.gold{background:var(--gold)}
 .ar-knopf .ar-coin{width:20px}
 .ar-werte{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
@@ -84,13 +84,13 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-coinzeile span{font-family:var(--hand);font-size:17px;opacity:.75}
 .ar-reiter{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:2px 16px 8px;scrollbar-width:none}
 .ar-reiter::-webkit-scrollbar{display:none}
-.ar-reiter button{flex:none;font-family:var(--dick);font-size:16px;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:7px 12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-reiter button{flex:none;font-family:var(--dick);font-size:16px;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:7px 12px;box-shadow:0 3px 0 var(--graphit)}
 .ar-reiter button.an{background:var(--marker)}
 .ar-farben{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:9px}
 .ar-farben button{aspect-ratio:1;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit)}
 .ar-farben button.an{outline:3px solid var(--graphit);outline-offset:3px}
 .ar-wahl{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
-.ar-wahl button{position:relative;min-height:46px;font-family:var(--hand);font-size:18px;line-height:1.1;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:6px 6px;box-shadow:0 3px 0 var(--graphit)}
+.ar-wahl button{position:relative;min-height:46px;font-family:var(--hand);font-size:18px;line-height:1.1;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:6px 6px;box-shadow:0 3px 0 var(--graphit)}
 .ar-wahl button.an{background:var(--marker)}
 .ar-wahl button.zu{background:#EDE6D6}
 .ar-wahl button.zu.an{background:var(--gold)}
@@ -101,7 +101,7 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 /* ---------- Rennen ---------- */
 .ar-punkte{display:inline-block;width:1.2em;text-align:left}
 .ar-einsatz,.ar-beute{display:flex;justify-content:center;gap:12px;margin:8px 0}
-.ar-einsatz span,.ar-beute span{display:flex;align-items:center;gap:6px;font-family:var(--dick);font-size:20px;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit)}
+.ar-einsatz span,.ar-beute span{display:flex;align-items:center;gap:6px;font-family:var(--dick);font-size:20px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit)}
 .ar-einsatz img,.ar-beute img{width:22px}
 .ar-beute span{font-size:30px;padding:6px 16px}
 .ar-beute img{width:30px}
@@ -114,19 +114,19 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-countdown{font-family:var(--dick);font-size:84px;text-align:center;margin:4px 0;line-height:1}
 .ar-hud{text-align:center}
 .ar-uhr{font-family:var(--dick);font-size:52px;line-height:1;margin:2px 0 6px}
-.ar-abstand{display:inline-block;font-family:var(--dick);font-size:19px;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit);margin:0 0 12px}
+.ar-abstand{display:inline-block;font-family:var(--dick);font-size:19px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;padding:5px 12px;box-shadow:0 3px 0 var(--graphit);margin:0 0 12px}
 .ar-abstand.vorne{background:var(--marker)}
 .ar-abstand.hinten{background:#F7C9B5}
 .ar-renn-zeile{display:grid;grid-template-columns:86px 1fr 74px;align-items:center;gap:8px;margin:8px 0;text-align:left}
 .ar-renn-zeile span{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ar-renn-zeile b{font-family:var(--dick);font-weight:400;font-size:18px;text-align:right}
-.ar-mini{height:14px;background:#fff;border:3px solid var(--graphit);border-radius:8px;overflow:hidden}
+.ar-mini{height:14px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:8px;overflow:hidden}
 .ar-mini i{display:block;height:100%;background:#B9B4AC}
 .ar-renn-zeile.ich .ar-mini i{background:var(--marker)}
 
 /* ---------- Arena-Weg ---------- */
 .ar-wegliste{display:flex;flex-direction:column;gap:30px;margin-top:22px}
-.ar-station{position:relative;display:flex;align-items:center;gap:10px;background:#fff;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:8px 12px 8px 4px}
+.ar-station{position:relative;display:flex;align-items:center;gap:10px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:18px;box-shadow:0 5px 0 var(--graphit);padding:8px 12px 8px 4px}
 .ar-station+.ar-station::before{content:'';position:absolute;left:0;right:0;top:-33px;height:33px;background-image:url(arena/seil_muster.svg),url(arena/seil_muster.svg);background-repeat:repeat-y;background-size:12px 20px;background-position:16% 0,84% 0}
 .ar-st-bild{flex:0 0 52%;aspect-ratio:48/34}
 .ar-st-bild img{width:100%;height:100%;object-fit:contain;display:block}
@@ -141,22 +141,22 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-station:not(.offen) em::before{content:'';display:inline-block;width:11px;height:9px;margin-right:6px;border:2.5px solid var(--graphit);border-radius:2px;vertical-align:-1px;box-shadow:0 -6px 0 -2px var(--papier),0 -7px 0 -1px var(--graphit)}
 
 /* ---------- Umschalter Laufen / Kraft ---------- */
-.ar-modus{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:3;display:flex;background:#fff;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);overflow:hidden}
-.ar-buehne .ar-modus button{font-family:var(--dick);font-size:17px;padding:6px 16px;background:#fff;color:var(--graphit)}
+.ar-modus{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:3;display:flex;background:#FAF6EB;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);overflow:hidden}
+.ar-buehne .ar-modus button{font-family:var(--dick);font-size:17px;padding:6px 16px;background:#FAF6EB;color:var(--graphit)}
 .ar-buehne .ar-modus button+button{border-left:3px solid var(--graphit)}
 .ar-buehne .ar-modus button.an{background:var(--marker)}
 
 /* ---------- Kraft: Kamera mit Skelett ---------- */
 .kr-kamera{position:relative;margin:-20px -16px 10px;height:min(50vh,440px);background:#1E1C1B;border-radius:17px 17px 0 0;overflow:hidden;border-bottom:3px solid var(--graphit)}
 .kr-kamera video,.kr-kamera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.kr-zahl{position:absolute;top:10px;right:12px;min-width:74px;text-align:center;font-family:var(--dick);font-size:48px;line-height:1.1;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.kr-zahl{position:absolute;top:10px;right:12px;min-width:74px;text-align:center;font-family:var(--dick);font-size:48px;line-height:1.1;color:#FAF6EB;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
 .kr-zahl:empty{display:none}
-.kr-hinweis{position:absolute;left:10px;right:10px;bottom:10px;font-family:var(--dick);font-size:18px;text-align:center;background:#fff;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:7px 10px;box-shadow:0 3px 0 var(--graphit)}
+.kr-hinweis{position:absolute;left:10px;right:10px;bottom:10px;font-family:var(--dick);font-size:18px;text-align:center;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;padding:7px 10px;box-shadow:0 3px 0 var(--graphit)}
 .kr-hinweis:empty{display:none}
 .kr-hinweis[data-art="ok"]{background:var(--marker)}
 .kr-hinweis[data-art="warn"]{background:var(--gold)}
 .kr-hinweis[data-art="fehler"]{background:#F7C9B5}
-.kr-check{font-family:var(--dick);font-size:18px;text-align:center;background:#fff;border:3px solid var(--graphit);border-radius:12px;padding:8px;margin:10px 0}
+.kr-check{font-family:var(--dick);font-size:18px;text-align:center;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;padding:8px;margin:10px 0}
 .kr-check[data-ok="1"]{background:var(--marker)}
 .ar-knopf:disabled{opacity:.45;box-shadow:none}
 
@@ -172,9 +172,9 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .kr-kurz .ar-vs em{font-size:24px}
 .kr-kurz.ar-hud .ar-renn-zeile{margin:4px 0;grid-template-columns:80px 1fr 82px}
 .kr-kurz .ar-abstand{font-size:15px;margin:4px 0 0}
-.kr-uhr{position:absolute;top:10px;left:12px;font-family:var(--dick);font-size:34px;line-height:1.1;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
+.kr-uhr{position:absolute;top:10px;left:12px;font-family:var(--dick);font-size:34px;line-height:1.1;color:#FAF6EB;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 3px 0 var(--graphit)}
 .kr-uhr:empty{display:none}
-.kr-mitte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--dick);font-size:120px;color:#fff;-webkit-text-stroke:4px var(--graphit);paint-order:stroke fill;text-shadow:0 6px 0 var(--graphit)}
+.kr-mitte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--dick);font-size:120px;color:#FAF6EB;-webkit-text-stroke:4px var(--graphit);paint-order:stroke fill;text-shadow:0 6px 0 var(--graphit)}
 .kr-hinweis{font-size:16px;padding:5px 10px}
 
 /* ---------- Pop-Animationen für Sieg, Zähler und Beute ---------- */
@@ -183,7 +183,7 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-pop{animation:arPop .55s cubic-bezier(.2,1.4,.4,1) both}
 .ar-pop2{animation:arPop .5s .7s cubic-bezier(.2,1.4,.4,1) both}
 .ar-pop3{animation:arPop .5s 1.6s cubic-bezier(.2,1.4,.4,1) both}
-.ar-titel.sieg{font-size:42px;color:#fff;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit)}
+.ar-titel.sieg{font-size:42px;color:#FAF6EB;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit)}
 .ar-beute span.fertig{animation:arPuls .35s ease-out;background:var(--gold)}
 .kr-zahl.pop,.kr-mitte.pop{animation:arPuls .3s ease-out}
 .kr-mitte.pop{animation:arPop .45s cubic-bezier(.2,1.4,.4,1)}
@@ -201,9 +201,9 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-regler span{font-family:var(--dick);font-size:18px}
 .ar-regler b{font-family:var(--dick);font-weight:400;font-size:16px;text-align:right}
 .ar-regler input{-webkit-appearance:none;appearance:none;width:100%;height:22px;padding:0;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);
-  background:linear-gradient(90deg,var(--marker) var(--w),#fff var(--w))}
-.ar-regler input::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--graphit);box-shadow:0 3px 0 var(--graphit)}
-.ar-regler input::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--graphit)}
+  background:linear-gradient(90deg,var(--marker) var(--w),#FAF6EB var(--w))}
+.ar-regler input::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#FAF6EB;border:3px solid var(--graphit);box-shadow:0 3px 0 var(--graphit)}
+.ar-regler input::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#FAF6EB;border:3px solid var(--graphit)}
 
 /* ---------- Cutscene vor dem Duell ---------- */
 .ar-cut{position:fixed;inset:0;z-index:2600;background:#2B2826;animation:arCutRein .2s ease-out}
@@ -211,7 +211,7 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 @keyframes arCutRein{from{opacity:0}to{opacity:1}}
 .ar-cut-3d{position:absolute;inset:0}
 .ar-cut-3d canvas{width:100%!important;height:100%!important}
-.ar-cut-name{position:absolute;bottom:calc(18% + env(safe-area-inset-bottom,0px));font-family:var(--dick);font-size:34px;color:#fff;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit);opacity:0;white-space:nowrap}
+.ar-cut-name{position:absolute;bottom:calc(18% + env(safe-area-inset-bottom,0px));font-family:var(--dick);font-size:34px;color:#FAF6EB;-webkit-text-stroke:2.5px var(--graphit);paint-order:stroke fill;text-shadow:0 4px 0 var(--graphit);opacity:0;white-space:nowrap}
 .ar-cut-name.links{left:6%}.ar-cut-name.rechts{right:6%}
 .ar-cut-name.rein.links{animation:arNameL .35s cubic-bezier(.2,1.4,.4,1) forwards}
 .ar-cut-name.rein.rechts{animation:arNameR .35s cubic-bezier(.2,1.4,.4,1) forwards}
@@ -225,6 +225,6 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 /* ---------- Gegner-Avatar im Kamerabild ---------- */
 .kr-pip{position:absolute;top:58px;left:10px;width:46%;aspect-ratio:4/3;border:3px solid var(--graphit);border-radius:12px;overflow:hidden;box-shadow:0 4px 0 var(--graphit);background:var(--marker)}
 .kr-pip canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
-.kr-pip span{position:absolute;z-index:1;right:6px;bottom:4px;font-family:var(--dick);font-size:26px;color:#fff;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 2px 0 var(--graphit)}
-.kr-mess{position:absolute;left:10px;bottom:56px;font-family:var(--hand);font-size:14px;color:#fff;background:rgba(43,40,38,.6);border-radius:8px;padding:2px 8px}
+.kr-pip span{position:absolute;z-index:1;right:6px;bottom:4px;font-family:var(--dick);font-size:26px;color:#FAF6EB;-webkit-text-stroke:2px var(--graphit);paint-order:stroke fill;text-shadow:0 2px 0 var(--graphit)}
+.kr-mess{position:absolute;left:10px;bottom:56px;font-family:var(--hand);font-size:14px;color:#FAF6EB;background:rgba(43,40,38,.6);border-radius:8px;padding:2px 8px}
 .kr-mess:empty{display:none}

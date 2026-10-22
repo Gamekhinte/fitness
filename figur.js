@@ -9,9 +9,9 @@
   const K = {
     haut: ['#F6D7B8', '#EBC199', '#D19F74', '#A9744E', '#7A4E31', '#4E3221'],
     haarfarbe: ['#2B2826', '#5A3A22', '#8B5A2B', '#D9A441', '#F1E3B0', '#C4472D', '#3FA9E6', '#E8E8E8'],
-    farben: ['#3FA9E6', '#D9643A', '#3E7A55', '#F2C14E', '#2B2826', '#FFFFFF', '#E86AA6', '#7B5CC4', '#8CC084', '#B9B4AC'],
+    farben: ['#3FA9E6', '#D9643A', '#3E7A55', '#F2C14E', '#2B2826', '#F5F0E4', '#E86AA6', '#7B5CC4', '#8CC084', '#B9B4AC'],
     hosen: ['#2B2826', '#2F4A7A', '#6B4A2E', '#B9B4AC', '#3E7A55', '#D9643A'],
-    schuhe: ['#FFFFFF', '#2B2826', '#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55'],
+    schuhe: ['#F5F0E4', '#2B2826', '#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55'],
     augen: [['punkt', 'Punkte'], ['rund', 'Rund'], ['froh', 'Fröhlich'], ['muede', 'Müde'], ['zwinker', 'Zwinkern'], ['wach', 'Hellwach']],
     brauen: [['normal', 'Normal'], ['dick', 'Dick'], ['hoch', 'Überrascht'], ['boese', 'Entschlossen'], ['keine', 'Keine']],
     mund: [['laecheln', 'Lächeln'], ['grinsen', 'Grinsen'], ['offen', 'Offen'], ['neutral', 'Neutral'], ['zunge', 'Zunge']],
@@ -36,12 +36,12 @@
       ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80']]
   };
   const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
-    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#FFFFFF', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
+    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#F5F0E4', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
 
   function pruefen(a) {
     const r = Object.assign({}, STANDARD);
-    if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = a[k];
+    if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = /^#f{3,6}$/i.test(a[k]) ? '#F5F0E4' : a[k];   // kein reines Weiß
     return r;
   }
 
@@ -59,9 +59,9 @@
       if (typ === 'punkt') { g.beginPath(); g.ellipse(x, ey, 9, 12, 0, 0, 7); g.fill(); }
       else if (typ === 'rund' || typ === 'wach' || typ === 'zwinker') {
         const rx = typ === 'wach' ? 19 : 15, ry = typ === 'wach' ? 23 : 17;
-        g.fillStyle = '#fff'; g.beginPath(); g.ellipse(x, ey, rx, ry, 0, 0, 7); g.fill(); g.stroke();
+        g.fillStyle = '#F5F0E4'; g.beginPath(); g.ellipse(x, ey, rx, ry, 0, 0, 7); g.fill(); g.stroke();
         g.fillStyle = INK; g.beginPath(); g.ellipse(x + 2, ey + 3, rx * 0.5, ry * 0.55, 0, 0, 7); g.fill();
-        g.fillStyle = '#fff'; g.beginPath(); g.arc(x + 5, ey - 3, 3.5, 0, 7); g.fill(); g.fillStyle = INK;
+        g.fillStyle = '#F5F0E4'; g.beginPath(); g.arc(x + 5, ey - 3, 3.5, 0, 7); g.fill(); g.fillStyle = INK;
       } else if (typ === 'froh') { g.beginPath(); g.arc(x, ey + 8, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
       else if (typ === 'muede') { g.beginPath(); g.moveTo(x - 14, ey); g.lineTo(x + 14, ey); g.stroke(); g.beginPath(); g.arc(x, ey, 12, 0.1, Math.PI - 0.1); g.fill(); }
     }
@@ -79,7 +79,7 @@
     if (skin !== 'ninja') {
       g.lineWidth = 7; const mx = 128, my = 168;
       if (a.mund === 'laecheln') { g.beginPath(); g.arc(mx, my - 14, 22, 0.25 * Math.PI, 0.75 * Math.PI); g.stroke(); }
-      else if (a.mund === 'grinsen') { g.beginPath(); g.moveTo(mx - 26, my - 4); g.quadraticCurveTo(mx, my + 34, mx + 26, my - 4); g.closePath(); g.fillStyle = '#fff'; g.fill(); g.stroke(); g.fillStyle = INK; }
+      else if (a.mund === 'grinsen') { g.beginPath(); g.moveTo(mx - 26, my - 4); g.quadraticCurveTo(mx, my + 34, mx + 26, my - 4); g.closePath(); g.fillStyle = '#F5F0E4'; g.fill(); g.stroke(); g.fillStyle = INK; }
       else if (a.mund === 'offen') { g.beginPath(); g.ellipse(mx, my + 2, 11, 14, 0, 0, 7); g.fill(); }
       else if (a.mund === 'neutral') { g.beginPath(); g.moveTo(mx - 16, my); g.lineTo(mx + 16, my); g.stroke(); }
       else if (a.mund === 'zunge') { g.beginPath(); g.arc(mx, my - 12, 20, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke(); g.fillStyle = '#E86A6A'; g.beginPath(); g.ellipse(mx + 6, my + 10, 9, 11, 0, 0, 7); g.fill(); g.lineWidth = 4; g.stroke(); g.fillStyle = INK; }
@@ -95,13 +95,13 @@
     let haut = a.haut, ober = a.oberteil, hose = a.hose, schuh = a.schuhe, haare = a.haare, hf = a.haarfarbe, kopf = a.kopf, extra = a.extra;
     if (sk === 'ninja') { ober = '#1E1C1B'; hose = '#1E1C1B'; schuh = '#1E1C1B'; kopf = 'stirnband_rot'; haare = 'kurz'; hf = '#1E1C1B'; }
     if (sk === 'skifahrer') { ober = '#D9643A'; hose = '#2F4A7A'; schuh = '#2B2826'; kopf = 'muetze'; extra = 'skibrille'; }
-    if (sk === 'eisbaer') { haut = '#FFFFFF'; ober = '#FFFFFF'; hose = '#FFFFFF'; schuh = '#FFFFFF'; haare = 'glatze'; kopf = 'baerohren'; }
+    if (sk === 'eisbaer') { haut = '#F5F0E4'; ober = '#F5F0E4'; hose = '#F5F0E4'; schuh = '#F5F0E4'; haare = 'glatze'; kopf = 'baerohren'; }
     if (sk === 'astronaut') { ober = '#F4F4F4'; hose = '#F4F4F4'; schuh = '#B9B4AC'; kopf = 'raumhelm'; }
     if (sk === 'dino') { haut = '#8CC084'; ober = '#3E7A55'; hose = '#3E7A55'; schuh = '#3E7A55'; haare = 'glatze'; kopf = 'dino'; }
     if (sk === 'ritter') { ober = '#B9C2CC'; hose = '#8D98A5'; schuh = '#6E7782'; kopf = 'ritterhelm'; extra = 'nichts'; }
     if (sk === 'cyber') { ober = '#1F2D4A'; hose = '#0F1A33'; schuh = '#0F1A33'; haare = 'glatze'; kopf = 'visier'; extra = 'nichts'; }
     if (sk === 'drache') { ober = '#C4472D'; hose = '#8F2F1C'; schuh = '#F2C14E'; haare = 'glatze'; kopf = 'drachenhoerner'; extra = 'nichts'; }
-    if (sk === 'eiskoenig') { ober = '#BFE9FF'; hose = '#7CD4FF'; schuh = '#FFFFFF'; kopf = 'eiskrone'; extra = 'nichts'; }
+    if (sk === 'eiskoenig') { ober = '#BFE9FF'; hose = '#7CD4FF'; schuh = '#F5F0E4'; kopf = 'eiskrone'; extra = 'nichts'; }
     if (sk === 'gold') { haut = '#F2C14E'; ober = '#F2C14E'; hose = '#E0A400'; schuh = '#E0A400'; hf = '#E0A400'; }
 
     // aussen: Platz in der Welt (setzt der Aufrufer), wurzel: wird von den Animationen bewegt
@@ -173,7 +173,7 @@
     }
     if (sk === 'eiskoenig') {
       rumpf.add(W.teil(W.box(0.82, 1.1, 0.06), '#7CD4FF', 0, 0.35, -0.42, 0.035));
-      const kragen = new T.TorusGeometry(0.36, 0.1, 8, 20); kragen.rotateX(Math.PI / 2); rumpf.add(W.teil(kragen, '#FFFFFF', 0, 0.92, 0, 0.025));
+      const kragen = new T.TorusGeometry(0.36, 0.1, 8, 20); kragen.rotateX(Math.PI / 2); rumpf.add(W.teil(kragen, '#F5F0E4', 0, 0.92, 0, 0.025));
       for (const sd of [-1, 1]) { const kr = rumpf.add(W.teil(W.kegel(0.1, 0.32, 4), '#BFE9FF', sd * 0.5, 0.95, 0, 0.02)); }
     }
     rig.anim = a.emote; rig.aussehen = a;
@@ -202,8 +202,8 @@
     const W = WF3D, T = W.T;
     const add = (geo, f, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
     const kappe = (s, anteil = 0.5) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
-    if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
-    if (typ === 'eismuetze') { add(kappe(1.1, 0.34), '#7CD4FF', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#FFFFFF', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#FFFFFF', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#F5F0E4', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#F5F0E4', 0, R * 1.12, 0, 0.02); }
+    if (typ === 'eismuetze') { add(kappe(1.1, 0.34), '#7CD4FF', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#F5F0E4', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#F5F0E4', 0, R * 1.12, 0, 0.02); }
     if (typ === 'eiskrone') { const r = new T.CylinderGeometry(R * 0.72, R * 0.72, 0.22, 16, 1, true); add(r, '#BFE9FF', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 7; i++) { const w = i / 7 * Math.PI * 2; add(W.kegel(0.11, i % 2 ? 0.34 : 0.52, 4), '#7CD4FF', Math.cos(w) * R * 0.68, R * (i % 2 ? 1.2 : 1.28), Math.sin(w) * R * 0.68, 0.02); } }
     if (typ === 'ritterhelm') {
       add(kappe(1.14, 0.48), '#B9C2CC', 0, 0.02, 0).rotation.x = -0.1;
@@ -220,12 +220,12 @@
       for (let i = 0; i < 4; i++) add(W.kegel(0.07, 0.18, 4), '#C4472D', 0, R * (1.0 - i * 0.14), -R * (0.1 + i * 0.28), 0.02).rotation.x = -0.5;
     }
     if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
-    if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#FFFFFF', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
+    if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#F5F0E4', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
     if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
     if (typ === 'helm') { add(kappe(1.14, 0.38), '#3FA9E6', 0, 0.03, 0).rotation.x = -0.15; const kamm = new T.SphereGeometry(R * 1.17, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.3); kamm.scale(0.3, 1, 1); add(kamm, '#2B2826', 0, 0.03, 0, 0).rotation.x = -0.15; }
-    if (typ === 'hasenohren') for (const s of [-1, 1]) { const o = add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), '#FFFFFF', s * 0.2, R * 1.35, -0.05, 0.025); o.rotation.z = -s * 0.2; }
+    if (typ === 'hasenohren') for (const s of [-1, 1]) { const o = add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), '#F5F0E4', s * 0.2, R * 1.35, -0.05, 0.025); o.rotation.z = -s * 0.2; }
     if (typ === 'kopfhoerer') { const t = new T.TorusGeometry(R * 1.05, 0.05, 8, 24, Math.PI); add(t, '#2B2826', 0, 0, 0, 0.015); for (const s of [-1, 1]) { const c = W.rohr(0.17, 0.12, 16); c.rotateZ(Math.PI / 2); add(c, '#D9643A', s * R * 1.02, 0, 0, 0.02); } }
-    if (typ === 'baerohren') for (const s of [-1, 1]) add(W.kugel(0.15), '#FFFFFF', s * R * 0.65, R * 0.8, 0, 0.025);
+    if (typ === 'baerohren') for (const s of [-1, 1]) add(W.kugel(0.15), '#F5F0E4', s * R * 0.65, R * 0.8, 0, 0.025);
     if (typ === 'dino') { add(kappe(1.1, 0.36), '#3E7A55', 0, 0, -0.02).rotation.x = -0.35; for (let i = 0; i < 4; i++) add(W.kegel(0.08, 0.2, 4), '#8CC084', 0, R * (1.05 - i * 0.18), -R * (0.15 + i * 0.3), 0.02); }
     if (typ === 'raumhelm') { const glas = new T.Mesh(W.kugel(R * 1.32, 24, 18), new T.MeshBasicMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.16, depthWrite: false })); glas.renderOrder = 2; k.add(glas); const rand = new T.TorusGeometry(R * 1.05, 0.06, 8, 28); rand.rotateX(Math.PI / 2); k.add(W.teil(rand, '#D0D0D0', 0, -R * 0.85, 0, 0.02)); }
   }
@@ -316,14 +316,14 @@
     switch (id) {
       case 'papier': flach(16, 10, '#F3EFE6', 0, 2); for (let i = 0; i < 9; i++) flach(16, 0.03, '#C9DCE8', 0, -2 + i * 0.7, 0.01); flach(0.04, 10, '#E8A5A5', -3.2, 2, 0.01); break;
       case 'schnee': {
-        flach(16, 10, '#9FB8D6', 0, 2); flach(16, 2, '#FFFFFF', 0, -2.2, 0.01);
-        const flocken = []; for (let i = 0; i < 60; i++) flocken.push([kreis(0.04 + zufall() * 0.05, '#FFFFFF', zufall() * 12 - 6, 0, 0.02, 8), 0.3 + zufall() * 0.5]);
+        flach(16, 10, '#9FB8D6', 0, 2); flach(16, 2, '#F5F0E4', 0, -2.2, 0.01);
+        const flocken = []; for (let i = 0; i < 60; i++) flocken.push([kreis(0.04 + zufall() * 0.05, '#F5F0E4', zufall() * 12 - 6, 0, 0.02, 8), 0.3 + zufall() * 0.5]);
         ticks.push(t => flocken.forEach(([f, v], i) => { f.position.y = 7 - ((t * v + i * 0.37) % 8); }));
         break;
       }
       case 'sterne': {
         flach(16, 10, '#1F2D4A', 0, 2); kreis(0.7, '#F7EFC8', 3.0, 4.0); kreis(0.62, '#1F2D4A', 3.3, 4.15, 0.02);
-        const sterne = []; for (let i = 0; i < 50; i++) sterne.push(kreis(0.02 + zufall() * 0.04, '#FFFFFF', zufall() * 12 - 6, zufall() * 8 - 1, 0.02, 6));
+        const sterne = []; for (let i = 0; i < 50; i++) sterne.push(kreis(0.02 + zufall() * 0.04, '#F5F0E4', zufall() * 12 - 6, zufall() * 8 - 1, 0.02, 6));
         ticks.push(t => sterne.forEach((s, i) => s.scale.setScalar(0.6 + 0.4 * Math.abs(Math.sin(t * 1.5 + i)))));
         break;
       }
@@ -333,13 +333,13 @@
         break;
       case 'eiskristall': {
         flach(16, 10, '#CFEFFF', 0, 2);
-        const kr = []; for (let i = 0; i < 16; i++) kr.push([kreis(0.35 + zufall() * 1.1, i % 2 ? '#FFFFFF' : '#9ED9FF', zufall() * 12 - 6, zufall() * 7 - 1, 0.01 + i * 0.001, 4), 0.5 + zufall()]);
+        const kr = []; for (let i = 0; i < 16; i++) kr.push([kreis(0.35 + zufall() * 1.1, i % 2 ? '#F5F0E4' : '#9ED9FF', zufall() * 12 - 6, zufall() * 7 - 1, 0.01 + i * 0.001, 4), 0.5 + zufall()]);
         ticks.push(t => kr.forEach(([m, v], i) => { m.scale.setScalar(0.9 + 0.12 * Math.sin(t * v + i)); }));
         break;
       }
       case 'polarlicht': {
         flach(16, 10, '#0F1A33', 0, 2);
-        const st = []; for (let i = 0; i < 40; i++) st.push(kreis(0.02 + zufall() * 0.035, '#FFFFFF', zufall() * 14 - 7, zufall() * 5 + 0.5, 0.02, 6));
+        const st = []; for (let i = 0; i < 40; i++) st.push(kreis(0.02 + zufall() * 0.035, '#F5F0E4', zufall() * 14 - 7, zufall() * 5 + 0.5, 0.02, 6));
         const band = []; [['#3FD08A', 3.6], ['#2BB8A8', 2.7], ['#E86AA6', 1.9]].forEach(([f, y], i) => band.push([flach(18, 0.9, f, 0, y, 0.03 + i * 0.001), i]));
         flach(16, 2.2, '#EAF4FF', 0, -2.4, 0.05);
         for (let i = 0; i < 6; i++) kreis(0.55 + zufall() * 0.3, '#2F5D45', -6 + i * 2.4 + zufall(), -0.9, 0.06, 3).rotation.z = Math.PI / 2;
@@ -348,11 +348,11 @@
       }
       case 'galaxie': {
         flach(16, 10, '#0B1026', 0, 2);
-        const farben = ['#FFFFFF', '#7CD4FF', '#F2C14E', '#E86AA6'], st = [];
+        const farben = ['#F5F0E4', '#7CD4FF', '#F2C14E', '#E86AA6'], st = [];
         for (let i = 0; i < 70; i++) st.push(kreis(0.02 + zufall() * 0.045, farben[i % 4], zufall() * 14 - 7, zufall() * 8 - 1.5, 0.02, 6));
         const planet = kreis(1.5, '#E86AA6', 3.5, 3.6, 0.03, 32); const ring = kreis(2.3, '#F2C14E', 3.5, 3.6, 0.025, 32); ring.scale.set(1, 0.22, 1); ring.rotation.z = 0.4;
         const mond = kreis(0.6, '#7CD4FF', -3.8, 1.2, 0.03, 24);
-        kreis(0.18, '#FFFFFF', -3.5, 1.5, 0.04, 16);
+        kreis(0.18, '#F5F0E4', -3.5, 1.5, 0.04, 16);
         ticks.push(t => { st.forEach((m, i) => m.scale.setScalar(0.5 + 0.5 * Math.abs(Math.sin(t * 1.3 + i)))); planet.position.y = 3.6 + Math.sin(t * 0.5) * 0.15; ring.position.y = planet.position.y; mond.position.y = 1.2 + Math.sin(t * 0.7 + 1) * 0.12; });
         break;
       }
@@ -368,7 +368,7 @@
       case 'graffiti':
         flach(16, 10, '#B5654A', 0, 2);
         for (let r = 0; r < 14; r++) for (let c = 0; c < 9; c++) flach(1.0, 0.36, (r + c) % 3 ? '#A95A42' : '#C16E52', -6 + c * 1.6 + (r % 2) * 0.8, -1.4 + r * 0.42, 0.005);
-        [['#E86AA6', -2.4, 2.4, 1.1], ['#7CD4FF', 2.2, 3.1, 0.9], ['#F2C14E', 0.4, 4.0, 0.7], ['#8CC084', -3.6, 0.6, 0.6], ['#FFFFFF', 3.4, 1.0, 0.5]].forEach(([f, x, y, r]) => kreis(r, f, x, y, 0.02, 9));
+        [['#E86AA6', -2.4, 2.4, 1.1], ['#7CD4FF', 2.2, 3.1, 0.9], ['#F2C14E', 0.4, 4.0, 0.7], ['#8CC084', -3.6, 0.6, 0.6], ['#F5F0E4', 3.4, 1.0, 0.5]].forEach(([f, x, y, r]) => kreis(r, f, x, y, 0.02, 9));
         break;
       case 'flammen': {
         flach(16, 10, '#3A1410', 0, 2);
