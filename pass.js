@@ -59,7 +59,7 @@
         store.set('wf-pass-stufe', P.stufe);
       }
     } catch (err) { /* offline: alter Stand bleibt */ }
-    chip();
+    chip(); coachSperre();
   }
 
   /* ---------- Konfetti ---------- */
@@ -73,6 +73,58 @@
       box.appendChild(k);
     }
     document.body.appendChild(box); setTimeout(() => box.remove(), 2600);
+  }
+
+
+  /* ---------- Premium-Angebot: poppt ab und zu auf, wie in Clash Royale ----------
+     Nur auf dem Startbildschirm, nicht beim ersten Start, frühestens nach 30 Minuten Nutzung
+     und danach höchstens alle 20 Stunden. "Später" schließt es, nichts nervt mehr. */
+  const ERST_KEY = 'wf-erststart', ANGEBOT_KEY = 'wf-angebot-zeit';
+  if (!store.get(ERST_KEY, null)) store.set(ERST_KEY, Date.now());
+  const angebotFaellig = () => !!(ich() && P && P.aktiv && !P.premium && curTab === 'arena' && !document.hidden
+    && document.querySelector('.ar-blatt').hidden && !el('lade')
+    && Date.now() - store.get(ERST_KEY, Date.now()) > 30 * 60000 && Date.now() - store.get(ANGEBOT_KEY, 0) > 20 * 3600000);
+
+  function angebot(manuell) {
+    if (!P || !P.aktiv) return;
+    store.set(ANGEBOT_KEY, Date.now());
+    const zu = '<button class="ar-zu" data-zu aria-label="Schließen">×</button>';
+    const prem = P.belohnungen.filter(r => r.spur === 'premium');
+    const gems = prem.filter(r => r.art === 'gems').reduce((s, r) => s + (+r.wert), 0), items = prem.filter(r => r.art === 'item').length;
+    A.zeigeBlatt(`${zu}
+      <div class="ps-hero legendaer"><span>Winterpass Premium</span><b>Eiskönig und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
+      <ul class="ps-vorteile">
+        <li><b>Coach</b>Dein KI-Trainer baut dir Pläne und beantwortet Fragen.</li>
+        <li><b>${items} Kosmetik-Teile</b>Eiskönig, Eiskrone, Polarlicht und mehr, nur in der Premium-Spur.</li>
+        <li><b>${gems} ${gem}</b>Extra Gems für besondere Outfits.</li>
+        <li><b>Fair</b>Keine Vorteile im Rennen, Pokale gibt es nie zu kaufen.</li>
+      </ul>
+      <button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${P.premium_preis} ${A.coin}</button>
+      <button class="ar-knopf breit leise2" data-pass="oeffnen">Alle Belohnungen ansehen</button>
+      ${manuell ? '' : '<button class="so-spaeter" data-pass="spaeter">Später</button>'}`, 'profil',
+      { aussehen: Object.assign({}, A.F().aussehen, { skin: 'eiskoenig', hg: 'leer' }) });
+    $('arB3d').style.background = '#1F3A5F';
+  }
+  setInterval(() => { if (angebotFaellig()) angebot(false); }, 20000);
+
+  /* ---------- Coach nur für Premium ---------- */
+  function coachSperre() {
+    const t = el('tab-coach'); if (!t) return;
+    const bekannt = !ich() || P !== null, frei = !!(P && P.aktiv && P.premium);
+    t.classList.toggle('gesperrt', bekannt && !frei);
+    let k = t.querySelector('.coach-sperre');
+    if (!bekannt || frei) { if (k) k.remove(); return; }
+    if (!k) {
+      k = document.createElement('div'); k.className = 'coach-sperre'; t.prepend(k);
+      k.addEventListener('click', ev => {
+        const b = ev.target.closest('[data-coach]'); if (!b) return;
+        if (!ich()) { showTab('crew'); return; }
+        showTab('arena'); setTimeout(() => angebot(true), 150);
+      });
+    }
+    k.innerHTML = `<h2>Coach</h2>
+      <p>Dein KI-Trainer gehört zu Winterpass Premium. Er kennt dein Profil, baut dir Wochenpläne und beantwortet Trainingsfragen.</p>
+      <button class="ar-knopf breit gold" data-coach="1">${ich() ? 'Premium ansehen' : 'Erst Spitznamen eintragen'}</button>`;
   }
 
   /* ---------- Pass-Fenster ---------- */
@@ -142,6 +194,8 @@
     sheet(true);
   }
   const H = {
+    spaeter() { A.schliessen(); },
+    oeffnen() { sheet(); },
     vorschau(b) { if (b.item) { VORSCHAU = b.item; sheet(true, true); } },
     async abholen(b) {
       try {
@@ -169,7 +223,9 @@
     Promise.resolve(H[b.dataset.pass](b.dataset)).catch(err => toast(err.message));
   });
 
-  setTimeout(laden, 1200);
+  setTimeout(() => { laden(); coachSperre(); }, 1200);
+  const altShowCoach = showTab;
+  showTab = function (t) { altShowCoach(t); if (t === 'coach') coachSperre(); };
   setInterval(() => { if (!document.hidden) laden(); }, 45000);
-  window.Pass = { laden, sheet, _test: { get P() { return P; } } };
+  window.Pass = { angebot, laden, sheet, coachSperre, _test: { get P() { return P; } } };
 })();

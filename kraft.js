@@ -543,11 +543,11 @@
     if (s && s.status === 'abgebrochen') return ui.schliessen();
     const u = UEB[war.uebung], F = ui.F();
     const vorher = F.coins; await ui.figurLaden(); const coins = Math.max(0, ui.F().coins - vorher);
-    let titel, delta, text = '', anim;
+    let titel, delta, text = '', anim, bot = false;
     if (aufgabeDelta != null) { titel = 'Aufgegeben'; delta = aufgabeDelta; anim = 'traurig'; }
     else {
       const seite = war.seite, sieg = s.sieger === seite, remis = s.ergebnis === 'remis';
-      delta = seite === 'a' ? s.a_delta : s.b_delta;
+      delta = seite === 'a' ? s.a_delta : s.b_delta; bot = !!s.aufzeichnung && ui.istBotName(s.geist_name);
       titel = s.ergebnis === 'ungueltig' ? 'Zählt nicht' : remis ? 'Unentschieden' : sieg ? 'Gewonnen!' : 'Verloren';
       anim = sieg ? F.aussehen.emote : remis ? 'idle' : 'traurig';
       const ich = seite === 'a' ? s.a_wert : s.b_wert, er = s.aufzeichnung ? s.geist_endwert : (seite === 'a' ? s.b_wert : s.a_wert);
@@ -558,7 +558,7 @@
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       <h2 class="ar-titel ar-pop${titel === 'Gewonnen!' ? ' sieg' : ''}">${titel}</h2>
       ${titel === 'Zählt nicht' ? '' : ui.beuteHtml()}
-      ${text}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen!' });
+      ${text}${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}<button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis', { aussehen: F.aussehen, anim, konfetti: titel === 'Gewonnen!' });
     ui.feiern(titel === 'Gewonnen!', delta || 0, coins);
     ui.nachDuell();
   }

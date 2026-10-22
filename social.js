@@ -146,7 +146,8 @@
       root.innerHTML = `<div class="so-panel so-erst">
         <h2 class="ar-titel">Wie heißt du?</h2>
         <p class="ar-hand">Ein Spitzname, kein echter Name. Du bekommst eine eigene ID, über die dich deine Freunde finden.${vorCode ? ' Danach trittst du dem Clan bei.' : ''}</p>
-        <div class="ar-zeile"><input id="soName" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" data-so="los">Los</button></div></div>`;
+        <div class="ar-zeile"><input id="soName" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" data-so="los">Los</button></div>
+        <button class="so-spaeter" data-konto="anmelden">Schon ein Konto? Anmelden</button></div>`;
       return;
     }
     const info = S.info || {}, l = S.liste || { freunde: [], anfragen: [], gesendet: [] };
@@ -186,7 +187,7 @@
 
   /* ---------- Duell und Lauf-Match (Bausteine aus crew.js) ---------- */
   function duellOeffnen() {
-    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Herausfordern</h2><div id="soWerkSlot"></div>`);
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Herausfordern</h2><button class="ar-knopf breit leise2" data-so="matches">Letzte Matches</button><div id="soWerkSlot"></div>`);
     const slot = el('soWerkSlot');
     ['wfWerkDuell', 'wfWerkMatch', 'wfWerkRueck'].forEach(id => el(id) && slot.appendChild(el(id)));
   }
@@ -208,7 +209,8 @@
     const look = Object.assign({}, info.aussehen && Object.keys(info.aussehen).length ? info.aussehen : A.F().aussehen, { hg: 'leer' });
     const rolleText = r => r === 'leiter' ? 'Leiter' : r === 'admin' ? 'Admin' : 'Mitglied';
     const wert = (n, t) => `<div>${A.rahmen(100, 64, 12, 21 + String(t).length)}<b>${n}</b><span>${t}</span></div>`;
-    const aktionen = ich_ ? `<button class="ar-knopf breit" data-so="banner">Banner ändern</button>
+    const aktionen = ich_ ? `<button class="ar-knopf breit" data-so="matches">Letzte Matches</button>
+        <button class="ar-knopf breit leise2" data-so="banner">Banner ändern</button>
         <button class="ar-knopf breit leise2" data-so="figur">Charakter bearbeiten</button>`
       : freund ? `<button class="ar-knopf breit leise2" data-so="freundWeg" data-id="${id}">Freundschaft beenden</button>`
       : angefragt ? '<button class="ar-knopf breit leise2" disabled>Anfrage gesendet</button>'
@@ -351,6 +353,32 @@
     C = Object.assign(C || {}, { gruppeInfo: g });
   }
 
+  /* ---------- Matchverlauf: letzte Rennen und Duelle, Gegner direkt hinzufügen ---------- */
+  const ZEIT_UEB = { liegestuetze: 'Liegestütze', squats: 'Squats', plank: 'Plank' };
+  const datum = z => { const d = new Date(z), h = new Date(), gestern = new Date(h - 864e5); const t = x => x.toDateString();
+    return t(d) === t(h) ? 'Heute' : t(d) === t(gestern) ? 'Gestern' : d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }); };
+  async function matches() {
+    if (!ich()) return toast('Erst einen Spitznamen eintragen');
+    let m;
+    try { m = await rpc('wf_matches', mit({})); await listeLaden(); } catch (err) { return fehler(err); }
+    const freunde = new Set((S.liste ? S.liste.freunde : []).map(f => f.id)), gesendet = new Set((S.liste ? S.liste.gesendet : []).map(f => f.id));
+    const zeile = x => {
+      const art = x.art === 'lauf' ? `${x.klasse / 1000} km` : (ZEIT_UEB[x.uebung] || x.uebung);
+      const wert = v => v == null ? '–' : x.art === 'lauf' ? zeit(v) : (x.uebung === 'plank' ? zeit(v) : v + ' Wdh.');
+      const ergebnis = x.sieg == null ? 'Remis' : x.sieg ? 'Sieg' : 'Niederlage';
+      const g = x.gegner, name = g ? g.name : (x.bot_name || 'Gegner');
+      const aktion = !g ? '<span class="so-bot">Bot</span>' : freunde.has(g.id) ? '<span class="so-bot">Freund</span>'
+        : gesendet.has(g.id) ? '<span class="so-bot">Angefragt</span>' : `<button class="so-mini" data-so="matchFreund" data-tag="${e(g.tag)}">Hinzufügen</button>`;
+      return `<div class="so-zeile so-match ${x.sieg == null ? '' : x.sieg ? 'sieg' : 'nied'}">
+        <span class="so-erg">${ergebnis}</span>
+        <button class="so-rangknopf" ${g ? `data-so="profil" data-id="${g.id}"` : 'disabled'}><span class="so-text"><b>${e(name)}</b><small>${datum(x.zeit)} · ${art} · du ${wert(x.meine)}, ${e(g ? g.name : 'Gegner')} ${wert(x.seine)}${x.delta ? ` · ${x.delta > 0 ? '+' : ''}${x.delta} Pokale` : ''}</small></span></button>
+        ${aktion}</div>`;
+    };
+    A.zeigeBlatt(`${zu}<h2 class="ar-titel">Matchverlauf</h2>
+      <p class="ar-hand klein">Deine letzten Rennen und Duelle. Tippe auf einen Gegner für sein Profil oder füge ihn als Freund hinzu.</p>
+      ${m.length ? m.map(zeile).join('') : '<p class="ar-hand">Noch keine Matches. Starte dein erstes Battle.</p>'}`);
+  }
+
   /* ---------- Chat im Clan: Regeln, Wortfilter (Server), Melden, Blockieren ---------- */
   const CHAT = { gruppe: null, liste: [], timer: null, auswahl: null };
   const stopChat = () => { clearInterval(CHAT.timer); CHAT.timer = null; };
@@ -420,6 +448,7 @@
   function einstellungenHtml() {
     const aus = store.get('wf-chat-aus', false);
     return `<h3 class="ar-h">Sicherheit</h3>
+      <button class="ar-knopf breit leise2" data-konto="oeffnen">Konto und Login</button>
       <button class="ar-knopf breit leise2" data-so="chatToggle">Chat: ${aus ? 'ausgeblendet' : 'an'}</button>
       ${ich() ? '<button class="ar-knopf breit leise2" data-so="blockliste">Geblockte Spieler</button>' : ''}
       <a class="ar-knopf breit leise2 so-link" href="regeln.html" target="_blank" rel="noopener">Regeln und Kontakt</a>
@@ -512,6 +541,8 @@
       try { await rpc('wf_gruppe_rauswerfen', mit({ p_gruppe: S.info.clan.id, p_ziel: b.id })); toast('Rausgeworfen'); await zeichnen(); clanAnsicht(S.info.clan.id); } catch (err) { fehler(err); }
     },
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
+    matches: () => matches(),
+    async matchFreund(b) { if (await anfragen(b.tag)) matches(); },
     /* Chat, Melden, Blockieren */
     chat: b => chat(b.id),
     async regelnOk(b) { try { await rpc('wf_regeln_ok', mit({})); store.set('wf-regeln', true); chat(b.id); } catch (err) { fehler(err); } },
@@ -574,7 +605,7 @@
   setInterval(() => { if (ich() && !document.hidden) rpc('wf_ping', mit({})).catch(() => {}); }, 60000);
   setInterval(() => { if (ich() && typeof curTab !== 'undefined' && curTab === 'crew' && !document.hidden && Date.now() - letzte > 20000) zeichnen(); }, 5000);
 
-  window.Social = { einstellungenHtml, zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
+  window.Social = { matches, einstellungenHtml, zeichnen, duellOeffnen, profil, clanAnsicht, anfragen, emblem, avatar, bannerBg, _test: { S, H, get C() { return C; } } };
 
   /* ---------- Einladungslink ?freund=ID ---------- */
   const q = new URLSearchParams(location.search);

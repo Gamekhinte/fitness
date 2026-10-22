@@ -630,7 +630,7 @@
     if (s.status === 'abgebrochen') { schliessen(); return; }
     const seite = war.seite, sieg = s.sieger === seite;
     const delta = seite === 'a' ? s.a_delta : s.b_delta, meineZeit = seite === 'a' ? s.a_zeit : s.b_zeit;
-    const ungueltig = s.ergebnis === 'ungueltig', abgelaufen = s.ergebnis === 'abgelaufen';
+    const ungueltig = s.ergebnis === 'ungueltig', abgelaufen = s.ergebnis === 'abgelaufen', bot = !!s.aufzeichnung && istBotName(s.geist_name);
     const vorher = F.coins; await figurLaden(); const coins = Math.max(0, F.coins - vorher);
     const zuLangsam = sieg && !ungueltig && !(delta > 0);
     const hinweis = ungueltig ? 'Das war schneller als ein Mensch läuft. Fahrrad oder Auto? Keine Pokale.'
@@ -643,6 +643,7 @@
       ${hinweis ? `<p class="ar-hand">${hinweis}</p>` : ''}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
+      ${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis',
       { aussehen: F.aussehen, anim: ungueltig ? 'idle' : sieg ? F.aussehen.emote : 'traurig', konfetti: sieg && !ungueltig });
     feiern(sieg && !ungueltig && !abgelaufen, delta || 0, coins);
@@ -704,18 +705,19 @@
   }
 
   /* ---------- Feiern: Pokale und Coins zählen hoch, mit Fanfare ---------- */
-  const beuteHtml = () => `<div class="ar-beute"><span class="ar-pop2"><img src="arena/pokal.svg" alt=""><b id="arBP">0</b></span><span class="ar-pop3">${coin}<b id="arBC">+0</b></span></div>`;
+  const beuteHtml = ohnePokale => `<div class="ar-beute">${ohnePokale ? '' : '<span class="ar-pop2"><img src="arena/pokal.svg" alt=""><b id="arBP">0</b></span>'}<span class="ar-pop3">${coin}<b id="arBC">+0</b></span></div>`;
+  const istBotName = n => String(n || '').startsWith('Trainingsgeist');
   function feiern(sieg, delta, coins) {
     const K = window.Klang;
     if (K) K.effekt(sieg ? 'sieg' : 'niederlage');
-    const bp = document.getElementById('arBP'), bc = document.getElementById('arBC'); if (!bp || !bc) return;
-    const schritte = Math.min(30, Math.abs(delta)), start = sieg ? 900 : 500;
+    const bp = document.getElementById('arBP'), bc = document.getElementById('arBC'); if (!bc) return;
+    const schritte = bp ? Math.min(30, Math.abs(delta)) : 0, start = sieg ? 900 : 500;
     for (let i = 1; i <= schritte; i++) setTimeout(() => {
       const w = Math.round(delta * i / schritte); bp.textContent = (w > 0 ? '+' : '') + w;
       if (K) K.effekt('pokal', sieg ? i : schritte - i);
       if (i === schritte) bp.parentNode.classList.add('fertig');
     }, start + i * (900 / Math.max(schritte, 1)));
-    if (!schritte) bp.textContent = '0';
+    if (bp && !schritte) bp.textContent = '0';
     const cs = Math.min(10, coins), cStart = start + 1100;
     for (let i = 1; i <= cs; i++) setTimeout(() => {
       bc.textContent = '+' + Math.round(coins * i / cs); if (K) K.effekt('muenze');
@@ -738,6 +740,6 @@
   requestAnimationFrame(() => setTimeout(() => window.Lade && Lade.weg(), 350));
 
   // für Tests
-  window.ArenaUI = { vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
+  window.ArenaUI = { istBotName, vorBlatt, editor, profil, arenaWeg, einstellungen, cutscene, F: () => F, zeigeBlatt, schliessen, rahmen, coin, wf, ich, mit, figurLaden, feiern, beuteHtml, musikPruefen,
     nachDuell: () => profilLaden().then(() => zeichnen(true)), modus: m => { MODUS = m; store.set('wf-modus', m); zeichnen(true); } };
 })();

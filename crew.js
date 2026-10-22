@@ -397,7 +397,14 @@
 
   // Für Arena und Social: gleiche Identität, gleicher Server
   window.WF = {
-    rpc, lesen, ich: () => ich, teilen, linkMit, auftauen, beitreten,
+    rpc, lesen, ich: () => ich,
+    // Aufruf mit dem Zugangs-Token der E-Mail-Anmeldung (für wf_konto_verknuepfen und wf_anmelden)
+    async rpcToken(token, name, args) {
+      const r = await fetch(`${API}/rpc/${name}`, { method: 'POST', headers: Object.assign({}, KOPF, { Authorization: 'Bearer ' + token }), body: JSON.stringify(args || {}) });
+      const j = await r.json().catch(() => null);
+      if (!r.ok) throw new Error((j && j.message) || 'Serverfehler ' + r.status);
+      return j;
+    }, teilen, linkMit, auftauen, beitreten,
     crew: () => crew, setCrew: c => { crew = c; store.set(CREW_KEY, c); },
     vorCode: () => vorCode,
     // läuft gerade ein Crew-Duell (Kamera) oder ein Lauf-Match?
