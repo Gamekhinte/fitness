@@ -16,7 +16,7 @@
     brauen: [['normal', 'Normal'], ['dick', 'Dick'], ['hoch', 'Überrascht'], ['boese', 'Entschlossen'], ['keine', 'Keine']],
     mund: [['laecheln', 'Lächeln'], ['grinsen', 'Grinsen'], ['offen', 'Offen'], ['neutral', 'Neutral'], ['zunge', 'Zunge']],
     gesicht: [['nichts', 'Nichts'], ['backen', 'Rote Backen'], ['sommersprossen', 'Sommersprossen'], ['pflaster', 'Pflaster']],
-    haare: [['kurz', 'Kurz'], ['stachel', 'Stacheln'], ['lang', 'Lang'], ['locken', 'Locken'], ['dutt', 'Dutt'], ['seite', 'Seitenscheitel'], ['glatze', 'Glatze']],
+    haare: [['kurz', 'Kurz'], ['stachel', 'Stacheln'], ['lang', 'Lang'], ['locken', 'Locken'], ['dutt', 'Dutt'], ['zopf', 'Zopf'], ['bob', 'Bob'], ['seite', 'Seitenscheitel'], ['glatze', 'Glatze']],
     kopf: [['nichts', 'Nichts', 0], ['muetze', 'Mütze', 0], ['cap', 'Cap', 0], ['stirnband', 'Stirnband', 0],
       ['hasenohren', 'Hasenohren', 300], ['kopfhoerer', 'Kopfhörer', 350], ['helm', 'Radhelm', 400], ['krone', 'Krone', 800],
       ['eismuetze', 'Eismütze', 'pass'], ['eiskrone', 'Eiskrone', 'pass']],
@@ -35,13 +35,14 @@
       ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200],
       ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80']]
   };
-  const STANDARD = { haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
+  const STANDARD = { typ: 'mann', haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
     haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#F5F0E4', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
 
   function pruefen(a) {
     const r = Object.assign({}, STANDARD);
     if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = /^#f{3,6}$/i.test(a[k]) ? '#F5F0E4' : a[k];   // kein reines Weiß
+    if (r.typ !== 'frau') r.typ = 'mann';
     return r;
   }
 
@@ -64,6 +65,13 @@
         g.fillStyle = '#F5F0E4'; g.beginPath(); g.arc(x + 5, ey - 3, 3.5, 0, 7); g.fill(); g.fillStyle = INK;
       } else if (typ === 'froh') { g.beginPath(); g.arc(x, ey + 8, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
       else if (typ === 'muede') { g.beginPath(); g.moveTo(x - 14, ey); g.lineTo(x + 14, ey); g.stroke(); g.beginPath(); g.arc(x, ey, 12, 0.1, Math.PI - 0.1); g.fill(); }
+    }
+    if (a.typ === 'frau' && skin !== 'ninja') {
+      g.lineWidth = 5;
+      for (const [k, x] of ex.entries()) {
+        const sd = k ? 1 : -1;
+        for (const [dx, dy] of [[16, -6], [22, -14], [14, -17]]) { g.beginPath(); g.moveTo(x + sd * 10, ey - 8); g.lineTo(x + sd * dx - sd * 0, ey + dy - 6); g.stroke(); }
+      }
     }
     // Brauen
     g.lineWidth = a.brauen === 'dick' ? 12 : 7;
@@ -90,7 +98,7 @@
   /* ---------- Bauen ---------- */
   function bauen(aussehen, opt = {}) {
     const W = WF3D, T = W.T, a = pruefen(aussehen);
-    const sk = a.skin;
+    const sk = a.skin, frau = a.typ === 'frau';
     // Skins legen Farben fest
     let haut = a.haut, ober = a.oberteil, hose = a.hose, schuh = a.schuhe, haare = a.haare, hf = a.haarfarbe, kopf = a.kopf, extra = a.extra;
     if (sk === 'ninja') { ober = '#1E1C1B'; hose = '#1E1C1B'; schuh = '#1E1C1B'; kopf = 'stirnband_rot'; haare = 'kurz'; hf = '#1E1C1B'; }
@@ -109,8 +117,8 @@
     const rig = { wurzel };
     const huefte = new T.Group(); huefte.position.y = 0.85; wurzel.add(huefte); rig.huefte = huefte;
     const rumpf = new T.Group(); huefte.add(rumpf); rig.rumpf = rumpf;
-    rumpf.add(W.teil(new T.CapsuleGeometry(0.36, 0.42, 6, 14), ober, 0, 0.42, 0, 0.045));
-    rumpf.add(W.teil(new T.CylinderGeometry(0.37, 0.35, 0.22, 14), hose, 0, 0.04, 0, 0.04));
+    rumpf.add(W.teil(new T.CapsuleGeometry(frau ? 0.32 : 0.36, 0.42, 6, 14), ober, 0, 0.42, 0, 0.045));
+    rumpf.add(W.teil(new T.CylinderGeometry(frau ? 0.34 : 0.37, frau ? 0.41 : 0.35, 0.22, 14), hose, 0, 0.04, 0, 0.04));
     // Beine
     for (const s of [-1, 1]) {
       const bein = new T.Group(); bein.position.set(s * 0.17, 0.02, 0); huefte.add(bein);
@@ -122,8 +130,8 @@
     }
     // Arme
     for (const s of [-1, 1]) {
-      const arm = new T.Group(); arm.position.set(s * 0.45, 0.72, 0); rumpf.add(arm);
-      arm.add(W.teil(new T.CapsuleGeometry(0.1, 0.42, 4, 10), ober, 0, -0.3, 0, 0.035));
+      const arm = new T.Group(); arm.position.set(s * (frau ? 0.41 : 0.45), 0.72, 0); rumpf.add(arm);
+      arm.add(W.teil(new T.CapsuleGeometry(frau ? 0.09 : 0.1, 0.42, 4, 10), ober, 0, -0.3, 0, 0.035));
       arm.add(W.teil(W.kugel(0.12), haut, 0, -0.62, 0, 0.03));
       arm.rotation.z = s * 0.12;
       rig[s < 0 ? 'armL' : 'armR'] = arm;
@@ -195,6 +203,8 @@
     }
     if (typ === 'lang') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; const hinten = W.kugel(R * 1.02, 22, 16); hinten.scale(1, 1.3, 0.62); add(hinten, 0, -0.2, -R * 0.42); }
     if (typ === 'locken') { add(kappe(0.36), 0, 0, 0); for (let i = 0; i < 11; i++) { const w = i / 11 * Math.PI * 2; add(W.kugel(0.15, 10, 8), Math.cos(w) * R * 0.85, R * 0.55 + (i % 2) * 0.08, Math.sin(w) * R * 0.85 - 0.08, 0.025); } }
+    if (typ === 'zopf') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; add(W.kugel(0.13, 12, 10), 0, R * 0.5, -R * 0.95); add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), 0, R * 0.05, -R * 1.12); }
+    if (typ === 'bob') { add(kappe(0.44), 0, 0, 0).rotation.x = -0.2; const h = W.kugel(R * 1.05, 22, 16); h.scale(1, 0.85, 0.72); add(h, 0, -0.1, -R * 0.3); }
     if (typ === 'dutt') { add(kappe(0.4), 0, 0, 0).rotation.x = -0.25; add(W.kugel(0.22, 12, 10), 0, R * 0.85, -R * 0.55); }
   }
 
@@ -273,7 +283,7 @@
       case 'tanzen': { r.huefte.position.y = 0.85 + Math.abs(s(t * 6)) * 0.08; r.rumpf.rotation.z = s(t * 6) * 0.2; r.armL.rotation.z = -1.2 - s(t * 6) * 1.2; r.armR.rotation.z = 1.2 - s(t * 6) * 1.2; r.beinL.rotation.x = Math.max(0, s(t * 6)) * 0.5; r.beinR.rotation.x = Math.max(0, -s(t * 6)) * 0.5; r.kopf.rotation.z = -s(t * 6) * 0.15; break; }
       case 'pose': { r.armL.rotation.set(0.3, 0, -0.9); r.armR.rotation.set(0.3, 0, 0.9); r.rumpf.rotation.x = -0.08; r.kopf.rotation.y = 0.25; r.beinL.rotation.z = -0.15; r.beinR.rotation.z = 0.15; if (r.umhang) r.umhang.rotation.x = 0.3 + s(t * 4) * 0.15; break; }
       case 'robot': { const q = Math.floor(t * 2.5) % 4; r.armL.rotation.x = q < 2 ? -1.57 : 0; r.armR.rotation.x = q < 2 ? 0 : -1.57; r.kopf.rotation.y = [0.4, 0, -0.4, 0][q]; r.beinL.rotation.x = q === 1 ? -0.4 : 0; r.beinR.rotation.x = q === 3 ? -0.4 : 0; r.wurzel.rotation.y += 0; break; }
-      case 'salto': { const z = (t % 2.4) / 1.0; if (z < 1) { r.wurzel.position.y = s(z * Math.PI) * 1.4; r.wurzel.rotation.x = -z * Math.PI * 2; r.armL.rotation.z = -2.6; r.armR.rotation.z = 2.6; r.beinL.rotation.x = -0.8; r.beinR.rotation.x = -0.8; } else { r.armL.rotation.z = -2.2; r.armR.rotation.z = 2.2; } break; }
+      case 'salto': { const z = t % 2.4; if (z < 1) { const th = -z * Math.PI * 2; r.wurzel.rotation.x = th; r.wurzel.position.y = s(z * Math.PI) * 1.1 + 0.95 - 0.95 * c(th); r.wurzel.position.z = -0.95 * s(th); r.armL.rotation.z = -2.6; r.armR.rotation.z = 2.6; r.beinL.rotation.x = -0.8; r.beinR.rotation.x = -0.8; } else { r.armL.rotation.z = -2.2; r.armR.rotation.z = 2.2; } break; }
       case 'dehnen': { const p = s(t * 1.6); r.rumpf.rotation.z = p * 0.35; r.armL.rotation.z = p > 0 ? -2.8 : -0.3; r.armR.rotation.z = p < 0 ? 2.8 : 0.3; break; }
       case 'kniebeuge': {
         const p = (1 - c(t * 2.6)) / 2, a = 1.3 * p;
@@ -395,6 +405,7 @@
     return g;
   }
 
-  window.Figur = { KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund };
+  const PERIODE = { winken: 0.79, jubeln: 0.63, hampelmann: 0.9, flex: 2.1, tanzen: 1.05, pose: 1.6, robot: 1.6, salto: 2.4, starren: 3.14, zeigen: 1.05, faust: 0.9, muskeln: 1.26, trommeln: 0.52, lachen: 0.39, gaehnen: 3.93 };
+  window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund };
 
 })();

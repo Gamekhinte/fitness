@@ -66,7 +66,7 @@
     return { highlight, taeglich, woche, items };
   }
 
-  /* ---------- Vorschaubilder: eine versteckte 3D-Bühne rendert jedes Teil einmal ---------- */
+  /* ---------- Vorschaubilder: eine versteckte 3D-Bühne rendert jedes Teil an DEINER Figur ---------- */
   let B = null, kette = Promise.resolve();
   const cache = new Map();
   async function buehne() {
@@ -77,42 +77,81 @@
     B = WF3D.buehne(host, { foto: true, fov: 28 }); B.pausiert = true; B.r.setPixelRatio(2); B.groesse();
     return B;
   }
+  // Dein Look mit dem Teil darauf. Kopf und Extra ersetzen den Skin, sonst würde der sie verdecken.
+  function lookFuer(it) {
+    const look = Object.assign({}, Figur.STANDARD, A.F().aussehen, { hg: 'leer' });
+    if (it.kat === 'kopf' || it.kat === 'extra') look.skin = 'nichts';
+    if (it.kat === 'emote') look.emote = 'idle';
+    if (it.kat === 'hg') look.hg = it.id;
+    look[it.kat] = it.id;
+    return look;
+  }
+  const kurz = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+  const ck = it => it.key + '#' + kurz(JSON.stringify(lookFuer(it)));
+  const bewegt = it => it.kat === 'emote' || it.kat === 'intro';
   function foto(it) {
-    if (cache.has(it.key)) return Promise.resolve(cache.get(it.key));
+    const schluessel = ck(it);
+    if (cache.has(schluessel)) return Promise.resolve(cache.get(schluessel));
     kette = kette.then(async () => {
-      if (cache.has(it.key)) return cache.get(it.key);
+      if (cache.has(schluessel)) return cache.get(schluessel);
       const b = await buehne(), T = WF3D.T;
-      const look = Object.assign({}, Figur.STANDARD, { skin: 'nichts', kopf: 'nichts', extra: 'nichts', hg: 'leer', emote: 'idle' });
-      look[it.kat] = it.id;
+      const look = lookFuer(it);
       const g = new T.Group(), f = Figur.bauen(look, { boese: it.kat === 'intro' });
       f.rotation.y = 0.35; g.add(f);
       let bg = null;
       if (it.kat === 'hg') { bg = Figur.hintergrund(it.id); bg.position.set(0, 0, -4); g.add(bg); f.scale.setScalar(0.85); }
-      const rig = f.userData.rig;
-      if (it.kat === 'emote') Figur.haltung(f, it.id, 0.7); else if (it.kat === 'intro') Figur.haltung(f, it.id, 0.9); else Figur.haltung(f, 'idle', 0.3);
-      if (bg && bg.userData.tick) bg.userData.tick(1.2);
       b.szene.add(g);
       const k = b.kamera;
       if (it.kat === 'kopf') { k.position.set(0, 2.0, 5.2); k.lookAt(0, 1.8, 0); }
       else if (it.kat === 'extra') { k.position.set(0, 1.55, 5.6); k.lookAt(0, 1.4, 0); }
-      else { k.position.set(0, 1.5, 7.6); k.lookAt(0, 1.15, 0); }
-      b.r.render(b.szene, k);
-      const url = b.r.domElement.toDataURL('image/png');
-      b.szene.remove(g); cache.set(it.key, url);
-      return url;
+      else { k.position.set(0, 1.5, it.kat === 'emote' ? 8.4 : 7.6); k.lookAt(0, 1.15, 0); }
+      const knipsen = t => {
+        Figur.haltung(f, bewegt(it) ? it.id : 'idle', t);
+        if (bg && bg.userData.tick) bg.userData.tick(1.2);
+        b.r.render(b.szene, k);
+        return b.r.domElement.toDataURL('image/png');
+      };
+      let ergebnis;
+      if (bewegt(it)) {
+        const p = Figur.PERIODE[it.id] || 1.5, n = 10, bilder = [];
+        for (let i = 0; i < n; i++) bilder.push(knipsen(p * i / n));
+        ergebnis = { bilder, dauer: Math.max(70, p * 1000 / n) };
+      } else ergebnis = knipsen(0.3);
+      b.szene.remove(g);
+      cache.set(schluessel, ergebnis);
+      return ergebnis;
     }).catch(() => null);
     return kette;
   }
+  // Animierte Karten: ein einziger Takt wechselt die Bilder, nur was im Bild ist
+  const laeufer = new Set();
+  function zeigen(img, erg) {
+    if (!erg) return;
+    if (typeof erg === 'string') { img.src = erg; img.classList.add('da'); return; }
+    img.src = erg.bilder[0]; img.classList.add('da');
+    laeufer.add({ img, bilder: erg.bilder, dauer: erg.dauer, i: 0, next: 0 });
+  }
+  setInterval(() => {
+    if (!laeufer.size || document.hidden) return;
+    const jetzt = performance.now(), hoehe = window.innerHeight;
+    laeufer.forEach(p => {
+      if (!p.img.isConnected) { laeufer.delete(p); return; }
+      if (jetzt < p.next) return;
+      const r = p.img.getBoundingClientRect(); if (r.bottom < 0 || r.top > hoehe) return;
+      p.i = (p.i + 1) % p.bilder.length; p.img.src = p.bilder[p.i]; p.next = jetzt + p.dauer;
+    });
+  }, 40);
   const beobachter = 'IntersectionObserver' in window ? new IntersectionObserver(eintraege => eintraege.forEach(x => {
     if (!x.isIntersecting) return;
     const img = x.target; beobachter.unobserve(img);
     const it = alle().find(i => i.key === img.dataset.foto);
-    if (it) foto(it).then(url => { if (url) { img.src = url; img.classList.add('da'); } });
+    if (it) foto(it).then(erg => zeigen(img, erg));
   }), { rootMargin: '200px' }) : null;
   function bilderStarten(wurzel) {
     wurzel.querySelectorAll('img[data-foto]').forEach(img => {
       const it = alle().find(i => i.key === img.dataset.foto);
-      if (it && cache.has(it.key)) { img.src = cache.get(it.key); img.classList.add('da'); } else if (beobachter) beobachter.observe(img);
+      if (!it) return;
+      if (cache.has(ck(it))) zeigen(img, cache.get(ck(it))); else if (beobachter) beobachter.observe(img);
     });
   }
 
@@ -212,9 +251,8 @@
   setTimeout(radPruefen, 3000);
   setInterval(() => { if (!document.hidden && A.ich()) tagLaden(); }, 60000);
 
-  /* ---------- Glücksrad: einmal am Tag gratis, keine bezahlten Drehungen (Server: wf_spin_*) ---------- */
-  const FARBEN = ['#FFF1C4', '#C9F2EC', '#F6D8A8', '#DFF3FF', '#FFF1C4', '#C9F2EC', '#F6D8A8', '#DFF3FF'];
-  let rad = null, dreht = false;
+  /* ---------- Glücksrad: 1 Gratis-Dreh am Tag, Extra-Drehungen nur mit Coins (Server: wf_spin_*) ---------- */
+  let rad = null, dreht = false, radWinkel = 0;
   async function radPruefen() {
     if (!A.ich()) return;
     try { rad = await A.wf().rpc('wf_spin_status', A.mit({})); } catch (err) { return; }
@@ -223,53 +261,73 @@
     if (i) i.textContent = rad.bereit ? 'Drehen' : 'Ansehen';
     if (k) k.classList.toggle('bereit', !!rad.bereit);
   }
+  const radName = p => p.art === 'skin' ? 'Skin' : p.art === 'emote' ? 'Tanz' : String(p.wert);
+  const radFarbe = (p, i) => p.art === 'gems' ? '#C9F2EC' : p.art === 'skin' ? '#F2C14E' : p.art === 'emote' ? '#DFF3FF' : (i % 2 ? '#F6D8A8' : '#FFF1C4');
   function radSvg(preise) {
     const n = preise.length, w = 360 / n, r = 150, c = 160;
     const pt = (grad, rr) => { const a = (grad - 90) * Math.PI / 180; return [c + rr * Math.cos(a), c + rr * Math.sin(a)]; };
     let h = '';
     preise.forEach((p, i) => {
-      const [x1, y1] = pt(i * w, r), [x2, y2] = pt((i + 1) * w, r), mitte = i * w + w / 2, [tx, ty] = pt(mitte, r * 0.66);
-      const wert = p.gems ? p.gems : p.coins;
-      h += `<path d="M${c} ${c} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${p.gems ? '#C9F2EC' : FARBEN[i % 4 === 0 ? 0 : 2]}" stroke="#2B2A33" stroke-width="3"/>
-        <g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(${mitte})"><text text-anchor="middle" y="-4" font-family="var(--dick)" font-size="22" fill="#2B2A33">${wert}</text>
-        <image href="arena/${p.gems ? 'gem' : 'coin'}.svg" x="-10" y="2" width="20" height="20"/></g>`;
+      const [x1, y1] = pt(i * w, r), [x2, y2] = pt((i + 1) * w, r), mitte = i * w + w / 2, [tx, ty] = pt(mitte, r * 0.68);
+      const bild = p.art === 'gems' ? 'gem' : p.art === 'coins' ? 'coin' : '';
+      h += `<path d="M${c} ${c} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${radFarbe(p, i)}" stroke="#2B2A33" stroke-width="3"/>
+        <g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(${mitte})"><text text-anchor="middle" y="${bild ? -4 : 8}" font-family="var(--dick)" font-size="${bild ? 20 : 22}" fill="#2B2A33">${radName(p)}</text>
+        ${bild ? `<image href="arena/${bild}.svg" x="-9" y="1" width="18" height="18"/>` : ''}</g>`;
     });
-    return `<svg class="sh-rad-svg" viewBox="0 0 320 320" id="shRadSvg"><circle cx="160" cy="160" r="154" fill="#FAF6EB" stroke="#2B2A33" stroke-width="4"/><g id="shRadDreh" style="transform-origin:160px 160px">${h}</g><circle cx="160" cy="160" r="14" fill="#F2B632" stroke="#2B2A33" stroke-width="4"/></svg>`;
+    return `<svg class="sh-rad-svg" viewBox="0 0 320 320" id="shRadSvg"><circle cx="160" cy="160" r="154" fill="#FAF6EB" stroke="#2B2A33" stroke-width="4"/><g id="shRadDreh" style="transform-origin:160px 160px;transform:rotate(${radWinkel}deg)">${h}</g><circle cx="160" cy="160" r="14" fill="#F2B632" stroke="#2B2A33" stroke-width="4"/></svg>`;
+  }
+  function radAktion() {
+    const box = document.getElementById('shRadAktion'); if (!box || !rad) return;
+    const coins = A.F().coins;
+    box.innerHTML = rad.bereit ? '<button class="ar-knopf breit gold" data-sh="radDrehen">Gratis drehen</button>'
+      : rad.extra_rest > 0 ? `<p class="ar-hand">Gratis-Dreh für heute benutzt.</p><button class="ar-knopf breit${coins >= rad.extra_preis ? '' : ' leise2'}" data-sh="radExtra">Nochmal drehen · ${rad.extra_preis} ${A.coin}</button><p class="ar-hand klein">Noch ${rad.extra_rest} Extra-Drehungen heute</p>`
+      : '<p class="ar-hand">Heute ist alles gedreht. Morgen gibt es den nächsten Gratis-Dreh.</p>';
   }
   async function radOeffnen() {
     if (!A.ich()) return toast('Erstelle zuerst im Clan-Tab dein Profil');
     await radPruefen();
     if (!rad) return;
+    radWinkel = 0;
     const summe = rad.preise.reduce((a, p) => a + p.gewicht, 0);
-    const chancen = rad.preise.map(p => `<li><span>${p.gems ? gem + p.gems : A.coin + p.coins}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
+    const text = p => p.art === 'skin' ? 'Zufälliges Outfit' : p.art === 'emote' ? 'Zufällige Animation' : p.art === 'gems' ? gem + p.wert : A.coin + p.wert;
+    const chancen = rad.preise.map(p => `<li><span>${text(p)}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
     A.zeigeBlatt(`<button class="ar-zu" data-zu aria-label="Schließen">×</button><h2 class="ar-titel">Glücksrad</h2>
       <div class="sh-rad"><div class="sh-rad-zeiger"></div>${radSvg(rad.preise)}</div>
       <div id="shRadErg" class="sh-rad-erg"></div>
-      ${rad.bereit ? '<button class="ar-knopf breit gold" data-sh="radDrehen" id="shRadGo">Gratis drehen</button>' : '<p class="ar-hand">Heute schon gedreht. Morgen gibt es den nächsten Gratis-Dreh.</p>'}
+      <div id="shRadAktion"></div>
       <h3 class="ar-h">Gewinnchancen</h3>
       <ul class="ar-liste sh-chancen">${chancen}</ul>
-      <p class="ar-hand klein">Es gibt nur diesen einen kostenlosen Dreh pro Tag. Gewinne sind Coins und Gems, keine Outfits.</p>`, 'rad');
+      <p class="ar-hand klein">Jeden Tag ein Dreh gratis. Extra-Drehungen kosten Coins, die du beim Spielen verdienst (max. 5 am Tag). Outfits und Animationen, die du schon hast, kommen nicht doppelt. Hast du alle, gibt es 500 Coins.</p>`, 'rad');
+    radAktion();
   }
-  async function radDrehen() {
+  async function radDrehen(extra) {
     if (dreht) return; dreht = true;
-    const go = document.getElementById('shRadGo'); if (go) go.disabled = true;
+    const box = document.getElementById('shRadAktion'); if (box) box.innerHTML = '';
     let r;
-    try { r = await A.wf().rpc('wf_spin_drehen', A.mit({})); } catch (err) { dreht = false; if (go) go.disabled = false; return toast(err.message); }
-    const n = rad.preise.length, w = 360 / n, g = document.getElementById('shRadDreh');
-    const ziel = 360 * 5 - (r.index * w + w / 2) + (Math.random() - 0.5) * w * 0.6;
-    if (g) { g.style.transition = 'transform 4.2s cubic-bezier(.12,.7,.15,1)'; requestAnimationFrame(() => { g.style.transform = `rotate(${ziel}deg)`; }); }
+    try { r = await A.wf().rpc('wf_spin_drehen', A.mit({ p_extra: !!extra })); } catch (err) { dreht = false; radAktion(); return toast(err.message); }
+    const n = rad.preise.length, w = 360 / n, g = document.getElementById('shRadDreh'), erg0 = document.getElementById('shRadErg');
+    if (erg0) erg0.textContent = '';
+    const ziel = -(r.index * w + w / 2) + (Math.random() - 0.5) * w * 0.6;
+    radWinkel = radWinkel + 1800 + ((ziel - radWinkel) % 360 + 360) % 360;
+    if (g) { g.style.transition = 'transform 4.2s cubic-bezier(.12,.7,.15,1)'; requestAnimationFrame(() => { g.style.transform = `rotate(${radWinkel}deg)`; }); }
     if (window.Klang) Klang.effekt('countdown');
     setTimeout(async () => {
       dreht = false;
       const erg = document.getElementById('shRadErg');
-      if (erg) erg.innerHTML = `Gewonnen: ${r.gems ? gem + r.gems + ' Gems' : A.coin + r.coins + ' Coins'}`;
-      if (go) go.remove();
+      if (erg) {
+        if (r.art === 'skin' || r.art === 'emote') {
+          const [kat, id] = r.item.split(':'), name = ((Figur.KATALOG[kat] || []).find(x => x[0] === id) || [0, id])[1];
+          erg.innerHTML = `Neu: ${e(name)}<img class="sh-rad-bild" alt="">`;
+          const it = alle().find(i => i.key === r.item), img = erg.querySelector('img');
+          if (it && img) { await A.figurLaden(); foto(it).then(x => zeigen(img, x)); }
+        } else erg.innerHTML = `Gewonnen: ${r.art === 'gems' ? gem + r.wert + ' Gems' : A.coin + r.wert + ' Coins'}`;
+      }
       if (window.Klang) Klang.effekt('sieg');
-      await A.figurLaden(); zeichnen(); radPruefen();
+      await A.figurLaden(); zeichnen(); await radPruefen(); radAktion();
     }, 4400);
   }
   document.addEventListener('click', ev => {
-    const b = ev.target.closest('#arBlatt [data-sh="radDrehen"]'); if (b) radDrehen();
+    const b = ev.target.closest('#arBlatt [data-sh="radDrehen"], #arBlatt [data-sh="radExtra"]'); if (b) radDrehen(b.dataset.sh === 'radExtra');
   });
   tab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-sh]'); if (!b) return;

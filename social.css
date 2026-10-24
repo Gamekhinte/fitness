@@ -384,3 +384,11 @@ body.papier main{padding-top:0}
 #soEinladung span{display:block;font-size:16px;margin-bottom:8px}
 #soEinladung div{display:flex;gap:8px}
 #soEinladung .ar-knopf{flex:1;margin:0;padding:8px;font-size:17px}
+
+/* Typ Mann oder Frau */
+.ar-typ{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
+.ar-typ button{padding:22px 8px;font-family:var(--dick);font-size:24px;color:var(--graphit);background:#FAF6EB;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit)}
+.ar-typ button.an{background:var(--marker)}
+
+.sh-rad-bild{display:block;width:120px;margin:4px auto 0}
+.sh-karte .sh-bild img{object-fit:contain}

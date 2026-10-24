@@ -212,8 +212,7 @@
     const wert = (n, t) => `<div>${A.rahmen(100, 64, 12, 21 + String(t).length)}<b>${n}</b><span>${t}</span></div>`;
     const aktionen = ich_ ? `<button class="ar-knopf breit" data-so="matches">Letzte Matches</button>
         <button class="ar-knopf breit leise2" data-so="titel">Titel ändern</button>
-        <button class="ar-knopf breit leise2" data-so="banner">Banner ändern</button>
-        <button class="ar-knopf breit leise2" data-so="figur">Charakter bearbeiten</button>`
+        <button class="ar-knopf breit leise2" data-so="banner">Banner ändern</button>`
       : freund ? `<button class="ar-knopf breit gold" data-so="einsVsEins" data-id="${id}" data-name="${e(info.name)}">1 gegen 1</button>
         <button class="ar-knopf breit leise2" data-so="freundWeg" data-id="${id}">Freundschaft beenden</button>`
       : angefragt ? '<button class="ar-knopf breit leise2" disabled>Anfrage gesendet</button>'

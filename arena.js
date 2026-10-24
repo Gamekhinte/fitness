@@ -330,7 +330,6 @@
       <button class="ar-zu" data-zu aria-label="Schließen">×</button>
       ${ich() ? `<h2>${e(ich().name)}</h2>` : '<h2>Neu hier</h2>'}
       <p class="ar-hand">Laufen: Arena ${i + 1} · ${ARENEN[i].name} · Kraft: Arena ${arenaZu(kraftPokale) + 1} · ${NAMEN_KRAFT[arenaZu(kraftPokale)]}</p>
-      <button class="ar-knopf breit" id="arZumEditor">Charakter bearbeiten</button>
       ${ich() ? '' : `<p class="ar-hand">Wie sollen dich die anderen nennen? Spitzname oder Vorname.</p>
         <div class="ar-zeile"><input id="arNameIn" maxlength="20" placeholder="Spitzname" autocomplete="off"><button class="ar-knopf" id="arNameOk">Los</button></div>`}
       <div class="ar-werte">
@@ -352,7 +351,6 @@
       try { await wf().registrieren(n); toast('Gespeichert'); await profilLaden(); await figurLaden(); zeichnen(); profil(); }
       catch (err) { toast(err.message); }
     };
-    $('arZumEditor').onclick = () => editor();
     $('arKoerper').onclick = () => { schliessen(); openProfile(); };
   }
   tab.querySelectorAll('[data-profil]').forEach(b => b.onclick = () => ich() && window.Social ? Social.profil() : profil());
@@ -370,7 +368,7 @@
       ${regler('arLautMusik', 'Musik', lm)}${regler('arLautEffekte', 'Soundeffekte', le)}
       <h3 class="ar-h">Spieler</h3>
       <div class="ar-zeile"><input id="arNeuName" maxlength="20" placeholder="Spitzname" value="${ich() ? e(ich().name) : ''}" autocomplete="off"><button class="ar-knopf" id="arNameSpeichern">${ich() ? 'Ändern' : 'Los'}</button></div>
-      <button class="ar-knopf breit leise2" id="arEinstFigur">Charakter bearbeiten</button>
+      <button class="ar-knopf breit gold" id="arEinstFigur">Charakter anpassen</button>
       <button class="ar-knopf breit leise2" id="arEinstKoerper">Größe, Gewicht und Ziel</button>
       ${window.Social ? Social.einstellungenHtml() : ''}
       <h3 class="ar-h">Datenschutz</h3>
@@ -394,7 +392,7 @@
   $('arGems').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
-  const REITER = [['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
+  const REITER = [['typ', 'Typ'], ['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
   let E = null;
   const besitzt = (kat, id) => !Figur.preis(kat, id) || F.besitz.includes(kat + ':' + id);
   function gesperrt(a) {
@@ -402,7 +400,7 @@
       .map(k => ({ kat: k, id: a[k], name: (Figur.KATALOG[k].find(x => x[0] === a[k]) || [])[1], preis: Figur.preis(k, a[k]) }));
   }
   function editor(reiter) {
-    E = { a: Object.assign({}, F.aussehen), reiter: reiter || 'gesicht' };
+    E = { a: Object.assign({}, F.aussehen), reiter: reiter || (store.get('wf-typ-ok', false) ? 'gesicht' : 'typ') };
     editorMalen(false);
   }
   function editorMalen(bleiben) {
@@ -414,6 +412,7 @@
       return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${preisArt(preis) === 'coins' ? coin + preis : preisArt(preis) === 'gems' ? gem + preisWert(preis) : 'Pass'}</small>`}</button>`;
     }).join('')}</div>`;
     const inhalt = {
+      typ: () => `<p class="ar-hand">Wähle deinen Körper. Alles andere kannst du danach anpassen.</p><div class="ar-typ">${[['mann', 'Mann'], ['frau', 'Frau']].map(([id, n]) => `<button data-feld="typ" data-wert="${id}" class="${a.typ === id ? 'an' : ''}">${n}</button>`).join('')}</div>`,
       gesicht: () => farbe('haut', K.haut, 'Hautfarbe') + wahl('augen', K.augen, 'Augen') + wahl('brauen', K.brauen, 'Augenbrauen') + wahl('mund', K.mund, 'Mund') + wahl('gesicht', K.gesicht, 'Im Gesicht'),
       haare: () => wahl('haare', K.haare, 'Frisur') + farbe('haarfarbe', K.haarfarbe, 'Haarfarbe'),
       kleidung: () => farbe('oberteil', K.farben, 'Oberteil') + farbe('hose', K.hosen, 'Hose') + farbe('schuhe', K.schuhe, 'Schuhe'),
@@ -434,7 +433,15 @@
         ${kaufbar.length ? `<button class="ar-knopf breit ${kaufbar[0].art === 'gems' ? 'gemknopf' : 'gold'}" id="arKaufen">${e(kaufbar[0].name)} kaufen · ${kaufbar[0].wert} ${kaufbar[0].art === 'gems' ? gem : coin}</button>` : ''}
         <button class="ar-knopf breit" id="arFigurOk">${zu.length ? 'Erst kaufen, dann speichern' : 'Speichern'}</button>
       </div>`, 'editor', { aussehen: a, anim: E.reiter === 'emotes' ? a.emote : E.reiter === 'intro' ? a.intro : 'idle', boese: E.reiter === 'intro' }, bleiben);
-    $('arBlatt').querySelectorAll('[data-feld]').forEach(b => b.onclick = () => { E.a[b.dataset.feld] = b.dataset.wert; editorMalen(true); });
+    $('arBlatt').querySelectorAll('[data-feld]').forEach(b => b.onclick = () => {
+      E.a[b.dataset.feld] = b.dataset.wert;
+      if (b.dataset.feld === 'typ') {
+        if (b.dataset.wert === 'frau' && E.a.haare === 'kurz') E.a.haare = 'lang';
+        if (b.dataset.wert === 'mann' && ['zopf', 'bob'].includes(E.a.haare)) E.a.haare = 'kurz';
+        store.set('wf-typ-ok', true); E.reiter = 'gesicht';
+      }
+      editorMalen(true);
+    });
     $('arBlatt').querySelectorAll('[data-reiter]').forEach(b => b.onclick = () => { E.reiter = b.dataset.reiter; editorMalen(true); });
     const kauf = $('arKaufen');
     if (kauf && kauf.addEventListener) kauf.onclick = () => kaufen(kaufbar[0]);
