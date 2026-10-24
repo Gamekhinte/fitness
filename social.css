@@ -392,3 +392,18 @@ body.papier main{padding-top:0}
 
 .sh-rad-bild{display:block;width:120px;margin:4px auto 0}
 .sh-karte .sh-bild img{object-fit:contain}
+
+/* Shop wie bei Stumble Guys: Special oben, Seltenheiten */
+.sh-spezial-kopf{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 8px}
+.sh-spezial-kopf h3{margin:0;font-family:var(--dick);font-weight:400;font-size:26px}
+.sh-spezial-kopf span{font-family:var(--hand);font-size:16px;color:var(--mut)}
+.sh-spezial-kopf b{font-family:var(--dick);font-weight:400;font-size:19px;color:var(--rot)}
+.sh-spezial{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:0 0 12px}
+.sh-spezial .sh-karte .sh-bild{aspect-ratio:3/4}
+.sh-karte.spezial{border-width:4px}
+.sh-sel{position:absolute;top:6px;left:6px;z-index:1;padding:1px 6px;font-style:normal;font-family:var(--dick);font-size:11px;line-height:1.3;color:var(--graphit);background:#B9B4AC;border:2px solid var(--graphit);border-radius:5px}
+.sel-selten .sh-sel{background:#7CC4F0}
+.sel-episch .sh-sel{background:#F0A07A}
+.sel-legendaer .sh-sel{background:var(--gold)}
+.sel-selten{border-color:#2B2A33}
+.sh-raster.vier .sh-sel{font-size:9px;padding:0 4px;top:4px;left:4px}

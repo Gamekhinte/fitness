@@ -60,10 +60,11 @@
       return f[Math.floor(zufall() * f.length)];
     };
     const benutzt = new Set(), pick = (liste, z) => { const i = nimm(liste, z, benutzt); benutzt.add(i.key); return i; };
-    const highlight = pick(items.filter(i => i.kat === 'skin' && (i.art === 'gems' || i.wert >= 900)), r);
+    const spezialPool = items.filter(i => i.kat === 'skin' && (i.art === 'gems' || i.wert >= 900));
+    const specials = [pick(spezialPool, r), pick(spezialPool, r), pick(spezialPool, r)];
     const taeglich = [pick(pool('skin'), r), pick(pool('kopf', 'extra'), r), pick(pool('emote', 'intro'), r), pick(pool('hg'), r)];
     const woche = [pick(pool('kopf', 'extra', 'skin'), rw), pick(pool('emote', 'intro', 'hg'), rw)];
-    return { highlight, taeglich, woche, items };
+    return { highlight: specials[0], specials, taeglich, woche, items };
   }
 
   /* ---------- Vorschaubilder: eine versteckte 3D-Bühne rendert jedes Teil an DEINER Figur ---------- */
@@ -104,7 +105,7 @@
       const k = b.kamera;
       if (it.kat === 'kopf') { k.position.set(0, 2.0, 5.2); k.lookAt(0, 1.8, 0); }
       else if (it.kat === 'extra') { k.position.set(0, 1.55, 5.6); k.lookAt(0, 1.4, 0); }
-      else { k.position.set(0, 1.5, it.kat === 'emote' ? 8.4 : 7.6); k.lookAt(0, 1.15, 0); }
+      else { k.position.set(0, 1.5, it.kat === 'emote' || it.kat === 'skin' ? 8.8 : 7.6); k.lookAt(0, 1.05, 0); }
       const knipsen = t => {
         Figur.haltung(f, bewegt(it) ? it.id : 'idle', t);
         if (bg && bg.userData.tick) bg.userData.tick(1.2);
@@ -161,10 +162,12 @@
   tab.innerHTML = '<div id="shWurzel"></div>';
   document.querySelector('main').appendChild(tab);
 
+  const seltenheit = it => it.art === 'gems' ? 'legendaer' : it.wert >= 1500 ? 'legendaer' : it.wert >= 700 ? 'episch' : it.wert >= 300 ? 'selten' : 'gewoehnlich';
+  const SELTEN_NAME = { gewoehnlich: 'Gewöhnlich', selten: 'Selten', episch: 'Episch', legendaer: 'Legendär' };
   const preis = it => it.art === 'gems' ? `${gem}${it.wert}` : `${A.coin}${it.wert}`;
   const kategorieName = it => (KATS.find(x => x[0] === it.kat) || [0, ''])[1];
-  const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
-      <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span>
+  const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''} sel-${seltenheit(it)}" data-sh="anprobe" data-key="${e(it.key)}">
+      <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span><i class="sh-sel">${SELTEN_NAME[seltenheit(it)]}</i>
       <b>${e(it.name)}</b>
       <span class="sh-preis">${hat(it) ? 'Gekauft' : preis(it)}</span></button>`;
   const highlight = (it, klein) => `<button class="sh-hl ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
@@ -187,16 +190,16 @@
         <h2>Shop</h2>
         <span class="sh-konto"><span>${A.coin}<b>${F.coins}</b></span><span>${gem}<b>${F.gems || 0}</b></span></span>
       </div>
-      <div id="shTag"></div>
+      <div class="sh-spezial-kopf"><h3>Special</h3><span>Neu in <b id="shUhr">${rest()}</b></span></div>
+      <div class="sh-spezial">${a.specials.map(i => karte(i, true).replace('class="sh-karte', 'class="sh-karte spezial')).join('')}</div>
       <button class="sh-rad-karte" data-sh="rad" id="shRadKnopf"><span class="sh-rad-icon">${gem}</span><span><b>Glücksrad</b><small id="shRadText">Einmal am Tag gratis drehen</small></span><i id="shRadI">Drehen</i></button>
-      <div class="sh-restock"><span>Neues Sortiment in</span><b id="shUhr">${rest()}</b></div>
-      ${highlight(a.highlight)}
-      <div class="sh-abschnitt"><h3>Heute</h3></div>
+      <div class="sh-abschnitt"><h3>Tagesangebote</h3></div>
       <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
       <div class="sh-woche">${a.woche.map(i => highlight(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diamanten-Outfits</h3><small>Immer im Shop</small></div>
       <div class="sh-raster drei">${a.items.filter(i => i.art === 'gems').sort((x, y) => x.wert - y.wert).map(i => karte(i, true)).join('')}</div>
+      <div id="shTag"></div>
       <div class="sh-unten">
         <button class="sh-pass" data-sh="pass"><span class="sh-pass-gem">${gem}</span><span><b>Winterpass</b><small>Belohnungen, Gems und Outfits</small></span><i>Ansehen</i></button>
         <button class="ar-knopf breit leise2" data-sh="alle">Alle Teile ansehen</button>
