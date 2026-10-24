@@ -407,3 +407,11 @@ body.papier main{padding-top:0}
 .sel-legendaer .sh-sel{background:var(--gold)}
 .sel-selten{border-color:#2B2A33}
 .sh-raster.vier .sh-sel{font-size:9px;padding:0 4px;top:4px;left:4px}
+
+/* Themen-Räder */
+.sh-radwahl{margin:6px -16px 6px;overflow-x:auto;flex-wrap:nowrap}
+.sh-radwahl button{flex:none}
+.sh-wunsch{display:flex;align-items:center;gap:12px;margin:6px 0 4px;padding:8px 10px;background:#FFF1C4;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.sh-wunsch img{flex:none;width:64px;height:78px;object-fit:contain;background:#DFF3FF;border:3px solid var(--graphit);border-radius:10px}
+.sh-wunsch b{display:block;font-family:var(--dick);font-weight:400;font-size:19px}
+.sh-wunsch small{font-family:var(--hand);font-size:15px;color:var(--mut)}
