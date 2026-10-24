@@ -415,3 +415,33 @@ body.papier main{padding-top:0}
 .sh-wunsch img{flex:none;width:64px;height:78px;object-fit:contain;background:#DFF3FF;border:3px solid var(--graphit);border-radius:10px}
 .sh-wunsch b{display:block;font-family:var(--dick);font-weight:400;font-size:19px}
 .sh-wunsch small{font-family:var(--hand);font-size:15px;color:var(--mut)}
+
+/* Räder als Kartenstreifen */
+.sh-raeder{display:flex;gap:9px;margin:0 0 12px;padding:2px 2px 8px;overflow-x:auto;scroll-snap-type:x proximity}
+.sh-rk{flex:none;width:112px;display:flex;flex-direction:column;align-items:stretch;text-align:center;padding:0 0 8px;overflow:hidden;scroll-snap-align:start;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 4px 0 var(--graphit);font-family:var(--hand)}
+.sh-rk.bereit{background:#FFF1C4}
+.sh-rk-bild{display:flex;align-items:center;justify-content:center;height:112px;background:#DFF3FF;border-bottom:3px solid var(--graphit)}
+.sh-rk-bild img{max-height:100%;max-width:100%}
+.sh-rk-bild .ar-gem{width:54px}
+.sh-rk b{margin:6px 4px 0;font-family:var(--dick);font-weight:400;font-size:15px;line-height:1.1}
+.sh-rk .sh-preis{margin:5px 6px 0;font-size:15px}
+.sh-strbox{position:relative;margin:10px 0 6px}
+.sh-str{overflow:hidden;padding:12px 0 8px;background:#DFF3FF;border:3px solid var(--graphit);border-radius:14px}
+.sh-str-in{display:flex;gap:8px;will-change:transform}
+.sh-str-zeiger{position:absolute;left:50%;top:-10px;width:0;height:0;margin-left:-13px;z-index:3;border-left:13px solid transparent;border-right:13px solid transparent;border-top:24px solid var(--rot);filter:drop-shadow(0 2px 0 var(--graphit))}
+.sh-sk{position:relative;flex:none;width:104px;display:flex;flex-direction:column;align-items:stretch;text-align:center;padding:0 0 6px;overflow:hidden;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;color:var(--graphit)}
+.sh-sk.gewinn{background:#FFF1C4;animation:shGewinn .5s ease-in-out 3}
+@keyframes shGewinn{50%{transform:scale(1.08)}}
+.sh-sk .sh-sel{top:4px;left:4px;font-size:10px;padding:0 5px}
+.sh-sk-bild{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:112px;padding-top:12px;border-bottom:3px solid var(--graphit);background:#DFF3FF}
+.sh-sk-bild img{max-height:96px;max-width:90%}
+.sh-sk-bild img.ar-coin,.sh-sk-bild img.ar-gem{width:34px}
+.sh-sk-bild em{font-style:normal;font-family:var(--dick);font-size:26px}
+.sh-sk-bild em.gross{font-size:46px}
+.sh-sk b{margin:5px 3px 0;font-family:var(--dick);font-weight:400;font-size:14px;line-height:1.1}
+.sel-selten .sh-sk-bild{background:#CFE8F8}
+.sel-episch .sh-sk-bild{background:#F8D9C8}
+.sel-legendaer .sh-sk-bild{background:#FBE6A8}
+.sh-rad-erg b{display:block;font-size:15px;color:var(--mut)}
+.sh-alle{margin:6px 0}
+.sh-alle summary{cursor:pointer;font-family:var(--hand);font-size:16px;color:var(--mut)}

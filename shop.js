@@ -180,6 +180,10 @@
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
+  const RAEDER = ['klassisch', 'ninja', 'eisbaer', 'astronaut', 'dino', 'skifahrer'];
+  const radKarteShop = id => id === 'klassisch'
+    ? `<button class="sh-rk" data-sh="rad" data-rad="klassisch" id="shRadKnopf"><span class="sh-rk-bild">${gem}</span><b>Glücksrad</b><span class="sh-preis" id="shRadText">Gratis</span></button>`
+    : `<button class="sh-rk" data-sh="rad" data-rad="${id}"><span class="sh-rk-bild"><img alt="" data-foto="skin:${id}"></span><b>${e(((Figur.KATALOG.skin.find(x => x[0] === id) || [0, id])[1]))}-Rad</b><span class="sh-preis">${A.coin}400</span></button>`;
   let zuletztTag = heuteSeed();
   function zeichnen() {
     const w = el('shWurzel'); if (!w) return;
@@ -192,7 +196,8 @@
       </div>
       <div class="sh-spezial-kopf"><h3>Special</h3><span>Neu in <b id="shUhr">${rest()}</b></span></div>
       <div class="sh-spezial">${a.specials.map(i => karte(i, true).replace('class="sh-karte', 'class="sh-karte spezial')).join('')}</div>
-      <button class="sh-rad-karte" data-sh="rad" id="shRadKnopf"><span class="sh-rad-icon">${gem}</span><span><b>Glücksrad</b><small id="shRadText">Einmal am Tag gratis drehen</small></span><i id="shRadI">Drehen</i></button>
+      <div class="sh-abschnitt"><h3>Räder</h3><small>Skins erdrehen</small></div>
+      <div class="sh-raeder">${RAEDER.map(radKarteShop).join('')}</div>
       <div class="sh-abschnitt"><h3>Tagesangebote</h3></div>
       <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
@@ -254,106 +259,128 @@
   setTimeout(radPruefen, 3000);
   setInterval(() => { if (!document.hidden && A.ich()) tagLaden(); }, 60000);
 
-  /* ---------- Glücksräder: klassisch (1 Gratis-Dreh am Tag) und Themen-Räder mit Wunsch-Skin, nur mit Coins (Server: wf_spin_*) ---------- */
-  let rad = null, dreht = false, radWinkel = 0, radId = 'klassisch';
-  const THEMEN = { skifahrer: ['#FFE0CC', '#BFD6F2'], ninja: ['#D8D4CC', '#F0A07A'], eisbaer: ['#DFF3FF', '#BFE9FF'], astronaut: ['#EDE6D6', '#C9D4E0'], dino: ['#CFE8C4', '#9FD39A'] };
+  /* ---------- Räder: Kartenstreifen läuft am Zeiger vorbei (klassisch: 1 Gratis-Dreh am Tag, Themen-Räder mit Wunsch-Skin, alles nur mit Coins) ---------- */
+  let rad = null, dreht = false, radId = 'klassisch', streifen = [];
+  const KB = 104, KG = 8;                                              // Kartenbreite und Abstand in px
   const itemName = key => { const [kat, id] = String(key).split(':'); return ((Figur.KATALOG[kat] || []).find(x => x[0] === id) || [0, id])[1]; };
   const radDaten = () => (rad && rad.raeder.find(r => r.id === radId)) || (rad && rad.raeder[0]);
   async function radPruefen() {
     if (!A.ich()) return;
     try { rad = await A.wf().rpc('wf_spin_status', A.mit({})); } catch (err) { return; }
-    const t = el('shRadText'), i = el('shRadI'), k = document.getElementById('shRadKnopf');
-    if (t) t.textContent = rad.bereit ? 'Dein Gratis-Dreh wartet' : 'Dazu Themen-Räder: Ninja, Eisbär und mehr';
-    if (i) i.textContent = rad.bereit ? 'Drehen' : 'Ansehen';
+    const t = el('shRadText'), k = document.getElementById('shRadKnopf');
+    if (t) t.innerHTML = rad.bereit ? 'Gratis' : `${A.coin}250`;
     if (k) k.classList.toggle('bereit', !!rad.bereit);
   }
-  const radName = p => p.art === 'skin' ? (p.item ? itemName(p.item) : 'Skin') : p.art === 'emote' ? 'Tanz' : String(p.wert);
-  function radFarbe(p, i) {
-    if (p.art === 'gems') return '#C9F2EC';
-    if (p.art === 'skin') return '#F2C14E';
-    if (p.art === 'emote') return '#DFF3FF';
-    const t = THEMEN[radId];
-    return t ? t[i % 2] : (i % 2 ? '#F6D8A8' : '#FFF1C4');
+  const radSel = p => p.art === 'coins' ? (p.wert >= 1000 ? 'legendaer' : p.wert >= 500 ? 'episch' : p.wert >= 200 ? 'selten' : 'gewoehnlich')
+    : p.art === 'gems' ? (p.wert >= 5 ? 'legendaer' : p.wert >= 2 ? 'episch' : 'selten') : p.item ? 'legendaer' : 'episch';
+  function radKarte(p) {
+    const sel = radSel(p);
+    let bild, name;
+    if (p.art === 'coins') { bild = `${A.coin}<em>${p.wert}</em>`; name = 'Coins'; }
+    else if (p.art === 'gems') { bild = `${gem}<em>${p.wert}</em>`; name = 'Gems'; }
+    else if (p.item) { bild = `<img alt="" data-foto="${e(p.item)}">`; name = itemName(p.item); }
+    else { bild = `<em class="gross">?</em>`; name = p.art === 'skin' ? 'Zufalls-Skin' : 'Zufalls-Tanz'; }
+    return `<div class="sh-sk sel-${sel}"><i class="sh-sel">${SELTEN_NAME[sel]}</i><span class="sh-sk-bild">${bild}</span><b>${e(name)}</b></div>`;
   }
-  function radSvg(preise) {
-    const n = preise.length, w = 360 / n, r = 150, c = 160;
-    const pt = (grad, rr) => { const a = (grad - 90) * Math.PI / 180; return [c + rr * Math.cos(a), c + rr * Math.sin(a)]; };
-    let h = '';
-    preise.forEach((p, i) => {
-      const [x1, y1] = pt(i * w, r), [x2, y2] = pt((i + 1) * w, r), mitte = i * w + w / 2, [tx, ty] = pt(mitte, r * 0.68);
-      const bild = p.art === 'gems' ? 'gem' : p.art === 'coins' ? 'coin' : '';
-      h += `<path d="M${c} ${c} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${radFarbe(p, i)}" stroke="#2B2A33" stroke-width="3"/>
-        <g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(${mitte})"><text text-anchor="middle" y="${bild ? -4 : 8}" font-family="var(--dick)" font-size="${bild ? 20 : (radName(p).length > 6 ? 16 : 22)}" fill="#2B2A33">${e(radName(p))}</text>
-        ${bild ? `<image href="arena/${bild}.svg" x="-9" y="1" width="18" height="18"/>` : ''}</g>`;
-    });
-    return `<svg class="sh-rad-svg" viewBox="0 0 320 320" id="shRadSvg"><circle cx="160" cy="160" r="154" fill="#FAF6EB" stroke="#2B2A33" stroke-width="4"/><g id="shRadDreh" style="transform-origin:160px 160px;transform:rotate(${radWinkel}deg)">${h}</g><circle cx="160" cy="160" r="14" fill="#F2B632" stroke="#2B2A33" stroke-width="4"/></svg>`;
+  const ziehen = preise => { const sum = preise.reduce((a, p) => a + p.gewicht, 0); let w = Math.random() * sum; for (const p of preise) { w -= p.gewicht; if (w < 0) return p; } return preise[0]; };
+  const mitteX = (k, breite) => breite / 2 - (k * (KB + KG) + KB / 2);
+  function streifenMalen(preise, ab) {
+    const inn = document.getElementById('shStreifenIn'), box = document.getElementById('shStreifen'); if (!inn) return;
+    inn.style.transition = 'none';
+    inn.innerHTML = streifen.map(radKarte).join('');
+    inn.style.transform = `translateX(${mitteX(ab, box.clientWidth)}px)`;
+    bilderStarten(inn);
   }
   function radAktion() {
     const box = document.getElementById('shRadAktion'); if (!box || !rad) return;
-    const d = radDaten(), coins = A.F().coins, genug = coins >= d.preis;
-    if (rad.extra_rest <= 0 && !(radId === 'klassisch' && rad.bereit)) { box.innerHTML = '<p class="ar-hand">Heute ist alles gedreht. Morgen geht es weiter.</p>'; return; }
-    if (radId === 'klassisch' && rad.bereit) box.innerHTML = '<button class="ar-knopf breit gold" data-sh="radDrehen">Gratis drehen</button>';
-    else box.innerHTML = `${radId === 'klassisch' ? '<p class="ar-hand">Gratis-Dreh für heute benutzt.</p>' : ''}<button class="ar-knopf breit${genug ? ' gold' : ' leise2'}" data-sh="radExtra">${radId === 'klassisch' ? 'Nochmal drehen' : 'Drehen'} · ${d.preis} ${A.coin}</button><p class="ar-hand klein">Noch ${rad.extra_rest} bezahlte Drehungen heute</p>`;
+    const d = radDaten(), coins = A.F().coins, frei = radId === 'klassisch' && rad.bereit;
+    if (!frei && rad.extra_rest <= 0) { box.innerHTML = '<p class="ar-hand">Heute ist alles gedreht. Morgen geht es weiter.</p>'; return; }
+    const max = frei ? 1 : Math.max(1, Math.min(5, rad.extra_rest, Math.floor(coins / d.preis)));
+    box.innerHTML = `${frei ? '' : `<div class="ar-regler"><span>Menge</span><input type="range" id="shMenge" min="1" max="${max}" step="1" value="1" style="--w:0%" ${max < 2 ? 'disabled' : ''}><b id="shMengeZahl">x1</b></div>`}
+      <button class="ar-knopf breit${frei || coins >= d.preis ? ' gold' : ' leise2'}" data-sh="${frei ? 'radDrehen' : 'radExtra'}" id="shRadGo">${frei ? 'Gratis drehen' : `Drehen · <span id="shRadSumme">${d.preis}</span> ${A.coin}`}</button>
+      ${frei ? '<p class="ar-hand klein">Dein Gratis-Dreh für heute.</p>' : `<p class="ar-hand klein">Noch ${rad.extra_rest} bezahlte Drehungen heute</p>`}`;
   }
   function radMalen(bleiben) {
     const d = radDaten(), summe = d.preise.reduce((a, p) => a + p.gewicht, 0), thema = radId !== 'klassisch';
     const text = p => p.art === 'skin' ? (p.item ? e(itemName(p.item)) : 'Zufälliges Outfit') : p.art === 'emote' ? 'Zufällige Animation' : p.art === 'gems' ? gem + p.wert : A.coin + p.wert;
-    const chancen = d.preise.map(p => `<li><span>${text(p)}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
+    const top = d.preise.slice().sort((x, y) => x.gewicht - y.gewicht).slice(0, 4).map(p => `<li><span>${text(p)}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
+    const alle_ = d.preise.map(p => `<li><span>${text(p)}</span><b>${(p.gewicht / summe * 100).toFixed(0)} %</b></li>`).join('');
     const wunsch = thema ? d.preise.find(p => p.item) : null;
     A.zeigeBlatt(`<button class="ar-zu" data-zu aria-label="Schließen">×</button><h2 class="ar-titel">${thema ? e(itemName('skin:' + radId)) + '-Rad' : 'Glücksrad'}</h2>
       <div class="ar-reiter sh-radwahl">${rad.raeder.map(r => `<button data-sh="radWahl" data-rad="${r.id}" class="${r.id === radId ? 'an' : ''}">${r.id === 'klassisch' ? 'Klassisch' : e(itemName('skin:' + r.id))}</button>`).join('')}</div>
-      ${wunsch ? `<div class="sh-wunsch"><img alt="" id="shWunschBild"><span><b>Chance auf ${e(itemName(wunsch.item))}</b><small>${(wunsch.gewicht / summe * 100).toFixed(0)} % pro Drehung${hat({ key: wunsch.item }) ? ' · hast du schon' : ''}</small></span></div>` : ''}
-      <div class="sh-rad"><div class="sh-rad-zeiger"></div>${radSvg(d.preise)}</div>
+      <div class="sh-strbox"><div class="sh-str-zeiger"></div><div class="sh-str" id="shStreifen"><div class="sh-str-in" id="shStreifenIn"></div></div></div>
       <div id="shRadErg" class="sh-rad-erg"></div>
       <div id="shRadAktion"></div>
-      <h3 class="ar-h">Gewinnchancen</h3>
-      <ul class="ar-liste sh-chancen">${chancen}</ul>
-      <p class="ar-hand klein">Jeden Tag ein Dreh am klassischen Rad gratis. Alle anderen Drehungen kosten Coins, die du beim Spielen verdienst (zusammen max. 8 am Tag). Teile, die du schon hast, kommen nicht doppelt. Dann gibt es 500 Coins.</p>`, 'rad', {}, bleiben);
+      <h3 class="ar-h">Top-Chancen</h3>
+      <ul class="ar-liste sh-chancen">${top}</ul>
+      <details class="sh-alle"><summary>Alle Gewinnchancen</summary><ul class="ar-liste sh-chancen">${alle_}</ul></details>
+      ${wunsch ? `<p class="ar-hand">Ziel: ${e(itemName(wunsch.item))}${hat({ key: wunsch.item }) ? ' (hast du schon, dann gibt es 500 Coins)' : ''}</p>` : ''}
+      <p class="ar-hand klein">Jeden Tag ein Dreh am klassischen Rad gratis. Alle anderen Drehungen kosten Coins, die du beim Spielen verdienst (zusammen max. 8 am Tag). Teile, die du schon hast, kommen nicht doppelt.</p>`, 'rad', {}, bleiben);
+    streifen = []; for (let i = 0; i < 8; i++) streifen.push(ziehen(d.preise));
+    streifenMalen(d.preise, 3);
     radAktion();
-    const img = document.getElementById('shWunschBild');
-    if (img && wunsch) { const it = alle().find(i => i.key === wunsch.item); if (it) foto(it).then(x => zeigen(img, x)); }
   }
-  async function radOeffnen() {
+  async function radOeffnen(id) {
     if (!A.ich()) return toast('Erstelle zuerst im Clan-Tab dein Profil');
     await radPruefen();
     if (!rad) return;
-    radWinkel = 0; radId = 'klassisch';
+    radId = id || 'klassisch';
     radMalen(false);
   }
-  async function radDrehen(extra) {
+  const radText = r => r.art === 'skin' || r.art === 'emote' ? `Neu: ${e(itemName(r.item))}` : r.art === 'gems' ? `${gem}${r.wert} Gems` : `${A.coin}${r.wert} Coins`;
+  async function radDrehen(extra, menge) {
     if (dreht) return; dreht = true;
     const box = document.getElementById('shRadAktion'); if (box) box.innerHTML = '';
-    let r;
-    try { r = await A.wf().rpc('wf_spin_drehen', A.mit({ p_rad: radId, p_extra: !!extra })); } catch (err) { dreht = false; radAktion(); return toast(err.message); }
-    const d = radDaten(), n = d.preise.length, w = 360 / n, g = document.getElementById('shRadDreh'), erg0 = document.getElementById('shRadErg');
+    const d = radDaten(), ergebnisse = [];
+    try { for (let i = 0; i < (menge || 1); i++) ergebnisse.push(await A.wf().rpc('wf_spin_drehen', A.mit({ p_rad: radId, p_extra: !!extra }))); }
+    catch (err) { if (!ergebnisse.length) { dreht = false; radAktion(); return toast(err.message); } toast(err.message); }
+    const r = ergebnisse[ergebnisse.length - 1], erg0 = document.getElementById('shRadErg');
     if (erg0) erg0.textContent = '';
-    const ziel = -(r.index * w + w / 2) + (Math.random() - 0.5) * w * 0.6;
-    radWinkel = radWinkel + 1800 + ((ziel - radWinkel) % 360 + 360) % 360;
-    if (g) { g.style.transition = 'transform 4.2s cubic-bezier(.12,.7,.15,1)'; requestAnimationFrame(() => { g.style.transform = `rotate(${radWinkel}deg)`; }); }
+    // Neuer Streifen: die ersten 8 Karten bleiben wie sie sind, die Gewinnkarte sitzt weit hinten
+    const gewinnK = 52;
+    while (streifen.length < 60) streifen.push(ziehen(d.preise));
+    streifen[gewinnK] = d.preise[r.index];
+    const inn = document.getElementById('shStreifenIn'), boxS = document.getElementById('shStreifen');
+    if (!inn) { dreht = false; return; }
+    streifenMalen(d.preise, 3);
+    void inn.offsetWidth;
+    const breite = boxS.clientWidth, jitter = (Math.random() - 0.5) * KB * 0.6;
+    inn.style.transition = 'transform 5.2s cubic-bezier(.08,.6,.1,1)';
+    inn.style.transform = `translateX(${mitteX(gewinnK, breite) + jitter}px)`;
     if (window.Klang) Klang.effekt('countdown');
     setTimeout(async () => {
       dreht = false;
+      const karten = inn.children; if (karten[gewinnK]) karten[gewinnK].classList.add('gewinn');
       const erg = document.getElementById('shRadErg');
       if (erg) {
-        if (r.art === 'skin' || r.art === 'emote') {
-          erg.innerHTML = `Neu: ${e(itemName(r.item))}<img class="sh-rad-bild" alt="">`;
-          const it = alle().find(i => i.key === r.item), img = erg.querySelector('img');
-          if (it && img) { await A.figurLaden(); foto(it).then(x => zeigen(img, x)); }
-        } else erg.innerHTML = `Gewonnen: ${r.art === 'gems' ? gem + r.wert + ' Gems' : A.coin + r.wert + ' Coins'}`;
+        const zeilen = ergebnisse.map(x => {
+          const dupl = x.art === 'coins' && d.preise[x.index] && (d.preise[x.index].art === 'skin' || d.preise[x.index].art === 'emote');
+          return `<div>${dupl ? `Schon vorhanden, dafür ${A.coin}500 Coins` : radText(x)}</div>`;
+        }).join('');
+        erg.innerHTML = `<b>Du erhältst</b>${zeilen}${r.item ? '<img class="sh-rad-bild" alt="">' : ''}`;
+        const gewonnen = ergebnisse.filter(x => x.item).pop();
+        if (gewonnen) { const it = alle().find(i => i.key === gewonnen.item), img = erg.querySelector('img'); if (it && img) { await A.figurLaden(); foto(it).then(x => zeigen(img, x)); } }
       }
       if (window.Klang) Klang.effekt('sieg');
       await A.figurLaden(); zeichnen(); await radPruefen(); radAktion();
-    }, 4400);
+    }, 5400);
   }
+  document.addEventListener('input', ev => {
+    if (ev.target.id !== 'shMenge') return;
+    const n = +ev.target.value, d = radDaten(), max = +ev.target.max;
+    ev.target.style.setProperty('--w', (max > 1 ? (n - 1) / (max - 1) * 100 : 0) + '%');
+    const z = document.getElementById('shMengeZahl'), sum = document.getElementById('shRadSumme');
+    if (z) z.textContent = 'x' + n; if (sum) sum.textContent = d.preis * n;
+  });
   document.addEventListener('click', ev => {
     const b = ev.target.closest('#arBlatt [data-sh="radDrehen"], #arBlatt [data-sh="radExtra"], #arBlatt [data-sh="radWahl"]'); if (!b) return;
     if (b.dataset.sh === 'radWahl') { if (dreht || b.dataset.rad === radId) return; radId = b.dataset.rad; radWinkel = 0; radMalen(true); }
-    else radDrehen(b.dataset.sh === 'radExtra');
+    else { const m = document.getElementById('shMenge'); radDrehen(b.dataset.sh === 'radExtra', m ? +m.value : 1); }
   });
   tab.addEventListener('click', ev => {
     const b = ev.target.closest('[data-sh]'); if (!b) return;
     const a = b.dataset.sh;
-    if (a === 'rad') radOeffnen();
+    if (a === 'rad') radOeffnen(b.dataset.rad);
     else if (a === 'login') tagHolen('login');
     else if (a === 'quest') tagHolen('quest', b.dataset.id);
     else if (a === 'alle') A.editor('skins');
