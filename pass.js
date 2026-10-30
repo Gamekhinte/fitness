@@ -193,23 +193,46 @@
     await Promise.all([laden(), A.figurLaden()]);
     sheet(true);
   }
+  /* Abholen zeigt sofort alles an (Haken, Konfetti, Kontostand) und fragt den Server im Hintergrund.
+     Sagt der Server nein, holt laden() den echten Stand und das Fenster wird korrigiert. */
+  let holt = false;
+  async function sofortAbholen(liste, anfrage) {
+    if (holt || !liste.length) return;
+    holt = true;
+    const F = A.F();
+    let coins = 0, gems = 0;
+    liste.forEach(r => {
+      P.abgeholt.push({ stufe: r.stufe, spur: r.spur });
+      if (r.art === 'coins') coins += +r.wert; else if (r.art === 'gems') gems += +r.wert;
+      else { VORSCHAU = r.wert; F.besitz = (F.besitz || []).concat(r.wert); }
+    });
+    F.coins += coins; F.gems = (F.gems || 0) + gems;
+    const items = liste.filter(r => r.art === 'item');
+    toast(liste.length === 1
+      ? (coins ? `+${coins} Coins` : gems ? `+${gems} Gems` : `${itemName(items[0].wert)[1]} gehört dir`)
+      : `${liste.length} Belohnungen: ${coins} Coins, ${gems} Gems${items.length ? ` und ${items.length} Kosmetik` : ''}`);
+    if (window.Klang) Klang.effekt('kauf');
+    feier();
+    sheet(true, items.length > 0); chip();
+    const z1 = el('arCoinZahl'), z2 = el('arGemZahl'); if (z1) z1.textContent = F.coins; if (z2) z2.textContent = F.gems;
+    let ok = true;
+    try { await anfrage(); } catch (err) { ok = false; toast(err.message); }
+    holt = false;
+    // Abgleich mit dem Server. Das Fenster wird nur neu gebaut, wenn etwas schiefging.
+    await Promise.all([laden(), A.figurLaden()]);
+    if (!ok && !document.querySelector('.ar-blatt').hidden) sheet(true);
+  }
   const H = {
     spaeter() { A.schliessen(); },
     oeffnen() { sheet(); },
     vorschau(b) { if (b.item) { VORSCHAU = b.item; sheet(true, true); } },
-    async abholen(b) {
-      try {
-        const r = await W().rpc('wf_pass_abholen', mit({ p_stufe: +b.stufe, p_spur: b.spur }));
-        if (r.art === 'item') VORSCHAU = r.wert;
-        await nachher(r.art === 'coins' ? `+${r.wert} Coins` : r.art === 'gems' ? `+${r.wert} Gems` : `${itemName(r.wert)[1]} gehört dir`);
-      } catch (err) { toast(err.message); }
+    abholen(b) {
+      const r = P.belohnungen.find(x => x.stufe === +b.stufe && x.spur === b.spur);
+      return sofortAbholen(r ? [r] : [], () => W().rpc('wf_pass_abholen', mit({ p_stufe: +b.stufe, p_spur: b.spur })));
     },
-    async alle() {
-      try {
-        const r = await W().rpc('wf_pass_alle', mit({}));
-        if (r.items.length) VORSCHAU = r.items[r.items.length - 1];
-        await nachher(`${r.anzahl} Belohnungen: ${r.coins} Coins, ${r.gems || 0} Gems${r.items.length ? ` und ${r.items.length} Kosmetik` : ''}`);
-      } catch (err) { toast(err.message); }
+    alle() {
+      const liste = P.belohnungen.filter(r => r.stufe <= P.stufe && (r.spur === 'frei' || P.premium) && !geholt(r.stufe, r.spur));
+      return sofortAbholen(liste, () => W().rpc('wf_pass_alle', mit({})));
     },
     async premium() {
       if (!confirm(`Premium-Spur für ${P.premium_preis} Coins freischalten?`)) return;

@@ -80,7 +80,11 @@
     pokal(t, n = 0) { ton(t, { f: 900 + n * 18, dauer: 0.06, typ: 'triangle', laut: 0.14 }); },
     meilenstein(t) { ton(t, { f: 660, dauer: 0.15, typ: 'square', laut: 0.13, filter: 2500 }); ton(t + 0.18, { f: 660, dauer: 0.15, typ: 'square', laut: 0.13, filter: 2500 }); },
     plumps(t, staerke = 1) { ton(t, { f: 140, f2: 50, dauer: 0.25, laut: 0.3 * staerke }); rauschen(t, { dauer: 0.35, laut: 0.1 * staerke, band: 2500, q: 0.6, typ: 'highpass' }); },
-    kauf(t) { [0, 0.07, 0.14].forEach((dt, i) => EFFEKTE.muenze(t + dt * 1.5)); [72, 76, 79, 84].forEach((n, i) => ton(t + 0.25 + i * 0.07, { f: hz(n), dauer: 0.35, typ: 'triangle', laut: 0.16, hallAnteil: 0.6 })); }
+    kauf(t) { [0, 0.07, 0.14].forEach((dt, i) => EFFEKTE.muenze(t + dt * 1.5)); [72, 76, 79, 84].forEach((n, i) => ton(t + 0.25 + i * 0.07, { f: hz(n), dauer: 0.35, typ: 'triangle', laut: 0.16, hallAnteil: 0.6 })); },
+    // Glücksrad: Klacken am Zeiger, Anlauf und Wusch beim Heranzoomen
+    radTick(t) { ton(t, { f: 1500, f2: 900, dauer: 0.03, typ: 'triangle', laut: 0.16 }); rauschen(t, { dauer: 0.02, laut: 0.07, band: 5000, q: 3 }); },
+    radStart(t) { rauschen(t, { dauer: 0.5, laut: 0.1, band: 1800, q: 0.6, an: 0.2 }); ton(t, { f: 220, f2: 660, dauer: 0.4, typ: 'triangle', laut: 0.1 }); },
+    radZoom(t) { rauschen(t, { dauer: 0.6, laut: 0.14, band: 900, q: 0.5, an: 0.35 }); ton(t + 0.2, { f: 330, f2: 990, dauer: 0.5, typ: 'triangle', laut: 0.12, hallAnteil: 0.5 }); },
   };
   function effekt(name, a) {
     if (window.Extras) Extras.haptik(name);

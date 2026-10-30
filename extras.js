@@ -4,7 +4,7 @@
    - Bildschirm bleibt an, solange die Kamera zählt oder ein Kraft-Duell läuft (Wake Lock). Laufen macht das schon selbst.
    Läuft nach klang.js und kraft.js. */
 (function () {
-  const MUSTER = { wdh: 12, fehler: [40, 50, 40], countdown: 14, los: [70, 40, 70], sieg: [60, 40, 60, 40, 140], niederlage: 200, kauf: [20, 30, 20], muenze: 8, meilenstein: [25, 40, 25] };
+  const MUSTER = { wdh: 12, fehler: [40, 50, 40], countdown: 14, los: [70, 40, 70], sieg: [60, 40, 60, 40, 140], niederlage: 200, kauf: [20, 30, 20], muenze: 8, meilenstein: [25, 40, 25], radTick: 4, radZoom: [30, 40, 60] };
   const kann = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
   const an = () => store.get('wf-haptik', true) !== false;
   function haptik(name) {

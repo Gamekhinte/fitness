@@ -189,17 +189,19 @@
     } catch (err) { /* nächstes Mal */ }
   }
   // Figur, Coins und Besitz vom Server. Hat der Server noch keine Figur, wird die vom Gerät hochgeladen.
+  let figurGesetzt = false;
   async function figurLaden() {
     if (!ich()) return;
     try {
       const r = await wf().rpc('wf_figur_holen', { p_spieler: ich().id });
       if (!r) return;
-      const leer = !r.aussehen || !Object.keys(r.aussehen).length;
+      const leer = !r.aussehen || !Object.keys(r.aussehen).length, vorher = JSON.stringify(F.aussehen);
       F = { aussehen: leer ? F.aussehen : Figur.pruefen(r.aussehen), coins: r.coins, gems: r.gems || 0, besitz: r.besitz || [] };
       store.set('wf-figur', F);
       if (leer) wf().rpc('wf_figur_speichern', mit({ p_aussehen: F.aussehen })).catch(() => {});
       $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
-      if (window.Arena3D) Arena3D.figur(F.aussehen);
+      // Figur auf der Insel nur neu bauen, wenn sich der Look geändert hat (das Neubauen ruckelt auf dem Handy)
+      if (window.Arena3D && (JSON.stringify(F.aussehen) !== vorher || !figurGesetzt)) { Arena3D.figur(F.aussehen); figurGesetzt = true; }
     } catch (err) { /* offline */ }
   }
 
