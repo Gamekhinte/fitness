@@ -8,9 +8,9 @@
    Läuft nach crew.js und nutzt window.WF (Identität, rpc). */
 (function () {
   const ARENEN = [
-    { ab: 0, name: 'Schulhof', bild: 'arena/arena_schulhof.svg' }, { ab: 300, name: 'Stadtpark' }, { ab: 600, name: 'Strand' },
-    { ab: 1000, name: 'Wald-Trail' }, { ab: 1400, name: 'Stadion' }, { ab: 1800, name: 'Dächer' }, { ab: 2300, name: 'Canyon' },
-    { ab: 2800, name: 'Vulkan' }, { ab: 3400, name: 'Bergdorf' }, { ab: 4000, name: 'Mondbasis' }
+    { ab: 0, name: 'Hirtenweide', bild: 'arena/arena_schulhof.svg' }, { ab: 300, name: 'Olivenhain' }, { ab: 600, name: 'Ägäis-Strand' },
+    { ab: 1000, name: 'Zypressenpfad' }, { ab: 1400, name: 'Stadion von Delphi' }, { ab: 1800, name: 'Agora' }, { ab: 2300, name: 'Labyrinth von Kreta' },
+    { ab: 2800, name: 'Unterwelt' }, { ab: 3400, name: 'Akropolis' }, { ab: 4000, name: 'Olymp' }
   ];
   const KLASSEN = [[1000, '1 km', 'Sprint', 1, 1], [3000, '3 km', 'Mittel', 3, 2], [10000, '10 km', 'Lang', 10, 4]];   // [Meter, Name, Art, Pokal-Faktor, Coin-Faktor]
   const TIPPS = ['Locker loslaufen, die ersten 200 m entscheiden nichts.', 'Handy in die Tasche, Bildschirm bleibt an.',
@@ -23,7 +23,7 @@
   let pokale = store.get('wf-pokale', 0);
   let kraftPokale = store.get('wf-kpokale', 0), kraftDaten = null;
   let MODUS = store.get('wf-modus', 'lauf');
-  const NAMEN_KRAFT = ['Schlafzimmer', 'Homegym', 'Fitnessstudio', 'Outdoor-Gym', 'Boxhalle', 'Turnhalle', 'Muscle Beach', 'Kraft-Box', 'Dach-Gym', 'Halle des Olymp'];
+  const NAMEN_KRAFT = ['Hirtenhütte', 'Schmiede des Hephaistos', 'Palaistra', 'Olivenhof', 'Kampfschule von Sparta', 'Gymnasion von Athen', 'Strand von Kreta', 'Arena der Gladiatoren', 'Tempel der Athene', 'Halle des Olymp'];
   const aktPokale = () => MODUS === 'kraft' ? kraftPokale : pokale;
   const arenaName = k => MODUS === 'kraft' ? NAMEN_KRAFT[k] : ARENEN[k].name;
   let profilDaten = null;

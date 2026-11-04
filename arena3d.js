@@ -116,171 +116,285 @@
   const ovalPunkte = (cx, cz, rx, rz, n = 16) => Array.from({ length: n }, (_, i) => { const w = i / n * Math.PI * 2; return [cx + Math.cos(w) * rx, cz + Math.sin(w) * rz]; });
   const glut = () => new T.MeshBasicMaterial({ color: 0xFF7A2E });
 
-  /* ---------- Die zehn Arenen ---------- */
+  /* ---------- Griechische Bausteine ---------- */
+  const GR = { marmor: '#EDE6D6', marmor2: '#D6CDBA', terra: '#C4683A', terra2: '#A9573A', oliv: '#8FA06A', oliv2: '#6F8450', zyp: '#3E6B45',
+    aegaeis: '#2F6FA8', meer: '#4F9FD8', weiss: '#FAF6EB', lehm: '#D8C49A', stein: '#B9B4AC', stein2: '#8E8A84', gold: '#F2C14E',
+    bronze: '#B5803A', nacht: '#3A3540', styx: '#3FD0B8' };
+  // Säule mit Fuß und Kapitell, gibt die Höhe der Oberkante zurück. kaputt: halbe Säule, Trommel liegt daneben.
+  function saeule(g, x, z, h = 2.2, r = 0.2, f = GR.marmor, y0 = 0.2, kaputt = false) {
+    g.add(teil(W.box(r * 2.7, 0.16, r * 2.7), f, x, y0 + 0.08, z, 0.03));
+    const hh = kaputt ? h * 0.5 : h;
+    g.add(teil(W.rohr(r, hh, 10, r * 1.1), f, x, y0 + 0.16 + hh / 2, z, 0.035));
+    if (kaputt) { const s = W.rohr(r * 1.05, 0.34, 10); s.rotateZ(1.35); g.add(teil(s, f, x + 0.55, y0 + 0.22, z + 0.2, 0.03)); return y0 + 0.16 + hh; }
+    g.add(teil(W.box(r * 2.9, 0.18, r * 2.9), f, x, y0 + 0.16 + hh + 0.09, z, 0.03));
+    return y0 + 0.16 + hh + 0.18;
+  }
+  // Tempel: zwei Stufen, Säulen vorne und hinten, Gebälk, Fries, Giebeldach
+  function tempel(g, x, z, w, d, h, o = {}) {
+    const f = o.farbe || GR.marmor, grp = new T.Group(); grp.position.set(x, o.y0 || 0.2, z); grp.rotation.y = o.rot || 0; g.add(grp);
+    grp.add(teil(W.box(w + 0.7, 0.2, d + 0.7), o.farbe2 || GR.marmor2, 0, 0.1, 0, 0.03));
+    grp.add(teil(W.box(w + 0.35, 0.2, d + 0.35), f, 0, 0.3, 0, 0.03));
+    const n = o.n || 4, r = o.r || 0.17; let top = 0;
+    for (const zz of [-d / 2 + 0.25, d / 2 - 0.25]) for (let i = 0; i < n; i++) top = saeule(grp, -w / 2 + 0.25 + i * (w - 0.5) / (n - 1), zz, h, r, f, 0.4);
+    if (o.cella) grp.add(teil(W.box(w - 1.0, h, d - 0.9), o.cella, 0, 0.4 + h / 2, 0, 0.03));
+    grp.add(teil(W.box(w + 0.15, 0.26, d + 0.15), f, 0, top + 0.13, 0, 0.03));
+    grp.add(teil(W.box(w + 0.2, 0.14, d + 0.2), o.fries || GR.terra, 0, top + 0.33, 0, 0.025));
+    const gh = Math.min(0.9, w * 0.22), s = new T.Shape(); s.moveTo(-w / 2 - 0.25, 0); s.lineTo(w / 2 + 0.25, 0); s.lineTo(0, gh); s.closePath();
+    grp.add(teil(new T.ExtrudeGeometry(s, { depth: d + 0.4, bevelEnabled: false }), o.dach || f, 0, top + 0.4 + gh / 2, 0, 0.04));
+    grp.add(teil(W.kugel(0.12), GR.gold, 0, top + 0.45 + gh, d / 2 + 0.15, 0.02));
+    return grp;
+  }
+  function olivenbaum(g, x, z, s = 1) {
+    const st = teil(W.rohr(0.09 * s, 1.0 * s, 7, 0.17 * s), '#7A5A3A', x, 0.2 + 0.5 * s, z, 0.03); st.rotation.z = 0.15; g.add(st);
+    [[0.12, 1.15, 0, 0.6], [-0.4, 1.0, 0.18, 0.45], [0.5, 0.98, -0.2, 0.42], [0, 1.4, -0.15, 0.4]].forEach(([dx, dy, dz, r], i) => {
+      const k = W.kugel(r * s, 10, 8); k.scale(1, 0.68, 1); g.add(teil(k, i % 2 ? GR.oliv : GR.oliv2, x + dx * s, 0.2 + dy * s, z + dz * s, 0.04));
+    });
+  }
+  function zypresse(g, x, z, s = 1) {
+    g.add(teil(W.rohr(0.07 * s, 0.3 * s, 6), '#6B4A2E', x, 0.2 + 0.15 * s, z, 0.02));
+    const k = W.kugel(0.38 * s, 10, 10); k.scale(1, 3.4, 1); g.add(teil(k, GR.zyp, x, 0.2 + 0.3 * s + 1.29 * s, z, 0.04));
+  }
+  function amphore(g, x, z, s = 1, f = GR.terra, y0 = 0.2) {
+    const pts = [[0, 0], [0.1, 0.02], [0.19, 0.14], [0.22, 0.3], [0.17, 0.48], [0.08, 0.6], [0.07, 0.68], [0.11, 0.72], [0, 0.72]].map(([a, b]) => new T.Vector2(a * s, b * s));
+    g.add(teil(new T.LatheGeometry(pts, 12), f, x, y0 + 0.36 * s, z, 0.025));
+    const band = new T.TorusGeometry(0.21 * s, 0.025 * s, 4, 14); band.rotateX(Math.PI / 2); g.add(teil(band, C.ink, x, y0 + 0.3 * s, z, 0));
+  }
+  // Statue auf Sockel mit erhobenem Arm (Marmor, Gold oder Bronze)
+  function statue(g, x, z, s = 1, f = GR.marmor, rot = 0) {
+    const grp = new T.Group(); grp.position.set(x, 0.2, z); grp.rotation.y = rot; g.add(grp);
+    grp.add(teil(W.box(0.7 * s, 0.5 * s, 0.7 * s), GR.marmor2, 0, 0.25 * s, 0, 0.03));
+    grp.add(teil(new T.CapsuleGeometry(0.2 * s, 0.55 * s, 4, 10), f, 0, 0.98 * s, 0, 0.03));
+    grp.add(teil(W.kugel(0.17 * s, 12, 10), f, 0, 1.58 * s, 0, 0.03));
+    const a = teil(new T.CapsuleGeometry(0.07 * s, 0.45 * s, 4, 8), f, 0.3 * s, 1.5 * s, 0, 0.02); a.rotation.z = -0.45; grp.add(a);
+    const a2 = teil(new T.CapsuleGeometry(0.07 * s, 0.4 * s, 4, 8), f, -0.26 * s, 1.1 * s, 0, 0.02); a2.rotation.z = 0.2; grp.add(a2);
+    return grp;
+  }
+  function wolke(g, x, y, z, s = 1) {
+    const grp = new T.Group(); grp.position.set(x, y, z); g.add(grp);
+    [[0, 0, 0, 0.55], [0.55, -0.1, 0.1, 0.42], [-0.55, -0.1, -0.05, 0.45], [0.2, 0.25, -0.1, 0.4]].forEach(([dx, dy, dz, r]) => grp.add(teil(W.kugel(r * s, 12, 10), GR.weiss, dx * s, dy * s, dz * s, 0.03)));
+    return grp;
+  }
+  // Weißes Haus mit blauer Kuppel, Tür und Fenster wie auf den Inseln der Ägäis
+  function weissesHaus(g, x, z, w, h, d, kuppel = true, rot = 0) {
+    const grp = new T.Group(); grp.position.set(x, 0.2, z); grp.rotation.y = rot; g.add(grp);
+    grp.add(teil(W.box(w, h, d), GR.weiss, 0, h / 2, 0, 0.04));
+    grp.add(teil(W.box(w + 0.1, 0.1, d + 0.1), GR.weiss, 0, h + 0.05, 0, 0.02));
+    const r = Math.min(w, d) * 0.38;
+    if (kuppel) grp.add(teil(new T.SphereGeometry(r, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), GR.aegaeis, 0, h + 0.1 + r / 2, 0, 0.03));
+    grp.add(teil(W.box(0.4, 0.7, 0.05), GR.aegaeis, -w * 0.2, 0.35, d / 2 + 0.01, 0.02));
+    grp.add(teil(W.box(0.3, 0.3, 0.05), GR.aegaeis, w * 0.22, h * 0.62, d / 2 + 0.01, 0.015));
+    return grp;
+  }
+  function schaf(g, x, z, rot = 0) {
+    const grp = new T.Group(); grp.position.set(x, 0.2, z); grp.rotation.y = rot; g.add(grp);
+    [[0, 0.42, 0, 0.3], [0.22, 0.4, 0.05, 0.22], [-0.22, 0.4, -0.02, 0.22], [0, 0.55, 0.05, 0.22]].forEach(([dx, dy, dz, r]) => grp.add(teil(W.kugel(r, 10, 8), GR.weiss, dx, dy, dz, 0.03)));
+    grp.add(teil(W.kugel(0.13, 10, 8), C.ink, 0.42, 0.5, 0, 0.015));
+    [[-0.15, -0.1], [0.15, -0.1], [-0.15, 0.1], [0.15, 0.1]].forEach(([dx, dz]) => grp.add(teil(W.rohr(0.035, 0.24, 6), C.ink, dx, 0.12, dz, 0)));
+    return grp;
+  }
+  function mauer(g, a, b, h = 0.6, f = GR.stein, dicke = 0.35) {
+    const dx = b[0] - a[0], dz = b[1] - a[1], len = Math.hypot(dx, dz);
+    const m = teil(W.box(len + dicke, h, dicke), f, (a[0] + b[0]) / 2, 0.2 + h / 2, (a[1] + b[1]) / 2, 0.035); m.rotation.y = -Math.atan2(dz, dx); g.add(m); return m;
+  }
+  // Feuerschale auf drei Beinen, die Flamme flackert
+  function feuerschale(g, x, z, farbe = 0xFF8A2E, y0 = 0.2) {
+    [0, 1, 2].forEach(i => { const w = i / 3 * Math.PI * 2, b = teil(W.rohr(0.035, 0.75, 5), C.ink, x + Math.cos(w) * 0.14, y0 + 0.37, z + Math.sin(w) * 0.14, 0); b.rotation.set(Math.sin(w) * 0.22, 0, -Math.cos(w) * 0.22); g.add(b); });
+    g.add(teil(W.rohr(0.3, 0.16, 12, 0.18), GR.bronze, x, y0 + 0.8, z, 0.025));
+    const fl = new T.Mesh(W.kegel(0.22, 0.55, 7), new T.MeshBasicMaterial({ color: farbe })); fl.position.set(x, y0 + 1.15, z); g.add(fl);
+    const fl2 = new T.Mesh(W.kegel(0.12, 0.35, 6), new T.MeshBasicMaterial({ color: 0xFFE38A })); fl2.position.set(x, y0 + 1.05, z); g.add(fl2);
+    const ph = x * 3 + z;
+    g.userData.tick.push(t => { const k = 0.85 + 0.25 * Math.abs(Math.sin(t * 9 + ph)); fl.scale.set(1, k, 1); fl2.scale.set(1, 1.95 - k, 1); });
+  }
+  const blumen = (g, liste) => liste.forEach(([x, z], i) => g.add(teil(W.kugel(0.09), [GR.gold, '#E86AA6', GR.weiss, '#D9643A'][i % 4], x, 0.28, z, 0.01)));
+
+  /* ---------- Die zehn Lauf-Arenen: von der Hirtenweide bis auf den Olymp ---------- */
   const ARENEN = [
-    { name: 'Schulhof', form: 'quadrat', oben: C.schnee, kruemel: C.schnee, bau(g) {
-      const kurve = weg(g, [[-3.6, 1], [-2.6, 3.6], [1.6, 3.9], [3.8, 2.4], [3.2, 0.2], [0, -0.4], [-3, -0.5]], 1.25, C.bahn, '#F5F0E4');
-      const s = haus(g, 0.3, -3.7, 5, 2.1, 1.5, C.wand, C.rot, true);
-      fenster(s, [-1.8, -1.05, 1.05, 1.8], [0.6, 1.5], 0.78); s.add(teil(W.box(0.8, 1.15, 0.08), C.rot, 0, 0.58, 0.78, 0.025));
-      s.add(teil(W.box(1.4, 0.15, 0.5), C.stein, 0, 0.07, 1.0, 0.025));
-      const uhr = W.rohr(0.27, 0.08, 20); uhr.rotateX(Math.PI / 2); s.add(teil(uhr, C.schnee, 0, 2.55, 0.95, 0.025));
-      s.add(teil(W.box(0.4, 0.8, 0.4), C.rot, 1.6, 2.9, -0.2, 0.03));
-      g.add(teil(W.rohr(0.06, 2.6, 8), C.ink, -4.6, 1.5, -1.6, 0.02)); g.add(teil(W.box(0.06, 0.7, 1), C.schnee, -4.45, 2.75, -1.6, 0.025));
-      const ring = new T.TorusGeometry(0.22, 0.03, 6, 16); ring.rotateX(Math.PI / 2); g.add(teil(ring, C.rot, -4.15, 2.5, -1.6, 0));
-      for (let i = 0; i < 3; i++) { const b = new T.TorusGeometry(0.25, 0.04, 6, 14, Math.PI); b.rotateY(Math.PI / 2); g.add(teil(b, C.stein, 3.6 + i * 0.4, 0.2, -1.4, 0.015, false)); }
-      schneemann(g, -4.4, 3.8); bank(g, 4.3, 4.3, -0.3);
-      tanne(g, -4.6, -3.9); tanne(g, 4.6, -3.7, 0.9); fahne(g, 3.4, -2.8);
+    { name: 'Hirtenweide', form: 'quadrat', oben: '#9CC27A', kruemel: '#9CC27A', bau(g) {
+      const kurve = weg(g, [[-3.6, 1], [-2.6, 3.6], [1.6, 3.9], [3.8, 2.4], [3.2, 0.2], [0, -0.4], [-3, -0.5]], 1.15, GR.lehm, '#F5F0E4');
+      const h = haus(g, 0.4, -3.6, 3.4, 1.8, 1.6, GR.lehm, GR.terra, false);
+      h.add(teil(W.box(0.7, 1.1, 0.08), '#7A5A3A', 0, 0.55, 0.82, 0.02)); fenster(h, [-1.1, 1.1], [1.0], 0.82, '#7A5A3A');
+      mauer(g, [-5.0, -2.2], [-5.0, 3.0], 0.55); mauer(g, [-5.0, 3.0], [-3.4, 4.6], 0.55);
+      schaf(g, 1.4, 1.8, 0.4); schaf(g, 2.2, 1.0, -0.6); schaf(g, 0.9, 0.9, 2.2);
+      olivenbaum(g, -4.3, -3.9); olivenbaum(g, 4.5, -3.6, 0.9); zypresse(g, 4.7, 4.4, 0.8); zypresse(g, 3.0, -4.5, 0.7);
+      amphore(g, 2.6, -2.5, 1.1); amphore(g, 3.05, -2.65, 0.85);
+      g.add(teil(W.rohr(0.55, 0.55, 14), GR.stein, -4.2, 0.47, -2.0, 0.03)); g.add(teil(W.rohr(0.42, 0.06, 14), C.wasser, -4.2, 0.76, -2.0, 0));
+      [-0.45, 0.45].forEach(d => g.add(teil(W.rohr(0.04, 1.1, 6), '#7A5A3A', -4.2 + d, 1.25, -2.0, 0.01))); g.add(teil(W.box(1.1, 0.08, 0.5), GR.terra, -4.2, 1.82, -2.0, 0.02));
+      blumen(g, [[-1.8, 2.4], [2.6, 3.0], [-0.6, 4.6], [4.6, 1.0], [-2.2, 1.6], [0.6, 2.8]]);
       return { kurve, platz: [-0.4, 1.8] };
     } },
-    { name: 'Stadtpark', form: 'rund', oben: C.gras, kruemel: C.schnee, bau(g) {
-      const kurve = weg(g, [[-3.6, 0.6], [-2.4, 3.4], [0.8, 3.8], [3.6, 2], [3.6, -1.2], [1.2, -1.6], [-0.6, -3.2], [-3.2, -2.6]], 1.0, '#D8C49A');
-      const teich = W.rohr(1.5, 0.08, 28); teich.scale(1.3, 1, 0.9); g.add(teil(teich, C.wasser, 0.6, 0.22, 0.6, 0.03));
-      [0, 1].forEach(i => {
-        const e = new T.Group(); g.add(e);
-        e.add(teil(W.kugel(0.16), C.gold, 0, 0, 0, 0.02)); e.add(teil(W.kugel(0.1), C.gold, 0.12, 0.14, 0, 0.02)); e.add(teil(W.box(0.1, 0.04, 0.06), C.rot, 0.24, 0.13, 0, 0));
-        g.userData.tick.push(t => { const w = t * 0.3 + i * 3; e.position.set(0.6 + Math.cos(w) * 1.1, 0.33 + Math.sin(t * 2 + i) * 0.025, 0.6 + Math.sin(w) * 0.7); e.rotation.y = -w; });
-      });
-      g.add(teil(W.rohr(0.7, 0.4, 20), C.stein, -2.6, 0.4, 0.3, 0.03)); g.add(teil(W.rohr(0.55, 0.06, 20), C.wasser, -2.6, 0.62, 0.3, 0)); g.add(teil(W.rohr(0.15, 0.9, 10), C.stein, -2.6, 0.8, 0.3, 0.025)); g.add(teil(W.rohr(0.4, 0.1, 16), C.stein, -2.6, 1.25, 0.3, 0.025));
-      laubbaum(g, -3.4, -3.6, 1, true); laubbaum(g, 3.6, -3.2, 1.1, true); laubbaum(g, -4.6, 2.2, 0.9, true); laubbaum(g, 2.6, 4.2, 0.9, true); tanne(g, 0, -4.9, 0.8);
-      laterne(g, -1, 2.2); laterne(g, 2.6, -2.2); bank(g, -0.6, -2.0, 0.2);
-      schneeFlecken(g, 'rund', 10);
+    { name: 'Olivenhain', form: 'rund', oben: '#A7B86E', kruemel: '#A7B86E', bau(g) {
+      const kurve = weg(g, [[-3.6, 0.6], [-2.4, 3.4], [0.8, 3.8], [3.6, 2], [3.6, -1.2], [1.2, -1.6], [-0.6, -3.2], [-3.2, -2.6]], 1.0, GR.lehm);
+      // Ölmühle: der Mühlstein dreht sich im Kreis
+      g.add(teil(W.rohr(1.0, 0.35, 18), GR.stein, 0.6, 0.38, 0.6, 0.03));
+      const muehle = new T.Group(); muehle.position.set(0.6, 0.55, 0.6); g.add(muehle);
+      const ms = W.rohr(0.42, 0.22, 16); ms.rotateZ(Math.PI / 2); muehle.add(teil(ms, GR.stein2, 0.45, 0.3, 0, 0.03));
+      const achse = W.rohr(0.05, 1.4, 6); achse.rotateZ(Math.PI / 2); muehle.add(teil(achse, '#7A5A3A', 0.2, 0.3, 0, 0.01));
+      g.userData.tick.push(t => { muehle.rotation.y = t * 0.6; });
+      [[-2.6, 0.3], [-2.2, -0.2], [-2.9, -0.3]].forEach(([x, z], i) => amphore(g, x, z, 1 - i * 0.15));
+      [[-3.4, -3.6], [3.6, -3.2], [-4.6, 2.2], [2.6, 4.2], [0.2, -4.6], [-1.6, -4.4], [4.7, 0.6], [-4.6, -1.2], [1.9, -3.7]].forEach(([x, z], i) => olivenbaum(g, x, z, 0.85 + (i % 3) * 0.12));
+      bank(g, -0.6, -2.0, 0.2);
+      feuerschale(g, -1, 2.2); feuerschale(g, 2.6, -2.2);
       return { kurve, platz: [-1.2, 3.3] };
     } },
-    { name: 'Strand', form: 'quadrat', oben: C.sand, kruemel: C.sand, bau(g) {
+    { name: 'Ägäis-Strand', form: 'quadrat', oben: C.sand, kruemel: C.sand, bau(g) {
       const meer = new T.PlaneGeometry(5.6, 4.4, 20, 14); meer.rotateX(-Math.PI / 2);
-      const wm = new T.Mesh(meer, W.mat(C.wasser)); wm.position.set(2.75, 0.27, -2.75); g.add(wm);
+      const wm = new T.Mesh(meer, W.mat(GR.meer)); wm.position.set(2.75, 0.27, -2.75); g.add(wm);
       const basis = meer.attributes.position.array.slice();
       g.userData.tick.push(t => { const p = meer.attributes.position; for (let i = 0; i < p.count; i++) p.array[i * 3 + 1] = Math.sin(basis[i * 3] * 1.6 + t * 1.8) * 0.05 + Math.cos(basis[i * 3 + 2] * 1.3 + t) * 0.04; p.needsUpdate = true; });
       for (let i = 0; i < 3; i++) g.add(teil(W.box(5.4, 0.04, 0.1), '#F5F0E4', 2.75, 0.33, -1.0 - i * 1.3, 0));
       const kurve = weg(g, [[-4.4, 4], [-1, 4.2], [2.6, 3.8], [4.4, 2.4], [3, 1.2], [-0.6, 1.3], [-3.8, 0.6], [-4.6, 2.4]], 1.1, C.holz, '#8A6235');
-      palme(g, -4.6, -3.8, 1); palme(g, -1.2, -4.2, 0.85); palme(g, 4.7, 4.5, 0.8);
-      const h = new T.Group(); h.position.set(-3, 0.2, -1.8); g.add(h);
-      for (let i = 0; i < 5; i++) h.add(teil(W.box(0.36, 1.5, 1.4), i % 2 ? '#F5F0E4' : C.eis2, -0.72 + i * 0.36, 0.75, 0, 0.03));
-      h.add(teil(W.box(2.1, 0.15, 1.7), C.rot, 0, 1.6, 0, 0.03));
-      [[-0.35, -0.35], [0.35, -0.35], [-0.35, 0.35], [0.35, 0.35]].forEach(([dx, dz]) => g.add(teil(W.rohr(0.05, 1.6, 6), C.holz, 0.8 + dx, 1.0, -1.0 + dz, 0.02)));
-      g.add(teil(W.box(1, 0.6, 1), C.rot, 0.8, 2.1, -1.0, 0.03)); g.add(teil(W.box(1.2, 0.08, 1.2), C.schnee, 0.8, 2.45, -1.0, 0.02));
-      g.add(teil(W.rohr(0.04, 1.6, 6), C.ink, 3.6, 1.0, 4.4, 0.015)); g.add(teil(W.kegel(0.9, 0.4, 10), C.rot, 3.6, 1.85, 4.4, 0.03));
-      g.add(teil(W.box(0.8, 0.03, 1.4), C.eis2, 2.4, 0.22, 4.5, 0.015)); g.add(teil(W.kugel(0.22), C.gold, -2.4, 0.42, 2.6, 0.025));
+      weissesHaus(g, -3.4, -1.9, 1.6, 1.3, 1.4, true); weissesHaus(g, -1.9, -3.4, 1.4, 1.0, 1.2, false); weissesHaus(g, -4.3, -3.8, 1.2, 1.7, 1.1, true);
+      // Segelboot schaukelt vor der Küste
+      const boot = new T.Group(); g.add(boot);
+      const rumpf = W.kugel(0.5, 12, 8); rumpf.scale(2.2, 0.55, 0.9); boot.add(teil(rumpf, '#7A5A3A', 0, 0.05, 0, 0.03));
+      boot.add(teil(W.box(1.9, 0.08, 0.7), '#A97A4A', 0, 0.28, 0, 0.02));
+      boot.add(teil(W.rohr(0.04, 1.6, 6), '#7A5A3A', 0, 1.0, 0, 0.01));
+      boot.add(teil(W.box(0.05, 1.0, 1.1), GR.weiss, 0.05, 1.15, 0, 0.02)); boot.add(teil(W.box(0.06, 0.18, 1.12), GR.terra, 0.06, 1.15, 0, 0));
+      g.userData.tick.push(t => { boot.position.set(2.9 + Math.sin(t * 0.3) * 1.2, 0.3 + Math.sin(t * 1.6) * 0.05, -3.1); boot.rotation.z = Math.sin(t * 1.3) * 0.06; });
+      olivenbaum(g, -0.6, -4.3, 0.8); zypresse(g, 4.7, 4.5, 0.8);
+      amphore(g, -2.4, 2.6, 1.1); amphore(g, -2.0, 2.8, 0.8);
+      g.add(teil(W.rohr(0.04, 1.6, 6), C.ink, 3.6, 1.0, 4.4, 0.015)); g.add(teil(W.kegel(0.9, 0.4, 10), '#D8B27A', 3.6, 1.85, 4.4, 0.03));
+      g.add(teil(W.box(0.8, 0.03, 1.4), GR.aegaeis, 2.4, 0.22, 4.5, 0.015));
       return { kurve, platz: [0.4, 2.6] };
     } },
-    { name: 'Wald-Trail', form: 'sechseck', oben: '#6E9A5A', kruemel: C.schnee, bau(g) {
-      const kurve = weg(g, [[-3.4, 2.2], [-1, 3.8], [2.2, 3.2], [3.6, 0.4], [2.4, -2.6], [-0.6, -2.4], [-1.8, -0.2], [-3.8, -0.6]], 0.95, '#8A6A45');
+    { name: 'Zypressenpfad', form: 'sechseck', oben: '#8DB36A', kruemel: '#8DB36A', bau(g) {
+      const kurve = weg(g, [[-3.4, 2.2], [-1, 3.8], [2.2, 3.2], [3.6, 0.4], [2.4, -2.6], [-0.6, -2.4], [-1.8, -0.2], [-3.8, -0.6]], 0.95, GR.lehm);
       g.add(new T.Mesh(W.band([[-5, -3.2], [-2, -1.4], [0.4, -0.6], [2.6, 0.8], [5, 1.8]], 0.8, 0.226, false), W.mat(C.wasser)));
-      g.add(teil(W.box(1.4, 0.12, 1.3), C.holz, 2.9, 0.42, 0.95, 0.03)); [-0.6, 0.6].forEach(d => g.add(teil(W.box(1.4, 0.25, 0.06), C.stamm, 2.9, 0.6, 0.95 + d, 0.02)));
-      const h = haus(g, -2.4, -3.5, 2.2, 1.4, 1.6, '#8A5A35', C.rot, true, 0.3); fenster(h, [-0.5, 0.5], [0.8], 0.82, C.gold);
-      for (let i = 0; i < 6; i++) { const l = W.rohr(0.16, 1.1, 10); l.rotateZ(Math.PI / 2); g.add(teil(l, C.holz, 0.6, 0.38 + Math.floor(i / 3) * 0.3, 4.2 - (i % 3) * 0.32 + Math.floor(i / 3) * 0.16, 0.025)); }
-      [[-1.2, 1.4], [1.4, 1.6], [0.2, 0.8]].forEach(([x, z]) => { g.add(teil(W.rohr(0.06, 0.25, 6), C.schnee, x, 0.32, z, 0.015)); g.add(teil(new T.SphereGeometry(0.18, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), C.rot, x, 0.42, z, 0.02, false)); });
-      [[-4.4, 1], [-4.2, 3], [-2.6, 4.4], [4.2, -1.6], [4.6, 1.2], [3.6, 3.6], [1, -4.4], [3, -3.8], [-4.2, -2.4], [0.6, 2.2]].forEach(([x, z], i) => tanne(g, x, z, 0.75 + (i % 4) * 0.12));
-      schneeFlecken(g, 'sechseck', 8);
+      g.add(teil(W.box(1.4, 0.14, 1.3), GR.stein, 2.9, 0.42, 0.95, 0.03)); [-0.6, 0.6].forEach(d => g.add(teil(W.box(1.4, 0.22, 0.12), GR.marmor2, 2.9, 0.58, 0.95 + d, 0.02)));
+      tempel(g, -2.4, -3.5, 2.0, 1.4, 1.2, { n: 3, r: 0.13, rot: 0.3 });
+      statue(g, 0.6, 4.4, 0.8, GR.marmor, Math.PI);
+      [[-4.4, 1], [-4.2, 3], [-2.6, 4.4], [4.2, -1.6], [4.6, 1.2], [3.6, 3.6], [1, -4.4], [3, -3.8], [-4.4, -2.2], [0.6, 2.0]].forEach(([x, z], i) => zypresse(g, x, z, 0.7 + (i % 4) * 0.1));
+      blumen(g, [[-1.2, 1.4], [1.4, 1.6], [0.2, 0.8], [-2.2, 1.2]]);
       return { kurve, platz: [-2.4, 1.8] };
     } },
-    { name: 'Stadion', form: 'quadrat', oben: '#5FA35A', kruemel: '#8CC084', bau(g) {
+    { name: 'Stadion von Delphi', form: 'quadrat', oben: '#7FAE62', kruemel: '#E3C58C', bau(g) {
       const bahn = W.rundRechteck(9.4, 6, 3); bahn.holes.push(W.rundRechteck(6.6, 3.2, 1.6));
-      g.add(teil(W.flach(bahn, 0.1), C.rot, 0, 0.26, 0.3, 0.03));
+      g.add(teil(W.flach(bahn, 0.1), '#E3C58C', 0, 0.26, 0.3, 0.03));
       const weiss = new T.MeshBasicMaterial({ color: 0xF5F0E4 });
       for (let i = 1; i < 4; i++) { const w = 6.6 + i * 0.7, h = 3.2 + i * 0.7, r = 1.6 + i * 0.35; const s = W.rundRechteck(w + 0.05, h + 0.05, r); s.holes.push(W.rundRechteck(w - 0.05, h - 0.05, r - 0.03)); const m = new T.Mesh(W.flach(s, 0.02), weiss); m.position.set(0, 0.32, 0.3); g.add(m); }
       const kurve = W.band(ovalPunkte(0, 0.3, 4.05, 2.35, 24), 0.1, 0.3).userData.kurve;
       g.add(new T.Mesh(W.band([[0, -1.3], [0, 1.9]], 0.05, 0.25, false), weiss));
-      const kreis = new T.TorusGeometry(0.5, 0.025, 4, 30); kreis.rotateX(Math.PI / 2); const km = new T.Mesh(kreis, weiss); km.position.set(0, 0.25, 0.3); g.add(km);
-      [-2.9, 2.9].forEach(x => { [-0.5, 0.5].forEach(dz => g.add(teil(W.rohr(0.04, 0.6, 6), C.schnee, x, 0.55, 0.3 + dz, 0.015))); g.add(teil(W.box(0.06, 0.06, 1.06), C.schnee, x, 0.85, 0.3, 0.015)); });
-      // Tribünen mit Fans, die hüpfen
-      [-4.35, 4.55].forEach((z, k) => { for (let r = 0; r < 3; r++) g.add(teil(W.box(9.6, 0.35 + r * 0.35, 0.45), r % 2 ? '#D8D2C8' : C.stein, 0, 0.38 + r * 0.17, z + (k ? 1 : -1) * r * 0.0 + (k ? -0.45 : 0.45) * (1 - r) * 0 + (k ? r * 0.15 : -r * 0.15), 0.03)); });
+      // Steinerne Ränge mit Zuschauern, die hüpfen
+      [-4.35, 4.55].forEach((z, k) => { for (let r = 0; r < 3; r++) g.add(teil(W.box(9.6, 0.35 + r * 0.35, 0.45), r % 2 ? GR.marmor : GR.marmor2, 0, 0.38 + r * 0.17, z + (k ? r * 0.15 : -r * 0.15), 0.03)); });
       const farben = ['#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55', '#F5F0E4', '#E86AA6'];
       const inst = new T.InstancedMesh(W.kugel(0.14, 8, 6), new T.MeshToonMaterial({ color: 0xF5F0E4 }), 90);
       const m4 = new T.Matrix4(), fans = []; let n = 0;
       [[-4.35, -1], [4.55, 1]].forEach(([z, s]) => { for (let r = 0; r < 3; r++) for (let i = 0; i < 15; i++) { const p = [-4.3 + i * 0.6 + (r % 2) * 0.25, 0.75 + r * 0.35, z + s * r * 0.15]; m4.makeTranslation(...p); inst.setMatrixAt(n, m4); inst.setColorAt(n, new T.Color(farben[(i * 7 + r * 3) % farben.length])); fans.push([...p, i + r * 2]); n++; } });
       g.add(inst);
       g.userData.tick.push(t => { fans.forEach(([x, y, z, k], i) => { m4.makeTranslation(x, y + Math.max(0, Math.sin(t * 4 + k)) * 0.1, z); inst.setMatrixAt(i, m4); }); inst.instanceMatrix.needsUpdate = true; });
-      [[-5, -4.4], [5, -4.4], [-5, 4.6], [5, 4.6]].forEach(([x, z]) => { g.add(teil(W.rohr(0.07, 3.6, 8), C.stein, x, 2.0, z, 0.02)); g.add(teil(W.box(0.8, 0.5, 0.2), C.gold, x, 3.9, z, 0.03)); });
-      g.add(teil(W.box(2.4, 1.1, 0.25), C.ink, 0, 2.6, -4.85, 0.03)); g.add(teil(W.box(2.1, 0.8, 0.05), '#3E7A55', 0, 2.6, -4.7, 0));
-      [-0.8, 0.8].forEach(x => g.add(teil(W.rohr(0.06, 1.6, 6), C.stein, x, 1.3, -4.85, 0.015)));
+      // Säulen mit Feuer an den Ecken, Siegertor mit Lorbeerkranz am Ziel
+      [[-5, -4.4], [5, -4.4], [-5, 4.6], [5, 4.6]].forEach(([x, z]) => { const top = saeule(g, x, z, 2.6, 0.18); feuerschale(g, x, z, 0xFF8A2E, top - 0.2); });
+      [-1.1, 1.1].forEach(x => saeule(g, x, -4.85, 2.3, 0.16));
+      g.add(teil(W.box(2.8, 0.26, 0.5), GR.marmor, 0, 3.0, -4.85, 0.03));
+      const kranz = new T.TorusGeometry(0.42, 0.07, 6, 20); g.add(teil(kranz, GR.gold, 0, 3.6, -4.8, 0.02));
       return { kurve, platz: [0, 0.3] };
     } },
-    { name: 'Dächer', form: 'quadrat', oben: '#9A968F', erde: '#B5654A', erde2: '#8E4E3A', kruemel: '#9A968F', bau(g) {
-      for (let i = -3; i <= 3; i++) [-5.52, 5.52].forEach(x => g.add(teil(W.box(0.06, 0.5, 0.55), C.eis2, x, -0.7, i * 1.3, 0.015)));
-      for (let i = -3; i <= 3; i++) [-5.02, 5.02].forEach(z => g.add(teil(W.box(0.55, 0.5, 0.06), C.eis2, i * 1.45, -0.7, z, 0.015)));
-      [-5.0, 5.0].forEach(z => g.add(teil(W.box(11, 0.35, 0.2), '#7E7A74', 0, 0.37, z, 0.03)));
-      [-5.5, 5.5].forEach(x => g.add(teil(W.box(0.2, 0.35, 10), '#7E7A74', x, 0.37, 0, 0.03)));
-      const kurve = weg(g, [[-4, 3.6], [0, 4], [3.8, 3.4], [4, 0], [1.4, -0.6], [-1, 0.6], [-4, 0.2]], 0.9, '#5F5B55', C.gold);
-      [[-0.4, -0.4], [0.4, -0.4], [-0.4, 0.4], [0.4, 0.4]].forEach(([dx, dz]) => g.add(teil(W.rohr(0.05, 1.4, 6), C.stamm, -3.4 + dx, 0.9, -3.4 + dz, 0.02)));
-      g.add(teil(W.rohr(0.8, 1.2, 16), C.holz, -3.4, 2.2, -3.4, 0.04)); g.add(teil(W.kegel(0.95, 0.6, 16), C.stamm, -3.4, 3.1, -3.4, 0.04));
-      [[0.4, -3.6], [1.6, -3.6]].forEach(([x, z]) => { g.add(teil(W.box(0.9, 0.7, 0.9), '#D8D2C8', x, 0.55, z, 0.03)); g.add(teil(W.rohr(0.3, 0.04, 14), C.ink, x, 0.92, z, 0)); });
-      [[-1.2, -1.9], [0.4, -1.9]].forEach(([x, z]) => g.add(teil(W.box(1.1, 0.3, 0.8), C.eis2, x, 0.35, z, 0.03)));
-      for (let i = 0; i < 3; i++) { const p = teil(W.box(1, 0.06, 0.7), '#2F4A7A', 3.4, 0.6, -3.8 + i * 0.85, 0.02); p.rotation.x = -0.4; g.add(p); }
-      g.add(teil(W.rohr(0.03, 2.4, 6), C.ink, 4.6, 1.4, 1.6, 0.01)); g.add(teil(W.box(0.6, 0.04, 0.04), C.ink, 4.6, 2.3, 1.6, 0));
-      g.add(teil(W.box(0.5, 1.1, 0.5), '#B5654A', -4.4, 0.75, 1.6, 0.03));
-      g.add(teil(W.box(2.4, 1.2, 0.2), '#D8D2C8', 1.8, 0.8, 4.4, 0.03));
-      [['#E86AA6', 1.2], ['#3FA9E6', 1.8], [C.gold, 2.4]].forEach(([f, x]) => g.add(teil(W.box(0.5, 0.6, 0.04), f, x, 0.85, 4.28, 0)));
+    { name: 'Agora', form: 'quadrat', oben: '#DCC9A0', erde: GR.terra, erde2: GR.terra2, kruemel: '#DCC9A0', bau(g) {
+      for (let i = -4; i <= 4; i++) g.add(teil(W.box(0.03, 0.01, 10), '#C8B488', i * 1.2, 0.206, 0, 0));
+      const kurve = weg(g, [[-4, 3.6], [0, 4], [3.8, 3.4], [4, 0], [1.4, -0.6], [-1, 0.6], [-4, 0.2]], 0.9, GR.marmor2, GR.terra);
+      // Stoa: Säulenhalle hinten
+      g.add(teil(W.box(10.6, 2.4, 0.3), GR.marmor2, 0, 1.4, -4.7, 0.04));
+      let top = 0; for (let i = 0; i < 9; i++) top = saeule(g, -4.6 + i * 1.15, -3.8, 2.0, 0.16);
+      g.add(teil(W.box(10.4, 0.24, 1.3), GR.marmor, 0, top + 0.12, -4.2, 0.03));
+      g.add(teil(W.box(10.5, 0.14, 1.35), GR.terra, 0, top + 0.31, -4.2, 0.02));
+      // Marktstände mit gestreiften Sonnendächern
+      [[2.9, -2.2, '#D9643A'], [4.5, -2.4, '#2F6FA8']].forEach(([x, z, f]) => {
+        [[-0.55, -0.4], [0.55, -0.4], [-0.55, 0.4], [0.55, 0.4]].forEach(([dx, dz]) => g.add(teil(W.rohr(0.04, 1.5, 6), '#7A5A3A', x + dx, 0.95, z + dz, 0.01)));
+        for (let k = 0; k < 4; k++) g.add(teil(W.box(0.32, 0.06, 1.0), k % 2 ? GR.weiss : f, x - 0.48 + k * 0.32, 1.72, z, 0.015));
+        g.add(teil(W.box(1.2, 0.08, 0.8), '#A97A4A', x, 0.75, z, 0.02));
+        [[-0.3, GR.gold], [0, '#D9643A'], [0.3, '#8CC084']].forEach(([dx, c]) => g.add(teil(W.kugel(0.1), c, x + dx, 0.88, z, 0.01)));
+      });
+      amphore(g, 3.7, -1.3, 0.9); amphore(g, 4.1, -1.2, 0.7);
+      // Brunnen mit Wasserstrahl
+      g.add(teil(W.rohr(0.85, 0.4, 18), GR.marmor, -2.0, 0.4, -1.8, 0.03)); g.add(teil(W.rohr(0.72, 0.06, 18), C.wasser, -2.0, 0.6, -1.8, 0));
+      g.add(teil(W.rohr(0.14, 1.0, 10), GR.marmor, -2.0, 1.0, -1.8, 0.02)); g.add(teil(W.rohr(0.35, 0.1, 12), GR.marmor, -2.0, 1.52, -1.8, 0.02));
+      const strahl = new T.Mesh(W.kegel(0.1, 0.4, 6), new T.MeshBasicMaterial({ color: 0xBFE6FF })); strahl.position.set(-2.0, 1.8, -1.8); g.add(strahl);
+      g.userData.tick.push(t => { strahl.scale.y = 0.8 + 0.3 * Math.abs(Math.sin(t * 4)); });
+      statue(g, -4.5, -2.4, 0.9, GR.bronze, 0.6);
       return { kurve, platz: [-1.8, 2.6] };
     } },
-    { name: 'Canyon', form: 'sechseck', oben: '#E3A66B', erde: '#C9733F', erde2: '#A95E33', kruemel: '#E3A66B', bau(g) {
-      const kurve = weg(g, [[-3.6, 1.6], [-1.2, 3.6], [2.2, 3.2], [3.4, 0.6], [1.2, -0.8], [-1.2, -0.2], [-3.4, -1.2]], 0.95, '#C98A55');
-      [[-2.6, -3.0, 1.6, 2.2], [2.4, -2.8, 1.3, 3], [3.9, 1.4, 0.8, 1.4]].forEach(([x, z, r, h]) => {
-        ['#C9733F', '#D98C52', '#E8B07A'].forEach((f, i) => g.add(teil(W.rohr(r * (1 - i * 0.12), h / 3, 7, r * (1 - i * 0.12) + 0.15), f, x, 0.2 + h / 6 + i * h / 3, z, 0.04)));
-      });
-      g.add(teil(new T.TorusGeometry(1.1, 0.32, 8, 16, Math.PI), '#C9733F', -0.2, 0.2, -1.6, 0.04, false));
-      [[-4, 3, 1], [1.6, 1.6, 0.8], [-2.2, 1.0, 0.7], [4.2, -1.2, 0.9]].forEach(([x, z, s]) => {
-        g.add(teil(new T.CapsuleGeometry(0.2 * s, 1.1 * s, 4, 10), '#4E9A4E', x, 0.2 + 0.75 * s, z, 0.03));
-        g.add(teil(new T.CapsuleGeometry(0.12 * s, 0.4 * s, 4, 8), '#4E9A4E', x + 0.32 * s, 0.2 + 1.0 * s, z, 0.025));
-        g.add(teil(new T.CapsuleGeometry(0.12 * s, 0.3 * s, 4, 8), '#4E9A4E', x - 0.32 * s, 0.2 + 0.8 * s, z, 0.025));
-        g.add(teil(W.kugel(0.08 * s), '#E86AA6', x, 0.2 + 1.5 * s, z, 0.015));
-      });
-      const tw = teil(new T.IcosahedronGeometry(0.3, 0), '#B88C52', 0, 0.5, 2.4, 0.02); g.add(tw);
-      g.userData.tick.push(t => { tw.position.x = Math.sin(t * 0.5) * 3; tw.rotation.z = -tw.position.x * 1.5; });
+    { name: 'Labyrinth von Kreta', form: 'sechseck', oben: '#D9C79A', erde: '#A98E5A', erde2: '#8A7448', kruemel: '#D9C79A', bau(g) {
+      const kurve = weg(g, [[-3.6, 1.6], [-1.2, 3.6], [2.2, 3.2], [3.4, 0.6], [1.2, -0.8], [-1.2, -0.2], [-3.4, -1.2]], 0.95, '#C9A86A');
+      // Steinmauern des Labyrinths, hinten auf der Insel
+      const MW = '#BFA676';
+      [[[-4.0, -2.2], [-1.0, -2.2]], [[0.2, -2.2], [3.4, -2.2]], [[-3.0, -3.2], [2.4, -3.2]], [[-2.0, -4.2], [1.6, -4.2]],
+       [[-1.0, -2.2], [-1.0, -3.2]], [[3.4, -2.2], [3.4, -3.4]], [[-3.0, -3.2], [-3.0, -4.0]], [[1.6, -4.2], [2.6, -3.9]]].forEach(([a, b]) => mauer(g, a, b, 1.0, MW, 0.3));
+      // Statue des Minotauros in der Mitte
+      const m = statue(g, 0.2, -3.7, 0.75, GR.bronze);
+      [-1, 1].forEach(s => { const horn = W.kegel(0.06, 0.32, 6); const h = teil(horn, GR.weiss, s * 0.16, 1.42, 0, 0.01); h.rotation.z = -s * 0.9; m.add(h); });
+      // Ariadnes roter Faden führt hinein
+      const faden = new T.CatmullRomCurve3([[-3.6, 0.24, -0.2], [-3.0, 0.24, -1.6], [-1.6, 0.24, -1.8], [-0.4, 0.24, -2.7], [0.2, 0.24, -3.3]].map(p => new T.Vector3(...p)));
+      g.add(new T.Mesh(new T.TubeGeometry(faden, 40, 0.03, 5), W.mat('#C4472D')));
+      feuerschale(g, 4.1, -1.4); feuerschale(g, -4.3, -1.0);
+      saeule(g, 4.3, 2.4, 1.8, 0.18, GR.marmor, 0.2, true); saeule(g, -2.2, 1.2, 1.6, 0.16, GR.marmor, 0.2, true);
       return { kurve, platz: [0.4, 2.2] };
     } },
-    { name: 'Vulkan', form: 'rund', oben: C.dunkel, erde: '#3A3533', erde2: '#2A2625', kruemel: '#8E8A84', bau(g) {
-      const lavaMat = glut();
-      g.add(new T.Mesh(W.band([[-5.4, 1.8], [-2.4, 0.6], [0.4, 1.2], [2.6, 0], [5.4, -0.8]], 0.75, 0.226, false), lavaMat));
-      g.userData.tick.push(t => { lavaMat.color.setHSL(0.06, 1, 0.55 + Math.sin(t * 2) * 0.06); });
-      g.add(teil(W.box(1.3, 0.14, 1.1), C.stein, -0.9, 0.42, 0.85, 0.03));
-      const kurve = weg(g, [[-3.6, 3], [0, 4.2], [3.4, 3], [3.6, 1.6], [0, 2.4], [-3.4, 2.2]], 0.85, '#6E6A66');
-      g.add(teil(W.rohr(1.1, 3, 10, 2.8), '#5A524E', 0.4, 1.7, -3.2, 0.05));
-      g.add(teil(W.rohr(0.95, 0.1, 14), glut(), 0.4, 3.22, -3.2, 0));
-      [[-0.2, 2.5, -2.25], [1.1, 2.1, -2.0]].forEach(([x, y, z]) => g.add(teil(W.box(0.25, 1.2, 0.1), glut(), x, y, z, 0)));
-      const rauch = [0, 1, 2, 3].map(() => { const k = new T.Mesh(W.kugel(0.45, 10, 8), new T.MeshToonMaterial({ color: 0x8E8A84, transparent: true })); g.add(k); return k; });
-      g.userData.tick.push(t => rauch.forEach((k, i) => { const p = (t * 0.35 + i / 4) % 1; k.position.set(0.4 + Math.sin(p * 4 + i) * 0.3, 3.4 + p * 3, -3.2); k.scale.setScalar(0.5 + p * 1.4); k.material.opacity = 0.9 * (1 - p); }));
-      [[-3.8, -1.8, 0.6], [3.8, -2.4, 0.5], [-2.2, -3.6, 0.45], [4.2, 2.4, 0.4], [-4.4, 0.4, 0.35]].forEach(([x, z, r]) => g.add(teil(new T.DodecahedronGeometry(r, 0), '#3A3533', x, 0.2 + r * 0.7, z, 0.03)));
+    { name: 'Unterwelt', form: 'rund', oben: GR.nacht, erde: '#2A2630', erde2: '#1E1B22', kruemel: '#6E6A75', bau(g) {
+      // Der Fluss Styx leuchtet, Charons Boot fährt darauf
+      const styxMat = new T.MeshBasicMaterial({ color: 0x3FD0B8 });
+      const fluss = W.band([[-5.4, 1.8], [-2.4, 0.6], [0.4, 1.2], [2.6, 0], [5.4, -0.8]], 0.75, 0.226, false);
+      g.add(new T.Mesh(fluss, styxMat));
+      g.userData.tick.push(t => { styxMat.color.setHSL(0.47, 0.6, 0.5 + Math.sin(t * 1.5) * 0.06); });
+      const boot = new T.Group(); g.add(boot);
+      const rumpf = W.kugel(0.35, 10, 8); rumpf.scale(2.0, 0.5, 0.9); boot.add(teil(rumpf, '#2A2625', 0, 0, 0, 0.02));
+      boot.add(teil(W.rohr(0.025, 0.9, 5), '#2A2625', 0.45, 0.45, 0, 0));
+      const laterne = new T.Mesh(W.kugel(0.09, 8, 6), new T.MeshBasicMaterial({ color: 0x9FF4E8 })); laterne.position.set(0.45, 0.92, 0); boot.add(laterne);
+      const k = fluss.userData.kurve;
+      g.userData.tick.push(t => { const u = (t * 0.04) % 1, p = k.getPointAt(u), q = k.getTangentAt(u); boot.position.set(p.x, 0.32 + Math.sin(t * 2) * 0.03, p.z); boot.rotation.y = -Math.atan2(q.z, q.x); });
+      g.add(teil(W.box(1.3, 0.14, 1.1), GR.stein2, -0.9, 0.42, 0.85, 0.03));
+      const kurve = weg(g, [[-3.6, 3], [0, 4.2], [3.4, 3], [3.6, 1.6], [0, 2.4], [-3.4, 2.2]], 0.85, '#5A5560');
+      // Tor zur Unterwelt mit blauem Feuer, dahinter der Palast des Hades
+      tempel(g, 0.4, -3.7, 3.4, 1.6, 1.7, { n: 4, farbe: '#4A4552', farbe2: '#3A3540', fries: '#2A2630', dach: '#2E2A33' });
+      [-1.2, 2.0].forEach(x => { const top = saeule(g, x, -1.8, 1.8, 0.2, '#4A4552'); feuerschale(g, x, -1.8, 0x4FC8FF, top - 0.2); });
+      g.add(teil(W.box(3.8, 0.3, 0.5), '#4A4552', 0.4, 2.45, -1.8, 0.03));
+      // Kahle schwarze Bäume
+      [[-3.8, -1.8], [3.9, -2.4], [-4.4, 0.4]].forEach(([x, z], i) => {
+        g.add(teil(W.rohr(0.08, 1.6, 6, 0.14), '#1E1B22', x, 1.0, z, 0.02));
+        [[0.35, 1.5, 0.6], [-0.3, 1.3, -0.7], [0.1, 1.75, 0.2]].forEach(([dx, y, rz]) => { const a = teil(W.rohr(0.03, 0.7, 5), '#1E1B22', x + dx, y, z, 0); a.rotation.z = rz; g.add(a); });
+      });
+      const rauch = [0, 1, 2, 3].map(() => { const r = new T.Mesh(W.kugel(0.4, 10, 8), new T.MeshToonMaterial({ color: 0x5A5560, transparent: true })); g.add(r); return r; });
+      g.userData.tick.push(t => rauch.forEach((r, i) => { const p = (t * 0.3 + i / 4) % 1; r.position.set(0.4 + Math.sin(p * 4 + i) * 0.4, 3.0 + p * 2.6, -3.7); r.scale.setScalar(0.5 + p * 1.3); r.material.opacity = 0.8 * (1 - p); }));
+      [[4.2, 2.4, 0.4], [-2.2, -3.6, 0.45]].forEach(([x, z, r]) => g.add(teil(new T.DodecahedronGeometry(r, 0), '#2A2625', x, 0.2 + r * 0.7, z, 0.03)));
       return { kurve, platz: [0, 3.6] };
     } },
-    { name: 'Bergdorf', form: 'quadrat', oben: C.schnee, kruemel: C.schnee, bau(g) {
-      [[-3.2, 3.4, 2.0], [0.4, 4.4, 2.4], [3.6, 3.0, 1.9]].forEach(([x, h, r]) => { g.add(teil(W.kegel(r, h, 7), C.stein, x, 0.2 + h / 2, -4, 0.05)); g.add(teil(W.kegel(r * 0.45, h * 0.45, 7), C.schnee, x, 0.2 + h - h * 0.22, -4, 0.04)); });
-      const kurve = weg(g, [[-4, 3.6], [-1, 2.4], [2.4, 3.8], [4, 1.6], [1.4, 0.2], [-2.2, 0.8], [-4.2, 0.6]], 0.85, '#D8C49A');
-      const h1 = haus(g, -2.6, -1.6, 2, 1.5, 1.6, '#8A5A35', C.rot, true, 0.2); fenster(h1, [-0.5, 0.5], [0.8], 0.82, C.gold);
-      h1.add(teil(W.box(2.2, 0.08, 0.5), C.holz, 0, 1.1, 1.0, 0.02));
-      const h2 = haus(g, 2.0, -1.2, 1.6, 1.3, 1.4, C.wand, '#3E7A55', true, -0.25); fenster(h2, [-0.4, 0.4], [0.7], 0.72, C.gold);
-      [-4.6, 4.6].forEach(x => { g.add(teil(W.rohr(0.09, 3.6, 8), C.stein, x, 2.0, 0.6, 0.02)); g.add(teil(W.box(0.7, 0.12, 0.12), C.stein, x, 3.8, 0.6, 0.02)); });
-      g.add(teil(W.box(9.2, 0.035, 0.035), C.ink, 0, 3.75, 0.6, 0));
-      const sessel = [0, 1, 2].map(() => { const s = new T.Group(); g.add(s); s.add(teil(W.rohr(0.025, 0.6, 4), C.ink, 0, -0.3, 0, 0)); s.add(teil(W.box(0.55, 0.32, 0.4), C.rot, 0, -0.7, 0, 0.025)); return s; });
-      g.userData.tick.push(t => sessel.forEach((s, i) => s.position.set(((t * 0.5 + i * 3) % 9.2) - 4.6, 3.75, 0.6)));
-      g.add(teil(W.box(0.5, 0.08, 1), C.rot, -3.8, 0.32, 4.2, 0.02)); [-0.2, 0.2].forEach(d => g.add(teil(W.box(0.05, 0.1, 1.1), C.ink, -3.8 + d, 0.24, 4.2, 0)));
-      tanne(g, 4.6, 4.4, 0.9); tanne(g, -4.7, -0.4, 0.8); tanne(g, 4.8, -2.2, 0.75); tanne(g, 0.4, 4.6, 0.6);
+    { name: 'Akropolis', form: 'quadrat', oben: '#CFC5AE', erde: '#A98E5A', erde2: '#8A7448', kruemel: '#CFC5AE', bau(g) {
+      const kurve = weg(g, [[-4, 3.6], [-1, 2.4], [2.4, 3.8], [4, 1.6], [1.4, 0.2], [-2.2, 0.8], [-4.2, 0.6]], 0.85, GR.marmor2);
+      // Felsen mit Stufen, oben der große Tempel
+      g.add(teil(W.box(10.6, 0.4, 3.4), '#B9AD92', 0, 0.4, -3.2, 0.04));
+      g.add(teil(W.box(8.4, 0.4, 2.8), '#C9BEA4', 0.2, 0.8, -3.4, 0.04));
+      for (let i = 0; i < 4; i++) g.add(teil(W.box(1.6, 0.2, 0.3), GR.marmor2, 0.2, 0.3 + i * 0.2, -1.35 - i * 0.15, 0.02));
+      tempel(g, 0.2, -3.45, 5.0, 2.2, 1.6, { n: 6, y0: 1.0, cella: GR.marmor2 });
+      statue(g, -4.0, -0.9, 1.35, GR.gold, 0.4);
+      olivenbaum(g, 4.6, -0.6, 0.9); olivenbaum(g, -4.7, 4.5, 0.8); zypresse(g, 4.7, 4.4, 0.7);
+      saeule(g, 3.6, -1.2, 1.6, 0.17, GR.marmor, 0.2, true); saeule(g, -2.6, -1.3, 1.6, 0.17, GR.marmor, 0.2, true);
       return { kurve, platz: [0.2, 2.6] };
     } },
-    { name: 'Mondbasis', form: 'rund', oben: '#C9C5BE', erde: '#8E8A84', erde2: '#6E6A66', kruemel: '#C9C5BE', bau(g) {
-      [[-2.6, 2.4, 0.9], [2.8, 2.8, 0.6], [-3.6, -1, 0.5], [1.2, 0.4, 0.45]].forEach(([x, z, r]) => {
-        const t = new T.TorusGeometry(r, 0.12, 6, 20); t.rotateX(Math.PI / 2); g.add(teil(t, '#B2ADA6', x, 0.24, z, 0.02));
-        g.add(teil(W.rohr(r, 0.04, 20), '#A6A19A', x, 0.22, z, 0));
+    { name: 'Olymp', form: 'rund', oben: '#F5F0E4', erde: '#E9E2D2', erde2: '#D6CDBA', kruemel: '#FAF6EB', bau(g) {
+      const kurve = weg(g, ovalPunkte(0, 1.4, 3.9, 2.6, 18), 0.8, GR.gold, '#F5F0E4');
+      // Goldener Tempel der Götter, Throne, Wolken
+      tempel(g, 0, -3.8, 4.2, 1.8, 1.8, { n: 5, fries: GR.gold, dach: GR.weiss, cella: '#F2E3B8' });
+      [[-4.1, -2.0, 0.5], [4.1, -2.0, -0.5]].forEach(([x, z, r]) => {
+        const t = new T.Group(); t.position.set(x, 0.2, z); t.rotation.y = r; g.add(t);
+        t.add(teil(W.box(1.0, 0.5, 0.9), GR.gold, 0, 0.25, 0, 0.03)); t.add(teil(W.box(1.0, 1.4, 0.2), GR.gold, 0, 1.0, -0.4, 0.03));
+        [-0.45, 0.45].forEach(dx => t.add(teil(W.box(0.12, 0.3, 0.8), GR.gold, dx, 0.65, 0, 0.02)));
+        t.add(teil(W.box(0.8, 0.12, 0.7), '#C4472D', 0, 0.56, 0.05, 0.01));
       });
-      const kurve = weg(g, ovalPunkte(0, 1.4, 3.9, 2.6, 18), 0.8, '#A6A19A', '#F5F0E4');
-      g.add(teil(W.rohr(1, 0.2, 16), C.grau, -2.6, 0.3, -2.8, 0.03));
-      g.add(teil(W.rohr(0.45, 2.4, 16), '#F5F0E4', -2.6, 1.6, -2.8, 0.04)); g.add(teil(W.kegel(0.45, 0.9, 16), C.rot, -2.6, 3.25, -2.8, 0.04));
-      const fe = W.rohr(0.16, 0.06, 14); fe.rotateX(Math.PI / 2); g.add(teil(fe, C.eis2, -2.6, 2.1, -2.36, 0.02));
-      for (let i = 0; i < 3; i++) { const w = i / 3 * Math.PI * 2, f = teil(W.box(0.06, 0.7, 0.5), C.rot, -2.6 + Math.cos(w) * 0.5, 0.75, -2.8 + Math.sin(w) * 0.5, 0.02); f.rotation.y = -w; g.add(f); }
-      const kuppel = new T.Mesh(new T.SphereGeometry(1.2, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), new T.MeshToonMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.6 }));
-      kuppel.position.set(2.4, 0.2, -2.6); g.add(kuppel);
-      g.add(teil(W.box(1.2, 0.4, 0.7), '#F5F0E4', 3.6, 0.55, 0.8, 0.03)); [[-0.4, -0.38], [0.4, -0.38], [-0.4, 0.38], [0.4, 0.38]].forEach(([dx, dz]) => { const r = W.rohr(0.16, 0.1, 12); r.rotateX(Math.PI / 2); g.add(teil(r, C.ink, 3.6 + dx, 0.36, 0.8 + dz, 0)); });
-      fahne(g, 0.6, -3.8, 2, 0.2, C.rot);
-      const erde = new T.Group(); g.add(erde);
-      erde.add(teil(W.kugel(0.9, 20, 14), C.wasser, 0, 0, 0, 0.04)); [[0.3, 0.4, 0.6], [-0.4, -0.2, 0.7], [0.1, -0.5, -0.6]].forEach(([x, y, z]) => erde.add(teil(W.kugel(0.38, 10, 8), C.gras, x, y, z, 0)));
-      g.userData.tick.push(t => { erde.rotation.y = t * 0.2; erde.position.set(3.6, 6.2 + Math.sin(t * 0.8) * 0.15, -4); });
+      [[-4.4, 2.6], [4.4, 2.6]].forEach(([x, z]) => saeule(g, x, z, 2.2, 0.17, GR.gold));
+      [[-4.9, 0.3, 0.6, 0.9], [4.9, 0.2, -0.6, 0.8], [-2.8, 0.25, 4.7, 0.7], [3.0, 0.3, 4.6, 0.75], [0, 0.3, 5.2, 0.6]].forEach(([x, y, z, s]) => wolke(g, x, y, z, s));
+      const schweben = [[-3.2, 4.6, -1.2, 0.8], [3.4, 5.2, -0.6, 0.9], [0.6, 6.0, 1.8, 0.7]].map(([x, y, z, s]) => [wolke(g, x, y, z, s), y]);
+      g.userData.tick.push(t => schweben.forEach(([w, y], i) => { w.position.y = y + Math.sin(t * 0.7 + i * 2) * 0.2; }));
+      // Ab und zu zuckt ein Blitz über dem Tempel
+      const zick = new T.CatmullRomCurve3([[-0.8, 7.2, -3.8], [-0.3, 6.4, -3.8], [-0.7, 6.0, -3.8], [0.1, 5.2, -3.8], [-0.2, 4.9, -3.8], [0.3, 4.2, -3.8]].map(p => new T.Vector3(...p)), false, 'catmullrom', 0);
+      const blitz = new T.Mesh(new T.TubeGeometry(zick, 30, 0.06, 5), new T.MeshBasicMaterial({ color: 0xFFE066 })); g.add(blitz);
+      g.userData.tick.push(t => { blitz.visible = (t % 4.3) < 0.18 || ((t % 4.3) > 0.3 && (t % 4.3) < 0.4); });
       return { kurve, platz: [0, 0.3] };
     } }
   ];
 
   const SETS = { lauf: ARENEN };
   // Bausteine für andere Arena-Sets (kraft3d.js)
-  const hilfen = () => ({ W, T, C, teil, letztes, FORMEN, sockel, weg, schneeFlecken, tanne, laubbaum, palme, schneemann, bank, laterne, haus, fenster, fahne, ovalPunkte, glut });
+  const hilfen = () => ({ W, T, C, G: GR, teil, letztes, FORMEN, sockel, weg, schneeFlecken, tanne, laubbaum, palme, schneemann, bank, laterne, haus, fenster, fahne, ovalPunkte, glut,
+    saeule, tempel, olivenbaum, zypresse, amphore, statue, wolke, weissesHaus, schaf, mauer, feuerschale, blumen });
   function insel(nr, set = st.set) {
     const liste = SETS[set] || ARENEN;
     const def = liste[nr] || liste[0];

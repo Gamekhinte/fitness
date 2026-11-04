@@ -44,5 +44,29 @@ body:not(.papier) .top{background:var(--maeander) left bottom/16px 12px repeat-x
 .so-bschild i::before,.so-bschild i::after{content:"";width:13px;height:13px;background:var(--lorbeer) center/contain no-repeat}
 .so-bschild i::after{transform:scaleX(-1)}
 .so-bschild.legendaer{background:#FBE6A8}
+
+/* ---------- Werkstatt des Olymp (nur Dev-Konten) ---------- */
+.dev-knopf{left:10px;width:48px;height:48px;padding:6px;background:var(--olymp-gold);border:3px solid var(--graphit);border-radius:50%;box-shadow:0 3px 0 var(--graphit);opacity:1}
+.dev-knopf svg{width:100%;height:100%;display:block}
+.dev-knopf:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.dev-in{background:var(--maeander) left top/16px 12px repeat-x,var(--papier);padding-top:22px}
+.dev-titel{display:flex;align-items:center;gap:8px}
+.dev-titel svg{width:30px;height:30px;padding:3px;background:var(--olymp-gold);border:2px solid var(--graphit);border-radius:50%}
+.dev-stand{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.dev-stand span{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;font-size:15px;background:#FAF6EB;border:2px solid var(--graphit);border-radius:8px}
+.dev-stand b{font-family:var(--dick);font-weight:400;font-size:15px}
+.dev-stand .ar-coin,.dev-stand .ar-gem{width:16px}
+.dev-reiter{grid-template-columns:repeat(5,1fr);gap:5px}
+.dev-reiter button{padding:7px 2px;font-size:13px}
+.dev-karte{margin:0 0 12px;padding:10px 12px 12px;background:#FAF6EB;border:3px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.dev-karte-kopf{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.dev-karte-kopf b{font-family:var(--dick);font-weight:400;font-size:19px}
+.dev-karte-kopf span{font-family:var(--dick);font-size:17px;color:var(--mut)}
+.dev-eingabe{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
+.dev-eingabe input{min-width:0;padding:9px 10px;font-family:var(--dick);font-size:18px;color:var(--graphit);background:#FFFDF7;border:2px solid var(--graphit);border-radius:10px}
+.dev-eingabe button{padding:0 16px;font-family:var(--dick);font-size:16px;color:var(--graphit);background:var(--marker);border:2px solid var(--graphit);border-radius:10px;box-shadow:0 2px 0 var(--graphit)}
+.dev-gross.weiss{background:#FAF6EB}
+.dev-gross.rot{background:#F0A07A;margin-top:18px}
+.dev-inhalt.laeuft{opacity:.5;pointer-events:none}
 .so-bschild.episch{background:#F8D9C8}
 .so-bschild.selten{background:#D6EEFB}
