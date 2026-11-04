@@ -1,30 +1,20 @@
 /* ================= WINTERFORM FIGUR =================
-   Eigener Charakter wie ein Mii: Hautfarbe, Augen, Brauen, Mund, Gesicht, Haare, Haarfarbe,
-   Oberteil, Hose, Schuhe, Kopfbedeckung, Extra, Skin und Lieblings-Animation.
-   Das Gesicht wird auf eine Leinwand gezeichnet (Tusche-Look) und auf den Kopf gelegt.
-   Gekaufte Sachen prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige.
-   Preis 'pass' heißt: gibt es nur im Winterpass (Server: Tabelle wf_pass_items).
-   Preis 'g120' heißt: 120 Gems (Server: wf_shop_gems). Zahl = Coins. */
+   Jede Figur ist ein fertiger Skin aus Blender (modelle/skins/<id>.glb, Liste in skins.js).
+   Frei anpassen geht nicht mehr: Skin, Animation, Intro und Hintergrund sind die ganze Auswahl.
+   Die .glb hat dieselben Gelenke wie früher (huefte, rumpf, kopf, armL/R, beinL/R, knieL/R),
+   deshalb laufen alle Animationen unverändert. Leuchtende Teile heißen vfx_* und werden hier bewegt,
+   dazu Flügel, Umhang, Begleiter und Blinzeln.
+   Gekaufte Skins prüft der Server (wf_figur_speichern), die Preise hier sind nur zur Anzeige.
+   Preis 'pass' = nur im Winterpass, 'g150' = 150 Gems, Zahl = Coins, 0 = gratis. */
 (function () {
+  const SKINS = window.WF_SKINS || [];
+  const INFO = {}; SKINS.forEach(s => { INFO[s.id] = s; });
+  const KLASSEN = { ungewoehnlich: ['Ungewöhnlich', '#7FB77E'], selten: ['Selten', '#4FA3E0'], episch: ['Episch', '#E0663A'],
+    legendaer: ['Legendär', '#F2C14E'], spezial: ['Spezial', '#7CD4FF'] };
+  const ORDNER = 'modelle/skins/';
   const K = {
-    haut: ['#F6D7B8', '#EBC199', '#D19F74', '#A9744E', '#7A4E31', '#4E3221'],
-    haarfarbe: ['#2B2826', '#5A3A22', '#8B5A2B', '#D9A441', '#F1E3B0', '#C4472D', '#3FA9E6', '#E8E8E8'],
-    farben: ['#3FA9E6', '#D9643A', '#3E7A55', '#F2C14E', '#2B2826', '#F5F0E4', '#E86AA6', '#7B5CC4', '#8CC084', '#B9B4AC'],
-    hosen: ['#2B2826', '#2F4A7A', '#6B4A2E', '#B9B4AC', '#3E7A55', '#D9643A'],
-    schuhe: ['#F5F0E4', '#2B2826', '#D9643A', '#3FA9E6', '#F2C14E', '#3E7A55'],
-    augen: [['punkt', 'Punkte'], ['rund', 'Rund'], ['froh', 'Fröhlich'], ['muede', 'Müde'], ['zwinker', 'Zwinkern'], ['wach', 'Hellwach']],
-    brauen: [['normal', 'Normal'], ['dick', 'Dick'], ['hoch', 'Überrascht'], ['boese', 'Entschlossen'], ['keine', 'Keine']],
-    mund: [['laecheln', 'Lächeln'], ['grinsen', 'Grinsen'], ['offen', 'Offen'], ['neutral', 'Neutral'], ['zunge', 'Zunge']],
-    gesicht: [['nichts', 'Nichts'], ['backen', 'Rote Backen'], ['sommersprossen', 'Sommersprossen'], ['pflaster', 'Pflaster']],
-    haare: [['kurz', 'Kurz'], ['stachel', 'Stacheln'], ['lang', 'Lang'], ['locken', 'Locken'], ['dutt', 'Dutt'], ['zopf', 'Zopf'], ['bob', 'Bob'], ['seite', 'Seitenscheitel'], ['glatze', 'Glatze']],
-    kopf: [['nichts', 'Nichts', 0], ['muetze', 'Mütze', 0], ['cap', 'Cap', 0], ['stirnband', 'Stirnband', 0],
-      ['hasenohren', 'Hasenohren', 300], ['kopfhoerer', 'Kopfhörer', 350], ['helm', 'Radhelm', 400], ['krone', 'Krone', 800],
-      ['eismuetze', 'Eismütze', 'pass'], ['eiskrone', 'Eiskrone', 'pass']],
-    extra: [['nichts', 'Nichts', 0], ['brille', 'Brille', 0], ['schal', 'Schal', 0],
-      ['sonnenbrille', 'Sonnenbrille', 250], ['medaille', 'Medaille', 300], ['umhang', 'Umhang', 600]],
-    skin: [['nichts', 'Eigener Look', 0], ['skifahrer', 'Skifahrer', 700], ['ninja', 'Ninja', 900], ['eisbaer', 'Eisbär', 1200],
-      ['astronaut', 'Astronaut', 1500], ['dino', 'Dino', 1800], ['gold', 'Goldstatue', 3000],
-      ['ritter', 'Silberritter', 'g120'], ['cyber', 'Cyber-Läufer', 'g150'], ['drache', 'Feuerdrache', 'g200'], ['eiskoenig', 'Eiskönig', 'pass']],
+    skin: SKINS.map(s => [s.id, s.name, s.preis]),
+    kopf: [['nichts', 'Nichts', 0]], extra: [['nichts', 'Nichts', 0]],
     emote: [['winken', 'Winken', 0], ['jubeln', 'Jubeln', 0], ['hampelmann', 'Hampelmann', 200], ['flex', 'Muskeln', 300],
       ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]],
     // Intro: läuft in der Cutscene vor jedem Duell, mit bösem Blick
@@ -35,224 +25,171 @@
       ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200],
       ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80']]
   };
-  const STANDARD = { typ: 'mann', haut: '#EBC199', augen: 'punkt', brauen: 'normal', mund: 'laecheln', gesicht: 'nichts', haare: 'kurz',
-    haarfarbe: '#5A3A22', oberteil: '#3FA9E6', hose: '#2B2826', schuhe: '#F5F0E4', kopf: 'nichts', extra: 'nichts', skin: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
+  const STANDARD = { typ: 'mann', skin: 'olympionike', kopf: 'nichts', extra: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
+  const startSkin = typ => typ === 'frau' ? 'olympionikin' : 'olympionike';
 
+  // Alte Looks (eigene Farben, Mützen, alte Skins) werden zur Startfigur passend zum Typ
   function pruefen(a) {
     const r = Object.assign({}, STANDARD);
-    if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = /^#f{3,6}$/i.test(a[k]) ? '#F5F0E4' : a[k];   // kein reines Weiß
+    if (a && typeof a === 'object') for (const k in STANDARD) if (typeof a[k] === 'string' && a[k].length < 30) r[k] = a[k];
     if (r.typ !== 'frau') r.typ = 'mann';
+    if (!INFO[r.skin]) r.skin = startSkin(r.typ);
+    if (INFO[r.skin]) r.typ = INFO[r.skin].g === 'w' ? 'frau' : 'mann';
+    r.kopf = 'nichts'; r.extra = 'nichts';
     return r;
   }
 
-  /* ---------- Gesicht auf Leinwand ---------- */
-  function gesichtMalen(a, skin) {
-    const c = document.createElement('canvas'); c.width = c.height = 256;
-    const g = c.getContext('2d'), INK = '#2B2826';
-    g.lineCap = g.lineJoin = 'round'; g.strokeStyle = INK; g.fillStyle = INK;
-    const ex = [96, 160], ey = 112;
-    if (skin === 'ninja') { g.fillStyle = '#1E1C1B'; g.fillRect(0, 140, 256, 116); g.fillStyle = INK; }
-    // Augen
-    for (const [k, x] of ex.entries()) {
-      const typ = a.augen === 'zwinker' && k === 1 ? 'froh' : a.augen;
-      g.lineWidth = 7;
-      if (typ === 'punkt') { g.beginPath(); g.ellipse(x, ey, 9, 12, 0, 0, 7); g.fill(); }
-      else if (typ === 'rund' || typ === 'wach' || typ === 'zwinker') {
-        const rx = typ === 'wach' ? 19 : 15, ry = typ === 'wach' ? 23 : 17;
-        g.fillStyle = '#F5F0E4'; g.beginPath(); g.ellipse(x, ey, rx, ry, 0, 0, 7); g.fill(); g.stroke();
-        g.fillStyle = INK; g.beginPath(); g.ellipse(x + 2, ey + 3, rx * 0.5, ry * 0.55, 0, 0, 7); g.fill();
-        g.fillStyle = '#F5F0E4'; g.beginPath(); g.arc(x + 5, ey - 3, 3.5, 0, 7); g.fill(); g.fillStyle = INK;
-      } else if (typ === 'froh') { g.beginPath(); g.arc(x, ey + 8, 14, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
-      else if (typ === 'muede') { g.beginPath(); g.moveTo(x - 14, ey); g.lineTo(x + 14, ey); g.stroke(); g.beginPath(); g.arc(x, ey, 12, 0.1, Math.PI - 0.1); g.fill(); }
-    }
-    if (a.typ === 'frau' && skin !== 'ninja') {
-      g.lineWidth = 5;
-      for (const [k, x] of ex.entries()) {
-        const sd = k ? 1 : -1;
-        for (const [dx, dy] of [[16, -6], [22, -14], [14, -17]]) { g.beginPath(); g.moveTo(x + sd * 10, ey - 8); g.lineTo(x + sd * dx - sd * 0, ey + dy - 6); g.stroke(); }
+  /* ---------- .glb lesen (eigener kleiner Leser: keine Texturen, keine Kompression) ---------- */
+  const laden = new Map(), fertig = new Map();
+  const OHNE_UMRISS = /^(augeL|augeR|auge|braueL|braueR|braue|mund|nasenring)$/;
+  const KLEIN = new Set(['augen', 'pupille', 'glanz', 'mund', 'backen']);
+  function holen(id) {
+    if (!laden.has(id)) laden.set(id, fetch(ORDNER + id + '.glb')
+      .then(r => { if (!r.ok) throw new Error('Skin fehlt: ' + id); return r.arrayBuffer(); })
+      .then(lesen).then(d => { fertig.set(id, d); return d; })
+      .catch(err => { laden.delete(id); throw err; }));
+    return laden.get(id);
+  }
+  function lesen(buf) {
+    const W = WF3D, T = W.T, dv = new DataView(buf);
+    const jl = dv.getUint32(12, true), json = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, jl)));
+    const bin = 20 + jl + 8;
+    const TYP = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }, ART = { 5126: Float32Array, 5125: Uint32Array, 5123: Uint16Array, 5121: Uint8Array };
+    const acc = i => {
+      const a = json.accessors[i], bv = json.bufferViews[a.bufferView], A = ART[a.componentType];
+      const start = bin + (bv.byteOffset || 0) + (a.byteOffset || 0), n = a.count * TYP[a.type];
+      return new A(buf.slice(start, start + n * A.BYTES_PER_ELEMENT));
+    };
+    const mats = (json.materials || []).map(m => {
+      const c = (m.pbrMetallicRoughness || {}).baseColorFactor || [1, 1, 1, 1];
+      const farbe = new T.Color().setRGB(c[0], c[1], c[2]);          // glTF-Farben sind linear, wie three intern rechnet
+      const e = m.emissiveFactor, leuchtet = !!e && e[0] + e[1] + e[2] > 0.01;
+      return { name: m.name, leuchtet, material: leuchtet ? new T.MeshBasicMaterial({ color: farbe }) : W.mat('#' + farbe.getHexString()) };
+    });
+    const geos = (json.meshes || []).map(me => me.primitives.map(p => {
+      const g = new T.BufferGeometry(), pos = acc(p.attributes.POSITION);
+      g.setAttribute('position', new T.BufferAttribute(pos, 3));
+      const idx = p.indices != null ? acc(p.indices) : null;
+      if (idx) g.setIndex(new T.BufferAttribute(idx, 1));
+      if (p.attributes.NORMAL != null) g.setAttribute('normal', new T.BufferAttribute(acc(p.attributes.NORMAL), 3)); else g.computeVertexNormals();
+      g.computeBoundingSphere();
+      const m = mats[p.material] || { name: '', leuchtet: false, material: W.mat('#F5F0E4') };
+      // Tusche-Umriss: Kopie, entlang der Normalen etwas aufgeblasen, nur Rückseiten in Dunkel
+      let umriss = null;
+      if (!m.leuchtet && !KLEIN.has(m.name)) {
+        const n = g.getAttribute('normal').array, p2 = new Float32Array(pos.length), d = 0.018;
+        for (let i = 0; i < pos.length; i++) p2[i] = pos[i] + n[i] * d;
+        umriss = new T.BufferGeometry(); umriss.setAttribute('position', new T.BufferAttribute(p2, 3));
+        if (idx) umriss.setIndex(g.getIndex());
+        umriss.computeBoundingSphere();
       }
-    }
-    // Brauen
-    g.lineWidth = a.brauen === 'dick' ? 12 : 7;
-    if (a.brauen !== 'keine') for (const [k, x] of ex.entries()) {
-      const s = k ? 1 : -1, hoch = a.brauen === 'hoch' ? -10 : 0, boese = a.brauen === 'boese' ? 14 : 0;
-      g.beginPath(); g.moveTo(x - 15, ey - 30 + hoch + (s < 0 ? -boese * 0.3 : boese)); g.quadraticCurveTo(x, ey - 38 + hoch, x + 15, ey - 30 + hoch + (s < 0 ? boese : -boese * 0.3)); g.stroke();
-    }
-    // Gesicht-Extras
-    if (a.gesicht === 'backen') { g.fillStyle = 'rgba(232,106,106,.45)'; [70, 186].forEach(x => { g.beginPath(); g.ellipse(x, 150, 17, 10, 0, 0, 7); g.fill(); }); g.fillStyle = INK; }
-    if (a.gesicht === 'sommersprossen') { g.fillStyle = 'rgba(122,78,49,.7)'; [[70, 145], [80, 155], [62, 156], [186, 145], [176, 155], [194, 156]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 3.2, 0, 7); g.fill(); }); g.fillStyle = INK; }
-    if (a.gesicht === 'pflaster') { g.save(); g.translate(180, 150); g.rotate(-0.5); g.fillStyle = '#F2D2A6'; g.fillRect(-20, -8, 40, 16); g.lineWidth = 4; g.strokeRect(-20, -8, 40, 16); g.restore(); }
-    // Mund
-    if (skin !== 'ninja') {
-      g.lineWidth = 7; const mx = 128, my = 168;
-      if (a.mund === 'laecheln') { g.beginPath(); g.arc(mx, my - 14, 22, 0.25 * Math.PI, 0.75 * Math.PI); g.stroke(); }
-      else if (a.mund === 'grinsen') { g.beginPath(); g.moveTo(mx - 26, my - 4); g.quadraticCurveTo(mx, my + 34, mx + 26, my - 4); g.closePath(); g.fillStyle = '#F5F0E4'; g.fill(); g.stroke(); g.fillStyle = INK; }
-      else if (a.mund === 'offen') { g.beginPath(); g.ellipse(mx, my + 2, 11, 14, 0, 0, 7); g.fill(); }
-      else if (a.mund === 'neutral') { g.beginPath(); g.moveTo(mx - 16, my); g.lineTo(mx + 16, my); g.stroke(); }
-      else if (a.mund === 'zunge') { g.beginPath(); g.arc(mx, my - 12, 20, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke(); g.fillStyle = '#E86A6A'; g.beginPath(); g.ellipse(mx + 6, my + 10, 9, 11, 0, 0, 7); g.fill(); g.lineWidth = 4; g.stroke(); g.fillStyle = INK; }
-    }
-    return c;
+      return { g, m, umriss };
+    }));
+    return { json, geos };
+  }
+  function aufbauen(d) {
+    const T = WF3D.T;
+    const knoten = d.json.nodes.map(n => {
+      const g = new T.Group(); g.name = n.name || '';
+      if (n.translation) g.position.fromArray(n.translation);
+      if (n.rotation) g.quaternion.fromArray(n.rotation);
+      if (n.scale) g.scale.fromArray(n.scale);
+      const ohne = OHNE_UMRISS.test(g.name) || g.name.startsWith('vfx');
+      if (n.mesh != null) d.geos[n.mesh].forEach(p => {
+        const mesh = new T.Mesh(p.g, p.m.material); g.add(mesh);
+        if (p.umriss && !ohne) { const u = new T.Mesh(p.umriss, WF3D.inkMat); u.userData.umriss = true; mesh.add(u); }
+      });
+      return g;
+    });
+    d.json.nodes.forEach((n, i) => (n.children || []).forEach(c => knoten[i].add(knoten[c])));
+    const g = new T.Group();
+    d.json.scenes[d.json.scene || 0].nodes.forEach(i => g.add(knoten[i]));
+    return g;
   }
 
-  /* ---------- Bauen ---------- */
+  /* ---------- Bauen ----------
+     Gibt die Figur sofort zurück. Ist der Skin noch nicht geladen, stehen kurz leere Gelenke da,
+     die Datei kommt nach und wird eingesetzt (die Animationen merken davon nichts).
+     Für Fotos vorher Figur.vorladen(look) abwarten. */
+  const VFX_ANIM = [[/^vfx_aura/, 'drehen'], [/^vfx_funken/, 'schweben'], [/^vfx_glitzer/, 'funkeln'],
+    [/^vfx_(blaetter|blueten|schnee|federn|konfetti)/, 'fallen'], [/^vfx_(blasen|herzen|dampf)/, 'steigen'],
+    [/^vfx_(sterne|eis)/, 'schweben'], [/^vfx_orbs/, 'kreisen'], [/^vfx_(halo|ring)/, 'pulsieren'],
+    [/^vfx_(blitz|flamme)/, 'flackern'], [/^vfx_schatten/, 'wabern'], [/^vfx_wasser/, 'drehen'], [/^vfx_strahlen/, 'strahlen']];
   function bauen(aussehen, opt = {}) {
-    const W = WF3D, T = W.T, a = pruefen(aussehen);
-    const sk = a.skin, frau = a.typ === 'frau';
-    // Skins legen Farben fest
-    let haut = a.haut, ober = a.oberteil, hose = a.hose, schuh = a.schuhe, haare = a.haare, hf = a.haarfarbe, kopf = a.kopf, extra = a.extra;
-    if (sk === 'ninja') { ober = '#1E1C1B'; hose = '#1E1C1B'; schuh = '#1E1C1B'; kopf = 'stirnband_rot'; haare = 'kurz'; hf = '#1E1C1B'; }
-    if (sk === 'skifahrer') { ober = '#D9643A'; hose = '#2F4A7A'; schuh = '#2B2826'; kopf = 'muetze'; extra = 'skibrille'; }
-    if (sk === 'eisbaer') { haut = '#F5F0E4'; ober = '#F5F0E4'; hose = '#F5F0E4'; schuh = '#F5F0E4'; haare = 'glatze'; kopf = 'baerohren'; }
-    if (sk === 'astronaut') { ober = '#F4F4F4'; hose = '#F4F4F4'; schuh = '#B9B4AC'; kopf = 'raumhelm'; }
-    if (sk === 'dino') { haut = '#8CC084'; ober = '#3E7A55'; hose = '#3E7A55'; schuh = '#3E7A55'; haare = 'glatze'; kopf = 'dino'; }
-    if (sk === 'ritter') { ober = '#B9C2CC'; hose = '#8D98A5'; schuh = '#6E7782'; kopf = 'ritterhelm'; extra = 'nichts'; }
-    if (sk === 'cyber') { ober = '#1F2D4A'; hose = '#0F1A33'; schuh = '#0F1A33'; haare = 'glatze'; kopf = 'visier'; extra = 'nichts'; }
-    if (sk === 'drache') { ober = '#C4472D'; hose = '#8F2F1C'; schuh = '#F2C14E'; haare = 'glatze'; kopf = 'drachenhoerner'; extra = 'nichts'; }
-    if (sk === 'eiskoenig') { ober = '#BFE9FF'; hose = '#7CD4FF'; schuh = '#F5F0E4'; kopf = 'eiskrone'; extra = 'nichts'; }
-    if (sk === 'gold') { haut = '#F2C14E'; ober = '#F2C14E'; hose = '#E0A400'; schuh = '#E0A400'; hf = '#E0A400'; }
-
-    // aussen: Platz in der Welt (setzt der Aufrufer), wurzel: wird von den Animationen bewegt
+    const T = WF3D.T, a = pruefen(aussehen);
     const aussen = new T.Group(), wurzel = new T.Group(); aussen.add(wurzel);
-    const rig = { wurzel };
+    const rig = { wurzel, anim: a.emote, aussehen: a, skin: a.skin, extra: null };
     const huefte = new T.Group(); huefte.position.y = 0.85; wurzel.add(huefte); rig.huefte = huefte;
     const rumpf = new T.Group(); huefte.add(rumpf); rig.rumpf = rumpf;
-    rumpf.add(W.teil(new T.CapsuleGeometry(frau ? 0.32 : 0.36, 0.42, 6, 14), ober, 0, 0.42, 0, 0.045));
-    rumpf.add(W.teil(new T.CylinderGeometry(frau ? 0.34 : 0.37, frau ? 0.41 : 0.35, 0.22, 14), hose, 0, 0.04, 0, 0.04));
-    // Beine
-    for (const s of [-1, 1]) {
-      const bein = new T.Group(); bein.position.set(s * 0.17, 0.02, 0); huefte.add(bein);
-      bein.add(W.teil(new T.CapsuleGeometry(0.135, 0.2, 4, 10), hose, 0, -0.21, 0, 0.04));
-      const knie = new T.Group(); knie.position.y = -0.42; bein.add(knie);
-      knie.add(W.teil(new T.CapsuleGeometry(0.12, 0.18, 4, 10), hose, 0, -0.17, 0, 0.04));
-      knie.add(W.teil(W.box(0.26, 0.16, 0.38), schuh, 0, -0.36, 0.06, 0.035));
-      rig[s < 0 ? 'beinL' : 'beinR'] = bein; rig[s < 0 ? 'knieL' : 'knieR'] = knie;
-    }
-    // Arme
-    for (const s of [-1, 1]) {
-      const arm = new T.Group(); arm.position.set(s * (frau ? 0.41 : 0.45), 0.72, 0); rumpf.add(arm);
-      arm.add(W.teil(new T.CapsuleGeometry(frau ? 0.09 : 0.1, 0.42, 4, 10), ober, 0, -0.3, 0, 0.035));
-      arm.add(W.teil(W.kugel(0.12), haut, 0, -0.62, 0, 0.03));
-      arm.rotation.z = s * 0.12;
-      rig[s < 0 ? 'armL' : 'armR'] = arm;
-    }
-    // Kopf
-    const k = new T.Group(); k.position.y = 1.32; rumpf.add(k); rig.kopf = k;
-    const R = 0.52;
-    k.add(W.teil(W.kugel(R, 28, 20), haut, 0, 0, 0, 0.045));
-    const gesicht = opt.boese ? Object.assign({}, a, { brauen: 'boese', mund: a.mund === 'grinsen' || a.mund === 'zunge' ? 'grinsen' : 'neutral', augen: a.augen === 'froh' || a.augen === 'zwinker' ? 'punkt' : a.augen }) : a;
-    const tex = new T.CanvasTexture(gesichtMalen(gesicht, sk)); tex.colorSpace = T.SRGBColorSpace;
-    const gGeo = new T.SphereGeometry(R * 1.008, 28, 20, Math.PI / 2 - 1.05, 2.1, 0.62, 1.55);
-    k.add(new T.Mesh(gGeo, new T.MeshBasicMaterial({ map: tex, transparent: true })));
-    // Ohren
-    if (kopf !== 'raumhelm') for (const s of [-1, 1]) k.add(W.teil(W.kugel(0.1), haut, s * R * 0.98, -0.02, 0, 0.02));
-    haarBauen(k, haare, hf, R);
-    kopfBauen(k, kopf, R, a);
-    extraBauen(rig, extra, R);
-    if (sk === 'dino') {
-      for (let i = 0; i < 5; i++) rumpf.add(W.teil(W.kegel(0.09, 0.22, 4), '#8CC084', 0, 0.85 - i * 0.2, -0.36, 0.02));
-      const schwanz = W.kegel(0.2, 0.8, 8); schwanz.rotateX(-Math.PI / 2 - 0.4);
-      huefte.add(W.teil(schwanz, '#3E7A55', 0, 0.0, -0.6, 0.03));
-    }
-    if (sk === 'astronaut') rumpf.add(W.teil(W.box(0.5, 0.6, 0.25), '#D0D0D0', 0, 0.5, -0.42, 0.03));
-    if (sk === 'eisbaer') { k.add(W.teil(W.kugel(0.14), '#F1EDE4', 0, -0.17, R * 0.9, 0.02)); k.add(W.teil(W.kugel(0.05), '#2B2826', 0, -0.13, R * 1.02, 0)); }
-    const neon = new T.MeshBasicMaterial({ color: 0x3FE0FF });
-    if (sk === 'ritter') {
-      for (const sd of [-1, 1]) rumpf.add(W.teil(W.kugel(0.17, 14, 10), '#B9C2CC', sd * 0.45, 0.8, 0, 0.03));
-      rumpf.add(W.teil(W.box(0.1, 0.34, 0.04), '#D9643A', 0, 0.55, 0.375, 0.02)); rumpf.add(W.teil(W.box(0.3, 0.1, 0.04), '#D9643A', 0, 0.6, 0.375, 0.02));
-      const schild = W.rohr(0.26, 0.06, 6); schild.rotateX(Math.PI / 2); rig.armL.add(W.teil(schild, '#D9643A', -0.1, -0.35, 0.16, 0.03));
-      const mitte = W.rohr(0.1, 0.08, 6); mitte.rotateX(Math.PI / 2); rig.armL.add(W.teil(mitte, '#F2C14E', -0.1, -0.35, 0.2, 0.02));
-    }
-    if (sk === 'cyber') {
-      const streifen = (b, x, y, z, w, h) => { const m = new T.Mesh(W.box(w, h, 0.02), neon); m.position.set(x, y, z); b.add(m); };
-      streifen(rumpf, 0, 0.45, 0.375, 0.08, 0.5); streifen(rumpf, -0.2, 0.5, 0.35, 0.05, 0.3); streifen(rumpf, 0.2, 0.5, 0.35, 0.05, 0.3);
-      for (const sd of [-1, 1]) { streifen(sd < 0 ? rig.armL : rig.armR, 0, -0.3, 0.1, 0.04, 0.4); streifen(sd < 0 ? rig.beinL : rig.beinR, 0, -0.25, 0.14, 0.05, 0.4); }
-    }
-    if (sk === 'drache') {
-      for (const sd of [-1, 1]) {
-        const fluegel = new T.Group(); fluegel.position.set(sd * 0.28, 0.8, -0.36); fluegel.rotation.set(0, sd * 0.55, sd * -0.5); rumpf.add(fluegel);
-        fluegel.add(W.teil(W.box(0.7, 0.05, 0.55), '#F08A3A', sd * 0.35, 0.05, 0, 0.03));
-        fluegel.add(W.teil(W.box(0.74, 0.07, 0.07), '#8F2F1C', sd * 0.37, 0.07, 0.28, 0.02));
-        fluegel.add(W.teil(W.box(0.07, 0.07, 0.6), '#8F2F1C', sd * 0.02, 0.07, 0, 0.02));
-      }
-      const schwanz = W.kegel(0.2, 0.9, 8); schwanz.rotateX(-Math.PI / 2 - 0.4);
-      huefte.add(W.teil(schwanz, '#C4472D', 0, 0.0, -0.62, 0.03));
-      huefte.add(W.teil(W.kegel(0.13, 0.25, 4), '#F2C14E', 0, 0.2, -1.05, 0.02));
-    }
-    if (sk === 'eiskoenig') {
-      rumpf.add(W.teil(W.box(0.82, 1.1, 0.06), '#7CD4FF', 0, 0.35, -0.42, 0.035));
-      const kragen = new T.TorusGeometry(0.36, 0.1, 8, 20); kragen.rotateX(Math.PI / 2); rumpf.add(W.teil(kragen, '#F5F0E4', 0, 0.92, 0, 0.025));
-      for (const sd of [-1, 1]) { const kr = rumpf.add(W.teil(W.kegel(0.1, 0.32, 4), '#BFE9FF', sd * 0.5, 0.95, 0, 0.02)); }
-    }
-    rig.anim = a.emote; rig.aussehen = a;
+    const kopf = new T.Group(); kopf.position.y = 0.77; rumpf.add(kopf); rig.kopf = kopf;
+    [['armL', -0.35, 0.62, rumpf], ['armR', 0.35, 0.62, rumpf], ['beinL', -0.13, 0, huefte], ['beinR', 0.13, 0, huefte]].forEach(([n, x, y, p]) => {
+      const g = new T.Group(); g.position.set(x, y, 0); p.add(g); rig[n] = g;
+    });
+    ['L', 'R'].forEach(s => { const k = new T.Group(); k.position.y = -0.42; rig['bein' + s].add(k); rig['knie' + s] = k; });
     aussen.userData.rig = rig;
+    const d = fertig.get(a.skin);
+    if (d) einsetzen(rig, d, opt); else holen(a.skin).then(d2 => einsetzen(rig, d2, opt)).catch(() => {});
     return aussen;
   }
-
-  function haarBauen(k, typ, f, R) {
-    const W = WF3D, T = W.T;
-    const kappe = (anteil = 0.45, s = 1.06) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
-    const add = (geo, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
-    if (typ === 'glatze') return;
-    if (typ === 'kurz') { const m = add(kappe(0.38), 0, 0, 0); m.rotation.x = -0.25; }
-    if (typ === 'seite') { const m = add(kappe(0.4), 0, 0, 0); m.rotation.set(-0.2, 0, 0.25); const tolle = W.kugel(0.2, 14, 10); tolle.scale(1.7, 0.55, 1.1); add(tolle, -0.12, R * 0.88, R * 0.3).rotation.z = 0.3; }
-    if (typ === 'stachel') {
-      add(kappe(0.36), 0, 0, 0).rotation.x = -0.2;
-      for (let i = 0; i < 8; i++) { const w = i / 8 * Math.PI * 2; const c = add(W.kegel(0.12, 0.34, 6), Math.cos(w) * 0.26, R * 0.95, Math.sin(w) * 0.26 - 0.05, 0.025); c.rotation.set(Math.sin(w) * 0.6, 0, -Math.cos(w) * 0.6); }
-      add(W.kegel(0.13, 0.4, 6), 0, R * 1.12, -0.02, 0.025);
-    }
-    if (typ === 'lang') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; const hinten = W.kugel(R * 1.02, 22, 16); hinten.scale(1, 1.3, 0.62); add(hinten, 0, -0.2, -R * 0.42); }
-    if (typ === 'locken') { add(kappe(0.36), 0, 0, 0); for (let i = 0; i < 11; i++) { const w = i / 11 * Math.PI * 2; add(W.kugel(0.15, 10, 8), Math.cos(w) * R * 0.85, R * 0.55 + (i % 2) * 0.08, Math.sin(w) * R * 0.85 - 0.08, 0.025); } }
-    if (typ === 'zopf') { add(kappe(0.42), 0, 0, 0).rotation.x = -0.2; add(W.kugel(0.13, 12, 10), 0, R * 0.5, -R * 0.95); add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), 0, R * 0.05, -R * 1.12); }
-    if (typ === 'bob') { add(kappe(0.44), 0, 0, 0).rotation.x = -0.2; const h = W.kugel(R * 1.05, 22, 16); h.scale(1, 0.85, 0.72); add(h, 0, -0.1, -R * 0.3); }
-    if (typ === 'dutt') { add(kappe(0.4), 0, 0, 0).rotation.x = -0.25; add(W.kugel(0.22, 12, 10), 0, R * 0.85, -R * 0.55); }
-  }
-
-  function kopfBauen(k, typ, R, a) {
-    const W = WF3D, T = W.T;
-    const add = (geo, f, x, y, z, u = 0.035) => { const m = W.teil(geo, f, x, y, z, u, false); k.add(m); return m; };
-    const kappe = (s, anteil = 0.5) => new T.SphereGeometry(R * s, 24, 12, 0, Math.PI * 2, 0, Math.PI * anteil);
-    if (typ === 'muetze') { add(kappe(1.1, 0.34), a.skin === 'skifahrer' ? '#2F4A7A' : '#D9643A', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#F5F0E4', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#F5F0E4', 0, R * 1.12, 0, 0.02); }
-    if (typ === 'eismuetze') { add(kappe(1.1, 0.34), '#7CD4FF', 0, 0.02, 0).rotation.x = -0.15; const t = new T.TorusGeometry(R * 0.9, 0.08, 8, 24); t.rotateX(Math.PI / 2 - 0.15); add(t, '#F5F0E4', 0, R * 0.52, 0, 0.02); add(W.kugel(0.15), '#F5F0E4', 0, R * 1.12, 0, 0.02); }
-    if (typ === 'eiskrone') { const r = new T.CylinderGeometry(R * 0.72, R * 0.72, 0.22, 16, 1, true); add(r, '#BFE9FF', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 7; i++) { const w = i / 7 * Math.PI * 2; add(W.kegel(0.11, i % 2 ? 0.34 : 0.52, 4), '#7CD4FF', Math.cos(w) * R * 0.68, R * (i % 2 ? 1.2 : 1.28), Math.sin(w) * R * 0.68, 0.02); } }
-    if (typ === 'ritterhelm') {
-      add(kappe(1.14, 0.48), '#B9C2CC', 0, 0.02, 0).rotation.x = -0.1;
-      add(W.box(0.07, 0.3, 0.05), '#8D98A5', 0, R * 0.25, R * 1.02, 0.02);
-      add(W.kegel(0.1, 0.55, 6), '#D9643A', 0, R * 1.08, -0.12, 0.02).rotation.x = -0.4;
-      for (const sd of [-1, 1]) add(W.box(0.07, 0.4, 0.3), '#8D98A5', sd * R * 1.02, -0.08, 0.05, 0.02);
-    }
-    if (typ === 'visier') {
-      const v = new T.Mesh(W.box(0.86, 0.2, 0.1), new T.MeshBasicMaterial({ color: 0x3FE0FF, transparent: true, opacity: 0.85 })); v.position.set(0, 0.08, R * 0.93); k.add(v);
-      add(kappe(1.08, 0.36), '#1F2D4A', 0, 0.02, 0).rotation.x = -0.15;
-    }
-    if (typ === 'drachenhoerner') {
-      for (const sd of [-1, 1]) { const h = add(W.kegel(0.1, 0.5, 6), '#F2C14E', sd * 0.3, R * 0.9, -0.02, 0.025); h.rotation.z = -sd * 0.45; }
-      for (let i = 0; i < 4; i++) add(W.kegel(0.07, 0.18, 4), '#C4472D', 0, R * (1.0 - i * 0.14), -R * (0.1 + i * 0.28), 0.02).rotation.x = -0.5;
-    }
-    if (typ === 'cap') { add(kappe(1.08, 0.4), '#D9643A', 0, 0.02, 0); const s = new T.CylinderGeometry(0.42, 0.42, 0.05, 20, 1, false, -Math.PI / 2, Math.PI); add(s, '#D9643A', 0, R * 0.45, R * 0.55, 0.02); }
-    if (typ === 'stirnband' || typ === 'stirnband_rot') { const t = new T.TorusGeometry(R * 1.0, 0.07, 8, 28); t.rotateX(Math.PI / 2 - 0.15); add(t, typ === 'stirnband_rot' ? '#D9643A' : '#F5F0E4', 0, R * 0.45, 0, 0.02); if (typ === 'stirnband_rot') { add(W.box(0.08, 0.35, 0.04), '#D9643A', 0.1, R * 0.2, -R * 1.0).rotation.z = 0.4; } }
-    if (typ === 'krone') { const r = new T.CylinderGeometry(R * 0.62, R * 0.62, 0.22, 16, 1, true); add(r, '#F2C14E', 0, R * 1.0, 0, 0.025); for (let i = 0; i < 5; i++) { const w = i / 5 * Math.PI * 2; add(W.kegel(0.07, 0.2, 4), '#F2C14E', Math.cos(w) * R * 0.58, R * 1.2, Math.sin(w) * R * 0.58, 0.02); } }
-    if (typ === 'helm') { add(kappe(1.14, 0.38), '#3FA9E6', 0, 0.03, 0).rotation.x = -0.15; const kamm = new T.SphereGeometry(R * 1.17, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.3); kamm.scale(0.3, 1, 1); add(kamm, '#2B2826', 0, 0.03, 0, 0).rotation.x = -0.15; }
-    if (typ === 'hasenohren') for (const s of [-1, 1]) { const o = add(new T.CapsuleGeometry(0.1, 0.5, 4, 8), '#F5F0E4', s * 0.2, R * 1.35, -0.05, 0.025); o.rotation.z = -s * 0.2; }
-    if (typ === 'kopfhoerer') { const t = new T.TorusGeometry(R * 1.05, 0.05, 8, 24, Math.PI); add(t, '#2B2826', 0, 0, 0, 0.015); for (const s of [-1, 1]) { const c = W.rohr(0.17, 0.12, 16); c.rotateZ(Math.PI / 2); add(c, '#D9643A', s * R * 1.02, 0, 0, 0.02); } }
-    if (typ === 'baerohren') for (const s of [-1, 1]) add(W.kugel(0.15), '#F5F0E4', s * R * 0.65, R * 0.8, 0, 0.025);
-    if (typ === 'dino') { add(kappe(1.1, 0.36), '#3E7A55', 0, 0, -0.02).rotation.x = -0.35; for (let i = 0; i < 4; i++) add(W.kegel(0.08, 0.2, 4), '#8CC084', 0, R * (1.05 - i * 0.18), -R * (0.15 + i * 0.3), 0.02); }
-    if (typ === 'raumhelm') { const glas = new T.Mesh(W.kugel(R * 1.32, 24, 18), new T.MeshBasicMaterial({ color: 0xBFE6FF, transparent: true, opacity: 0.16, depthWrite: false })); glas.renderOrder = 2; k.add(glas); const rand = new T.TorusGeometry(R * 1.05, 0.06, 8, 28); rand.rotateX(Math.PI / 2); k.add(W.teil(rand, '#D0D0D0', 0, -R * 0.85, 0, 0.02)); }
-  }
-
-  function extraBauen(rig, typ, R) {
-    const W = WF3D, T = W.T, k = rig.kopf;
-    if (typ === 'brille' || typ === 'sonnenbrille' || typ === 'skibrille') {
-      if (typ === 'skibrille') { const t = new T.TorusGeometry(R * 1.04, 0.045, 8, 28); t.rotateX(Math.PI / 2 - 0.25); k.add(W.teil(t, '#2B2826', 0, R * 0.5, 0, 0, false)); const glas = W.kugel(0.16, 14, 10); glas.scale(1.9, 0.75, 0.6); k.add(W.teil(glas, '#F2C14E', 0, R * 0.66, R * 0.78, 0.025)); return; }
-      for (const s of [-1, 1]) {
-        if (typ === 'brille') { const t = new T.TorusGeometry(0.11, 0.025, 6, 16); k.add(W.teil(t, '#2B2826', s * 0.17, 0.1, R * 0.97, 0)); }
-        else k.add(W.teil(W.rohr(0.13, 0.04, 16).rotateX(Math.PI / 2), '#2B2826', s * 0.17, 0.1, R * 0.97, 0.015));
+  function einsetzen(rig, d, opt) {
+    const T = WF3D.T, inst = aufbauen(d);
+    const glbW = inst.getObjectByName('wurzel') || inst;
+    rig.wurzel.clear();
+    [...glbW.children].forEach(c => rig.wurzel.add(c));
+    const n = name => rig.wurzel.getObjectByName(name);
+    ['huefte', 'rumpf', 'kopf', 'beinL', 'beinR', 'knieL', 'knieR'].forEach(k => { rig[k] = n(k) || rig[k]; });
+    // Arme: die A-Pose steckt im Mesh, die Animationen setzen sie selbst. Darum innen zurückdrehen, außen animieren.
+    [[-1, 'armL'], [1, 'armR']].forEach(([s, name]) => {
+      const arm = n(name); if (!arm) return;
+      const g = new T.Group(); g.name = name + '_gelenk'; g.position.copy(arm.position);
+      arm.parent.add(g); arm.position.set(0, 0, 0); arm.rotation.z = -s * 0.16; g.add(arm);
+      rig[name] = g;
+    });
+    const ex = { vfx: [], fluegel: [n('fluegelL'), n('fluegelR')].filter(Boolean), augen: [], begleiter: null, umhang: n('umhang') };
+    rig.umhang = ex.umhang || null;
+    rig.wurzel.traverse(o => {
+      if (!o.name) return;
+      if (o.name.startsWith('vfx_')) {
+        const t = VFX_ANIM.find(([re]) => re.test(o.name));
+        ex.vfx.push({ o, anim: t ? t[1] : 'schweben', ph: ex.vfx.length * 1.7, b: o.position.clone() });
       }
-      k.add(W.teil(W.box(0.12, 0.03, 0.03), '#2B2826', 0, 0.12, R * 1.0, 0));
+      if (/^auge[LR]?$/.test(o.name)) ex.augen.push(o);
+    });
+    const bg = n('begleiter');
+    if (bg) ex.begleiter = { o: bg, b: bg.position.clone(), art: bg.parent === rig.rumpf ? 'schulter' : bg.position.y > 0.6 ? 'schweben' : 'boden' };
+    if (opt.boese) [['braueL', -1], ['braueR', 1], ['braue', 0]].forEach(([b, s]) => { const o = n(b); if (o) o.rotation.z = s * 0.35; });
+    rig.extra = ex;
+  }
+  // Leuchtteile, Flügel, Umhang, Begleiter und Blinzeln. Läuft am Ende jeder Haltung.
+  function bewegen(r, name, t) {
+    const ex = r.extra; if (!ex) return;
+    const s = Math.sin;
+    ex.vfx.forEach(v => {
+      const o = v.o, ph = v.ph;
+      switch (v.anim) {
+        case 'drehen': o.rotation.y = t * 0.9; break;
+        case 'strahlen': o.rotation.z = t * 0.35; break;
+        case 'kreisen': o.rotation.y = t * 1.1; break;
+        case 'schweben': o.position.y = v.b.y + s(t * 1.3 + ph) * 0.07; o.rotation.y = t * 0.25 * (ph % 2 > 1 ? 1 : -1); break;
+        case 'funkeln': o.visible = s(t * 3 + ph) > -0.4; o.rotation.y = t * 0.2; break;
+        case 'fallen': o.position.y = v.b.y + s(t * 0.8 + ph) * 0.12; o.rotation.y = t * 0.35 * (ph % 2 > 1 ? 1 : -1); break;
+        case 'steigen': o.position.y = v.b.y + s(t * 1.6 + ph) * 0.1; o.rotation.y = -t * 0.3; break;
+        case 'pulsieren': o.scale.setScalar(1 + 0.07 * s(t * 3 + ph)); break;
+        case 'flackern': o.visible = (t * 12 + ph * 5) % 3 > 0.5; o.scale.y = 0.85 + 0.25 * Math.abs(s(t * 13 + ph)); break;
+        case 'wabern': o.rotation.y = t * 0.25; o.scale.set(1 + 0.05 * s(t * 2), 1 + 0.12 * s(t * 2.6), 1 + 0.05 * s(t * 2)); break;
+      }
+    });
+    ex.fluegel.forEach((f, i) => { f.rotation.y = (i ? 1 : -1) * (0.12 + 0.14 * s(t * 3)); });
+    if (ex.umhang && name !== 'pose') ex.umhang.rotation.x = (name === 'laufen' ? 0.35 : 0.04) + 0.04 * s(t * 2.2);
+    const b = ex.begleiter;
+    if (b) {
+      if (b.art === 'schweben') { b.o.position.y = b.b.y + s(t * 1.4) * 0.08; b.o.rotation.y = s(t * 0.7) * 0.4; }
+      else if (b.art === 'boden') b.o.rotation.y = s(t * 1.5) * 0.25;
+      else b.o.rotation.z = s(t * 2) * 0.08;
     }
-    if (typ === 'schal') { const t = new T.TorusGeometry(0.33, 0.1, 8, 20); t.rotateX(Math.PI / 2); rig.rumpf.add(W.teil(t, '#D9643A', 0, 0.9, 0, 0.025)); rig.rumpf.add(W.teil(W.box(0.16, 0.42, 0.08), '#D9643A', 0.16, 0.66, 0.36, 0.025)); }
-    if (typ === 'medaille') { rig.rumpf.add(W.teil(W.rohr(0.13, 0.04, 18).rotateX(Math.PI / 2), '#F2C14E', 0, 0.55, 0.38, 0.02)); }
-    if (typ === 'umhang') { const g = new T.PlaneGeometry(0.85, 1.1, 6, 6); g.translate(0, -0.55, 0); const m = new T.Mesh(g, W.mat('#D9643A', { side: T.DoubleSide })); m.position.set(0, 0.95, -0.38); m.rotation.x = 0.12; rig.rumpf.add(m); rig.umhang = m; }
+    const zu = (t % 3.7) < 0.12;
+    ex.augen.forEach(a => { a.scale.y = zu ? 0.15 : 1; });
   }
 
   /* ---------- Animationen ---------- */
@@ -315,6 +252,7 @@
       default: r.rumpf.scale.set(1 + atem, 1 + atem, 1 + atem); r.armL.rotation.z = -0.12 - atem; r.armR.rotation.z = 0.12 + atem;
     }
     if (name !== 'flex' && name !== 'muskeln' && name !== 'idle' && name !== undefined) r.rumpf.scale.set(1, 1, 1);
+    bewegen(r, name, t);
   }
 
   /* ---------- Hintergründe (hinter der Figur in Cutscene, Duell, Profil, Ergebnis) ---------- */
@@ -406,6 +344,8 @@
   }
 
   const PERIODE = { winken: 0.79, jubeln: 0.63, hampelmann: 0.9, flex: 2.1, tanzen: 1.05, pose: 1.6, robot: 1.6, salto: 2.4, starren: 3.14, zeigen: 1.05, faust: 0.9, muskeln: 1.26, trommeln: 0.52, lachen: 0.39, gaehnen: 3.93 };
-  window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund };
+  const vorladen = look => holen(pruefen(typeof look === 'string' ? { skin: look } : look).skin).then(() => true).catch(() => false);
+  window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund, vorladen,
+    SKINS, KLASSEN, skinInfo: id => INFO[id] || null, bild: id => ORDNER + 'bilder/' + id + '.webp' };
 
 })();

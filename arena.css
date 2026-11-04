@@ -96,6 +96,18 @@ body.papier main{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .ar-wahl button.zu.an{background:var(--gold)}
 .ar-wahl small{display:flex;align-items:center;justify-content:center;gap:3px;font-family:var(--dick);font-size:14px;margin-top:2px}
 .ar-wahl small .ar-coin{width:16px}
+/* Skin-Raster im Editor: Bild, Name, Preis, Rand in der Farbe der Klasse */
+.ar-h small{font-family:var(--hand);font-size:15px;opacity:.7;margin-left:6px}
+.ar-skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:9px}
+.ar-skin{position:relative;display:flex;flex-direction:column;align-items:center;padding:4px 4px 6px;background:color-mix(in srgb,var(--kl) 28%,#FAF6EB);color:var(--graphit);border:3px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);font-family:var(--hand);font-size:15px;line-height:1.05}
+.ar-skin img{width:100%;aspect-ratio:4/5;object-fit:contain;display:block}
+.ar-skin b{font-weight:400;margin-top:2px;text-align:center}
+.ar-skin small{display:flex;align-items:center;gap:3px;font-family:var(--dick);font-size:13px;margin-top:2px}
+.ar-skin small .ar-coin,.ar-skin small .ar-gem{width:15px}
+.ar-skin.zu img{filter:saturate(.55) brightness(.92)}
+.ar-skin.an{outline:3px solid var(--graphit);outline-offset:2px;background:var(--marker)}
+.ar-skin.zu.an{background:var(--gold)}
+.ar-skin::before{content:"";position:absolute;left:6px;right:6px;top:4px;height:5px;border-radius:3px;background:var(--kl)}
 .ar-fuss{position:sticky;bottom:-20px;margin:16px -16px -20px;padding:4px 16px 18px;background:var(--papier);border-top:3px solid var(--graphit);border-radius:0 0 17px 17px}
 
 /* ---------- Rennen ---------- */

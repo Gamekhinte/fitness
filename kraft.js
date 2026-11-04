@@ -436,7 +436,7 @@
   const gName = (s, seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Trainingspartner' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerName = s => gName(s, D.seite);
   const gegnerWert = s => s.aufzeichnung ? (s.geist_wert || 0) : (D.seite === 'a' ? s.b_wert : s.a_wert);
-  const PACE = { haut: '#A9744E', haare: 'locken', haarfarbe: '#2B2826', augen: 'wach', mund: 'grinsen', oberteil: '#D9643A', hose: '#2B2826', schuhe: '#FAF6EB', kopf: 'stirnband', hg: 'graffiti' };
+  const PACE = { skin: 'ringer', hg: 'graffiti' };
   const gegnerFigur = s => { const f = s.aufzeichnung ? s.geist_figur : (D.seite === 'a' ? s.b_figur : s.a_figur); return Figur.pruefen(f && Object.keys(f).length ? f : PACE); };
 
   /* ---------- Gegner-Avatar im Kamerabild: macht seine Wiederholungen mit (nur die Figur, nie der echte Gegner) ---------- */

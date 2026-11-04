@@ -405,6 +405,10 @@ body.papier main{padding-top:0}
 .sel-selten .sh-sel{background:#7CC4F0}
 .sel-episch .sh-sel{background:#F0A07A}
 .sel-legendaer .sh-sel{background:var(--gold)}
+.sel-gewoehnlich .sh-sel{background:#A8D4A6}
+.sel-spezial .sh-sel{background:#7CD4FF}
+.rs-karte.sel-spezial{background:#D6F1FF}.rs-karte.sel-spezial>i{background:#7CD4FF}
+.rs-enth.sel-spezial{background:#7CD4FF}
 .sel-selten{border-color:#2B2A33}
 .sh-raster.vier .sh-sel{font-size:9px;padding:0 4px;top:4px;left:4px}
 

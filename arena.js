@@ -394,7 +394,7 @@
   $('arGems').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
-  const REITER = [['typ', 'Typ'], ['gesicht', 'Gesicht'], ['haare', 'Haare'], ['kleidung', 'Kleidung'], ['extras', 'Extras'], ['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
+  const REITER = [['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
   let E = null;
   const besitzt = (kat, id) => !Figur.preis(kat, id) || F.besitz.includes(kat + ':' + id);
   function gesperrt(a) {
@@ -402,7 +402,7 @@
       .map(k => ({ kat: k, id: a[k], name: (Figur.KATALOG[k].find(x => x[0] === a[k]) || [])[1], preis: Figur.preis(k, a[k]) }));
   }
   function editor(reiter) {
-    E = { a: Object.assign({}, F.aussehen), reiter: reiter || (store.get('wf-typ-ok', false) ? 'gesicht' : 'typ') };
+    E = { a: Object.assign({}, F.aussehen), reiter: REITER.some(r => r[0] === reiter) ? reiter : 'skins' };
     editorMalen(false);
   }
   function editorMalen(bleiben) {
@@ -413,13 +413,17 @@
       const hab = besitzt(feld, id);
       return `<button data-feld="${feld}" data-wert="${id}" class="${a[feld] === id ? 'an' : ''}${hab ? '' : ' zu'}">${name}${hab ? '' : `<small>${preisArt(preis) === 'coins' ? coin + preis : preisArt(preis) === 'gems' ? gem + preisWert(preis) : 'Pass'}</small>`}</button>`;
     }).join('')}</div>`;
+    const preisText = p => preisArt(p) === 'coins' ? coin + p : preisArt(p) === 'gems' ? gem + preisWert(p) : 'Pass';
+    // Skins nach Klasse, mit Bild. Je seltener, desto mehr Gold und Effekte.
+    const skins = () => Object.entries(Figur.KLASSEN).map(([kl, [name, farbe]]) => {
+      const l = Figur.SKINS.filter(s => s.klasse === kl); if (!l.length) return '';
+      return `<h3 class="ar-h">${name}<small>${l.filter(s => besitzt('skin', s.id)).length} von ${l.length}</small></h3><div class="ar-skins">${l.map(s => {
+        const hab = besitzt('skin', s.id);
+        return `<button data-feld="skin" data-wert="${s.id}" class="ar-skin${a.skin === s.id ? ' an' : ''}${hab ? '' : ' zu'}" style="--kl:${farbe}"><img src="${Figur.bild(s.id)}" alt="" loading="lazy" decoding="async"><b>${e(s.name)}</b>${hab ? '' : `<small>${preisText(s.preis)}</small>`}</button>`;
+      }).join('')}</div>`;
+    }).join('');
     const inhalt = {
-      typ: () => `<p class="ar-hand">Wähle deinen Körper. Alles andere kannst du danach anpassen.</p><div class="ar-typ">${[['mann', 'Mann'], ['frau', 'Frau']].map(([id, n]) => `<button data-feld="typ" data-wert="${id}" class="${a.typ === id ? 'an' : ''}">${n}</button>`).join('')}</div>`,
-      gesicht: () => farbe('haut', K.haut, 'Hautfarbe') + wahl('augen', K.augen, 'Augen') + wahl('brauen', K.brauen, 'Augenbrauen') + wahl('mund', K.mund, 'Mund') + wahl('gesicht', K.gesicht, 'Im Gesicht'),
-      haare: () => wahl('haare', K.haare, 'Frisur') + farbe('haarfarbe', K.haarfarbe, 'Haarfarbe'),
-      kleidung: () => farbe('oberteil', K.farben, 'Oberteil') + farbe('hose', K.hosen, 'Hose') + farbe('schuhe', K.schuhe, 'Schuhe'),
-      extras: () => wahl('kopf', K.kopf, 'Auf dem Kopf') + wahl('extra', K.extra, 'Extra'),
-      skins: () => '<p class="ar-hand">Ein Skin ersetzt Kleidung und Kopf. Gesicht bleibt deins.</p>' + wahl('skin', K.skin, 'Skins'),
+      skins: () => '<p class="ar-hand">Jeder Skin ist eine eigene Figur aus der griechischen Sagenwelt.</p>' + skins(),
       emotes: () => '<p class="ar-hand">Deine Figur zeigt sie auf der Insel und nach jedem Sieg.</p>' + wahl('emote', K.emote, 'Animationen'),
       intro: () => '<p class="ar-hand">Läuft in der Cutscene vor jedem Duell. Dein Gegner sieht es.</p>' + wahl('intro', K.intro, 'Intro'),
       hg: () => '<p class="ar-hand">Hinter deiner Figur in Cutscene, Duell und Ergebnis.</p>' + wahl('hg', K.hg, 'Hintergrund')
@@ -596,7 +600,7 @@
     if (window.Klang) Klang.effekt('niederlage');
     profilLaden().then(zeichnen);
   }
-  const PACE_LOOK = { haut: '#D19F74', haare: 'stachel', haarfarbe: '#2B2826', augen: 'froh', mund: 'grinsen', oberteil: '#F2C14E', hose: '#2F4A7A', schuhe: '#D9643A', kopf: 'stirnband' };
+  const PACE_LOOK = { skin: 'marathon' };
   function gegnerFigur(s, seite = R && R.seite) {
     const f = s.aufzeichnung ? s.geist_figur : (seite === 'a' ? s.b_figur : s.a_figur);
     return Figur.pruefen(f && Object.keys(f).length ? f : PACE_LOOK);

@@ -14,9 +14,9 @@
   const e = s => esc(s);
   const el = id => document.getElementById(id);
   const mit = a => Object.assign({ p_id: ich().id, p_geheim: ich().geheim }, a);
-  const KAT = { kopf: 'Kopf', extra: 'Extra', skin: 'Outfit', emote: 'Animation', intro: 'Intro', hg: 'Hintergrund' };
+  const KAT = { kopf: 'Kopf', extra: 'Extra', skin: 'Skin', emote: 'Animation', intro: 'Intro', hg: 'Hintergrund' };
   const gem = '<img class="ar-gem" src="arena/gem.svg" alt="Gems">';
-  const HAUPTPREIS = 'skin:eiskoenig';
+  const HAUPTPREIS = 'skin:eiszeus';
   let P = null, VORSCHAU = HAUPTPREIS;
 
   function itemName(wert) {
@@ -24,7 +24,11 @@
     return [KAT[k] || k, x ? x[1] : i];
   }
   // Seltenheit nur zur Anzeige: Outfits sind episch, der Eiskönig legendär, der Rest selten
-  const seltenheit = wert => wert === HAUPTPREIS ? 'legendaer' : String(wert).startsWith('skin:') ? 'episch' : 'selten';
+  // Skins zeigen ihre echte Klasse, der Rest gilt als selten
+  const seltenheit = wert => {
+    const s = String(wert).startsWith('skin:') && window.Figur && Figur.skinInfo(String(wert).slice(5));
+    return s ? (s.klasse === 'ungewoehnlich' ? 'selten' : s.klasse === 'spezial' ? 'legendaer' : s.klasse) : 'selten';
+  };
   const SELT_NAME = { legendaer: 'Legendär', episch: 'Episch', selten: 'Selten' };
 
   /* ---------- Pass-Knopf neben BATTLE ---------- */
@@ -92,17 +96,17 @@
     const prem = P.belohnungen.filter(r => r.spur === 'premium');
     const gems = prem.filter(r => r.art === 'gems').reduce((s, r) => s + (+r.wert), 0), items = prem.filter(r => r.art === 'item').length;
     A.zeigeBlatt(`${zu}
-      <div class="ps-hero legendaer"><span>Winterpass Premium</span><b>Eiskönig und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
+      <div class="ps-hero legendaer"><span>Winterpass Premium</span><b>Eis-Zeus und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
       <ul class="ps-vorteile">
         <li><b>Coach</b>Dein KI-Trainer baut dir Pläne und beantwortet Fragen.</li>
-        <li><b>${items} Kosmetik-Teile</b>Eiskönig, Eiskrone, Polarlicht und mehr, nur in der Premium-Spur.</li>
+        <li><b>${items} Kosmetik-Teile</b>Eis-Zeus, Chione, Nike und mehr, nur in der Premium-Spur.</li>
         <li><b>${gems} ${gem}</b>Extra Gems für besondere Outfits.</li>
         <li><b>Fair</b>Keine Vorteile im Rennen, Pokale gibt es nie zu kaufen.</li>
       </ul>
       <button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${P.premium_preis} ${A.coin}</button>
       <button class="ar-knopf breit leise2" data-pass="oeffnen">Alle Belohnungen ansehen</button>
       ${manuell ? '' : '<button class="so-spaeter" data-pass="spaeter">Später</button>'}`, 'profil',
-      { aussehen: Object.assign({}, A.F().aussehen, { skin: 'eiskoenig', hg: 'leer' }) });
+      { aussehen: Object.assign({}, A.F().aussehen, { skin: 'eiszeus', hg: 'leer' }) });
     $('arB3d').style.background = '#1F3A5F';
   }
   setInterval(() => { if (angebotFaellig()) angebot(false); }, 20000);

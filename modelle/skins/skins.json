@@ -1,0 +1,1905 @@
+[
+ {
+  "id": "hirte",
+  "name": "Hirte",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "hirte.glb",
+  "dreiecke": 2924,
+  "bytes": 72324,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "hirtin",
+  "name": "Hirtin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "hirtin.glb",
+  "dreiecke": 4448,
+  "bytes": 106928,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "olympionike",
+  "name": "Olympionike",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "olympionike.glb",
+  "dreiecke": 4132,
+  "bytes": 96708,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "olympionikin",
+  "name": "Olympionikin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "olympionikin.glb",
+  "dreiecke": 4228,
+  "bytes": 99336,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "marathon",
+  "name": "Marathonläufer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "marathon.glb",
+  "dreiecke": 3012,
+  "bytes": 73780,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "ringer",
+  "name": "Ringer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "ringer.glb",
+  "dreiecke": 2884,
+  "bytes": 69300,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "diskuswerferin",
+  "name": "Diskuswerferin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "diskuswerferin.glb",
+  "dreiecke": 3112,
+  "bytes": 76808,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "speerwerfer",
+  "name": "Speerwerfer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "speerwerfer.glb",
+  "dreiecke": 3252,
+  "bytes": 79620,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "fischer",
+  "name": "Fischer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "fischer.glb",
+  "dreiecke": 3252,
+  "bytes": 80620,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "toepferin",
+  "name": "Töpferin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "toepferin.glb",
+  "dreiecke": 3296,
+  "bytes": 81340,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "winzer",
+  "name": "Winzer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "winzer.glb",
+  "dreiecke": 4708,
+  "bytes": 109196,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "baeckerin",
+  "name": "Bäckerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "baeckerin.glb",
+  "dreiecke": 3240,
+  "bytes": 81488,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "philosoph",
+  "name": "Philosoph",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "philosoph.glb",
+  "dreiecke": 3336,
+  "bytes": 82652,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "philosophin",
+  "name": "Philosophin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "philosophin.glb",
+  "dreiecke": 3348,
+  "bytes": 83244,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "schreiber",
+  "name": "Schreiber",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "schreiber.glb",
+  "dreiecke": 2876,
+  "bytes": 72828,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "bauer",
+  "name": "Bauer",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "bauer.glb",
+  "dreiecke": 3308,
+  "bytes": 82240,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "gaertnerin",
+  "name": "Gärtnerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "gaertnerin.glb",
+  "dreiecke": 3580,
+  "bytes": 87708,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "haendler",
+  "name": "Händler",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "haendler.glb",
+  "dreiecke": 3216,
+  "bytes": 78564,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "floetistin",
+  "name": "Flötenspielerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "floetistin.glb",
+  "dreiecke": 3180,
+  "bytes": 77696,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "taenzerin",
+  "name": "Tänzerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "taenzerin.glb",
+  "dreiecke": 4344,
+  "bytes": 100628,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "rekrut",
+  "name": "Hoplit-Rekrut",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "rekrut.glb",
+  "dreiecke": 3460,
+  "bytes": 83888,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "rekrutin",
+  "name": "Hoplit-Rekrutin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "rekrutin.glb",
+  "dreiecke": 3556,
+  "bytes": 87240,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "legionaer",
+  "name": "Legionär",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "legionaer.glb",
+  "dreiecke": 3500,
+  "bytes": 86348,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "legionaerin",
+  "name": "Legionärin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "legionaerin.glb",
+  "dreiecke": 3556,
+  "bytes": 87244,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "wagenlenker",
+  "name": "Wagenlenker",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "wagenlenker.glb",
+  "dreiecke": 3404,
+  "bytes": 82688,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "bogenschuetzin",
+  "name": "Bogenschützin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "bogenschuetzin.glb",
+  "dreiecke": 3228,
+  "bytes": 79748,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "tempeldienerin",
+  "name": "Tempeldienerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "tempeldienerin.glb",
+  "dreiecke": 3724,
+  "bytes": 91636,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "gladiatorschueler",
+  "name": "Gladiatorenschüler",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "gladiatorschueler.glb",
+  "dreiecke": 2944,
+  "bytes": 72824,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "senator",
+  "name": "Senator",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "senator.glb",
+  "dreiecke": 3124,
+  "bytes": 78384,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "vestalin",
+  "name": "Vestalin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "vestalin.glb",
+  "dreiecke": 3436,
+  "bytes": 83136,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "wiesennymphe",
+  "name": "Wiesennymphe",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "wiesennymphe.glb",
+  "dreiecke": 4312,
+  "bytes": 100052,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "satyrjunge",
+  "name": "Satyr-Junge",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "satyrjunge.glb",
+  "dreiecke": 3280,
+  "bytes": 75308,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "bote",
+  "name": "Bote",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "bote.glb",
+  "dreiecke": 3140,
+  "bytes": 79268,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "seefahrerin",
+  "name": "Seefahrerin",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "w",
+  "datei": "seefahrerin.glb",
+  "dreiecke": 3324,
+  "bytes": 81492,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "schmiedlehrling",
+  "name": "Schmiedelehrling",
+  "klasse": "ungewoehnlich",
+  "geschlecht": "m",
+  "datei": "schmiedlehrling.glb",
+  "dreiecke": 2920,
+  "bytes": 71812,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "achilles",
+  "name": "Achilles",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "achilles.glb",
+  "dreiecke": 4430,
+  "bytes": 113388,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "atalante",
+  "name": "Atalante",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "atalante.glb",
+  "dreiecke": 3796,
+  "bytes": 93740,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "perseus",
+  "name": "Perseus",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "perseus.glb",
+  "dreiecke": 3296,
+  "bytes": 85224,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "andromeda",
+  "name": "Andromeda",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "andromeda.glb",
+  "dreiecke": 3720,
+  "bytes": 91520,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "theseus",
+  "name": "Theseus",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "theseus.glb",
+  "dreiecke": 4480,
+  "bytes": 109112,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "ariadne",
+  "name": "Ariadne",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "ariadne.glb",
+  "dreiecke": 3644,
+  "bytes": 90720,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "odysseus",
+  "name": "Odysseus",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "odysseus.glb",
+  "dreiecke": 3728,
+  "bytes": 91364,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "penelope",
+  "name": "Penelope",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "penelope.glb",
+  "dreiecke": 3576,
+  "bytes": 88124,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "jason",
+  "name": "Jason",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "jason.glb",
+  "dreiecke": 3300,
+  "bytes": 82372,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "medea",
+  "name": "Medea",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "medea.glb",
+  "dreiecke": 3640,
+  "bytes": 91200,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "orpheus",
+  "name": "Orpheus",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "orpheus.glb",
+  "dreiecke": 4396,
+  "bytes": 106520,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "eurydike",
+  "name": "Eurydike",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "eurydike.glb",
+  "dreiecke": 4580,
+  "bytes": 110188,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "amazone",
+  "name": "Amazone",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "amazone.glb",
+  "dreiecke": 3614,
+  "bytes": 91252,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "spartaner",
+  "name": "Spartaner",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "spartaner.glb",
+  "dreiecke": 4674,
+  "bytes": 117404,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "spartanerin",
+  "name": "Spartanerin",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "spartanerin.glb",
+  "dreiecke": 3932,
+  "bytes": 95768,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "gladiator",
+  "name": "Gladiator",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "gladiator.glb",
+  "dreiecke": 3688,
+  "bytes": 92280,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "gladiatorin",
+  "name": "Gladiatorin",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "gladiatorin.glb",
+  "dreiecke": 3348,
+  "bytes": 84704,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "satyr",
+  "name": "Satyr",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "satyr.glb",
+  "dreiecke": 4832,
+  "bytes": 113508,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "dryade",
+  "name": "Dryade",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "dryade.glb",
+  "dreiecke": 3832,
+  "bytes": 88660,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "najade",
+  "name": "Najade",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "najade.glb",
+  "dreiecke": 3132,
+  "bytes": 74060,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "kalliope",
+  "name": "Kalliope",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "kalliope.glb",
+  "dreiecke": 4148,
+  "bytes": 100000,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "terpsichore",
+  "name": "Terpsichore",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "terpsichore.glb",
+  "dreiecke": 4396,
+  "bytes": 104092,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "ikarus",
+  "name": "Ikarus",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "ikarus.glb",
+  "dreiecke": 3452,
+  "bytes": 82572,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "daidalos",
+  "name": "Daidalos",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "daidalos.glb",
+  "dreiecke": 3340,
+  "bytes": 82388,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "bellerophon",
+  "name": "Bellerophon",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "bellerophon.glb",
+  "dreiecke": 4060,
+  "bytes": 104012,
+  "vfx": [],
+  "begleiter": {
+   "art": "pegasus",
+   "anim": "schweben"
+  },
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "kassandra",
+  "name": "Kassandra",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "kassandra.glb",
+  "dreiecke": 3576,
+  "bytes": 88456,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "helena",
+  "name": "Helena",
+  "klasse": "selten",
+  "geschlecht": "w",
+  "datei": "helena.glb",
+  "dreiecke": 3576,
+  "bytes": 90248,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "paris",
+  "name": "Paris",
+  "klasse": "selten",
+  "geschlecht": "m",
+  "datei": "paris.glb",
+  "dreiecke": 3384,
+  "bytes": 83760,
+  "vfx": [],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "herakles",
+  "name": "Herakles",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "herakles.glb",
+  "dreiecke": 4882,
+  "bytes": 125344,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "hippolyte",
+  "name": "Hippolyte",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "hippolyte.glb",
+  "dreiecke": 4198,
+  "bytes": 121436,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "medusa",
+  "name": "Medusa",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "medusa.glb",
+  "dreiecke": 4404,
+  "bytes": 116764,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "minotauros",
+  "name": "Minotauros",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "minotauros.glb",
+  "dreiecke": 3288,
+  "bytes": 81076,
+  "vfx": [
+   {
+    "objekt": "vfx_dampf",
+    "anim": "steigen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "kirke",
+  "name": "Kirke",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "kirke.glb",
+  "dreiecke": 3904,
+  "bytes": 96960,
+  "vfx": [
+   {
+    "objekt": "vfx_orbs",
+    "anim": "kreisen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "nike",
+  "name": "Nike",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "nike.glb",
+  "dreiecke": 4900,
+  "bytes": 129216,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "eros",
+  "name": "Eros",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "eros.glb",
+  "dreiecke": 4216,
+  "bytes": 104820,
+  "vfx": [
+   {
+    "objekt": "vfx_herzen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_herzen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_herzen_2",
+    "anim": "steigen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "psyche",
+  "name": "Psyche",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "psyche.glb",
+  "dreiecke": 4936,
+  "bytes": 127504,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "talos",
+  "name": "Talos",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "talos.glb",
+  "dreiecke": 2732,
+  "bytes": 80008,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "sirene",
+  "name": "Sirene",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "sirene.glb",
+  "dreiecke": 3892,
+  "bytes": 91100,
+  "vfx": [
+   {
+    "objekt": "vfx_blasen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_2",
+    "anim": "steigen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "zyklop",
+  "name": "Zyklop",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "zyklop.glb",
+  "dreiecke": 2600,
+  "bytes": 76280,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "prometheus",
+  "name": "Prometheus",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "prometheus.glb",
+  "dreiecke": 3760,
+  "bytes": 111112,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "pandora",
+  "name": "Pandora",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "pandora.glb",
+  "dreiecke": 3888,
+  "bytes": 98792,
+  "vfx": [
+   {
+    "objekt": "vfx_orbs",
+    "anim": "kreisen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "harpyie",
+  "name": "Harpyie",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "harpyie.glb",
+  "dreiecke": 3384,
+  "bytes": 83308,
+  "vfx": [
+   {
+    "objekt": "vfx_federn_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_2",
+    "anim": "fallen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "pan",
+  "name": "Pan",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "pan.glb",
+  "dreiecke": 4976,
+  "bytes": 115980,
+  "vfx": [
+   {
+    "objekt": "vfx_blaetter_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blaetter_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blaetter_2",
+    "anim": "fallen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "sphinx",
+  "name": "Sphinx",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "sphinx.glb",
+  "dreiecke": 3812,
+  "bytes": 104012,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": true,
+  "umhang": false
+ },
+ {
+  "id": "triton",
+  "name": "Triton",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "triton.glb",
+  "dreiecke": 4760,
+  "bytes": 118088,
+  "vfx": [
+   {
+    "objekt": "vfx_blasen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_2",
+    "anim": "steigen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "echo",
+  "name": "Echo",
+  "klasse": "episch",
+  "geschlecht": "w",
+  "datei": "echo.glb",
+  "dreiecke": 4208,
+  "bytes": 97060,
+  "vfx": [
+   {
+    "objekt": "vfx_ring_0",
+    "anim": "pulsieren"
+   },
+   {
+    "objekt": "vfx_ring_1",
+    "anim": "pulsieren"
+   },
+   {
+    "objekt": "vfx_ring_2",
+    "anim": "pulsieren"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "narziss",
+  "name": "Narziss",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "narziss.glb",
+  "dreiecke": 4352,
+  "bytes": 116868,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "morpheus",
+  "name": "Morpheus",
+  "klasse": "episch",
+  "geschlecht": "m",
+  "datei": "morpheus.glb",
+  "dreiecke": 4476,
+  "bytes": 121464,
+  "vfx": [
+   {
+    "objekt": "vfx_sterne_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "zeus",
+  "name": "Zeus",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "zeus.glb",
+  "dreiecke": 5692,
+  "bytes": 140328,
+  "vfx": [
+   {
+    "objekt": "vfx_blitz_0",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_blitz_1",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_blitz_2",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": {
+   "art": "adler",
+   "anim": null
+  },
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "hera",
+  "name": "Hera",
+  "klasse": "legendaer",
+  "geschlecht": "w",
+  "datei": "hera.glb",
+  "dreiecke": 5024,
+  "bytes": 130308,
+  "vfx": [
+   {
+    "objekt": "vfx_federn_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "poseidon",
+  "name": "Poseidon",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "poseidon.glb",
+  "dreiecke": 5902,
+  "bytes": 138272,
+  "vfx": [
+   {
+    "objekt": "vfx_wasser",
+    "anim": "drehen"
+   },
+   {
+    "objekt": "vfx_blasen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_2",
+    "anim": "steigen"
+   }
+  ],
+  "begleiter": {
+   "art": "delfin",
+   "anim": "schweben"
+  },
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "athene",
+  "name": "Athene",
+  "klasse": "legendaer",
+  "geschlecht": "w",
+  "datei": "athene.glb",
+  "dreiecke": 5232,
+  "bytes": 142280,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": {
+   "art": "eule",
+   "anim": null
+  },
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "apollon",
+  "name": "Apollon",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "apollon.glb",
+  "dreiecke": 4420,
+  "bytes": 130716,
+  "vfx": [
+   {
+    "objekt": "vfx_strahlen",
+    "anim": "drehen_langsam"
+   },
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "artemis",
+  "name": "Artemis",
+  "klasse": "legendaer",
+  "geschlecht": "w",
+  "datei": "artemis.glb",
+  "dreiecke": 4546,
+  "bytes": 124432,
+  "vfx": [
+   {
+    "objekt": "vfx_sterne_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_2",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_halo",
+    "anim": "pulsieren"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "ares",
+  "name": "Ares",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "ares.glb",
+  "dreiecke": 5318,
+  "bytes": 154300,
+  "vfx": [
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "aphrodite",
+  "name": "Aphrodite",
+  "klasse": "legendaer",
+  "geschlecht": "w",
+  "datei": "aphrodite.glb",
+  "dreiecke": 4860,
+  "bytes": 134936,
+  "vfx": [
+   {
+    "objekt": "vfx_herzen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_herzen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_herzen_2",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   }
+  ],
+  "begleiter": {
+   "art": "taube",
+   "anim": null
+  },
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "hades",
+  "name": "Hades",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "hades.glb",
+  "dreiecke": 6102,
+  "bytes": 161524,
+  "vfx": [
+   {
+    "objekt": "vfx_schatten",
+    "anim": "wabern"
+   },
+   {
+    "objekt": "vfx_funken_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_funken_2",
+    "anim": "schweben"
+   }
+  ],
+  "begleiter": {
+   "art": "kerberos",
+   "anim": "wackeln"
+  },
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "persephone",
+  "name": "Persephone",
+  "klasse": "legendaer",
+  "geschlecht": "w",
+  "datei": "persephone.glb",
+  "dreiecke": 5436,
+  "bytes": 135888,
+  "vfx": [
+   {
+    "objekt": "vfx_blueten_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blueten_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blueten_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "hermes",
+  "name": "Hermes",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "hermes.glb",
+  "dreiecke": 4620,
+  "bytes": 118972,
+  "vfx": [
+   {
+    "objekt": "vfx_glitzer_0",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_1",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_glitzer_2",
+    "anim": "funkeln"
+   },
+   {
+    "objekt": "vfx_federn_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_federn_2",
+    "anim": "fallen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "dionysos",
+  "name": "Dionysos",
+  "klasse": "legendaer",
+  "geschlecht": "m",
+  "datei": "dionysos.glb",
+  "dreiecke": 6048,
+  "bytes": 139020,
+  "vfx": [
+   {
+    "objekt": "vfx_blasen_0",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_1",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blasen_2",
+    "anim": "steigen"
+   },
+   {
+    "objekt": "vfx_blaetter_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blaetter_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blaetter_2",
+    "anim": "fallen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": false
+ },
+ {
+  "id": "eiszeus",
+  "name": "Eis-Zeus",
+  "klasse": "spezial",
+  "geschlecht": "m",
+  "datei": "eiszeus.glb",
+  "dreiecke": 5380,
+  "bytes": 157860,
+  "vfx": [
+   {
+    "objekt": "vfx_schnee_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_schnee_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_schnee_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_blitz_0",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_blitz_1",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_blitz_2",
+    "anim": "flackern"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "chione",
+  "name": "Chione",
+  "klasse": "spezial",
+  "geschlecht": "w",
+  "datei": "chione.glb",
+  "dreiecke": 4943,
+  "bytes": 157384,
+  "vfx": [
+   {
+    "objekt": "vfx_schnee_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_schnee_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_schnee_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_eis_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_eis_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_eis_2",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_halo",
+    "anim": "pulsieren"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "champion",
+  "name": "Olympia-Champion",
+  "klasse": "spezial",
+  "geschlecht": "m",
+  "datei": "champion.glb",
+  "dreiecke": 5268,
+  "bytes": 154644,
+  "vfx": [
+   {
+    "objekt": "vfx_konfetti_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_konfetti_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_konfetti_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_strahlen",
+    "anim": "drehen_langsam"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "championesse",
+  "name": "Olympia-Championesse",
+  "klasse": "spezial",
+  "geschlecht": "w",
+  "datei": "championesse.glb",
+  "dreiecke": 5676,
+  "bytes": 160960,
+  "vfx": [
+   {
+    "objekt": "vfx_konfetti_0",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_konfetti_1",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_konfetti_2",
+    "anim": "fallen"
+   },
+   {
+    "objekt": "vfx_strahlen",
+    "anim": "drehen_langsam"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ },
+ {
+  "id": "nyx",
+  "name": "Nyx",
+  "klasse": "spezial",
+  "geschlecht": "w",
+  "datei": "nyx.glb",
+  "dreiecke": 5136,
+  "bytes": 144296,
+  "vfx": [
+   {
+    "objekt": "vfx_sterne_0",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_1",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_sterne_2",
+    "anim": "schweben"
+   },
+   {
+    "objekt": "vfx_orbs",
+    "anim": "kreisen"
+   },
+   {
+    "objekt": "vfx_aura",
+    "anim": "drehen"
+   }
+  ],
+  "begleiter": null,
+  "fluegel": false,
+  "umhang": true
+ }
+]

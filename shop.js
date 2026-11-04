@@ -30,8 +30,8 @@
   };
 
   /* ---------- Katalog ---------- */
-  const KATS = [['skin', 'Outfits'], ['kopf', 'Köpfe'], ['extra', 'Extras'], ['emote', 'Animationen'], ['intro', 'Intros'], ['hg', 'Hintergründe']];
-  const REITER = { skin: 'skins', kopf: 'extras', extra: 'extras', emote: 'emotes', intro: 'intro', hg: 'hg' };
+  const KATS = [['skin', 'Skins'], ['emote', 'Animationen'], ['intro', 'Intros'], ['hg', 'Hintergründe']];
+  const REITER = { skin: 'skins', emote: 'emotes', intro: 'intro', hg: 'hg' };
   function alle() {
     const l = [];
     KATS.forEach(([k]) => (K[k] || []).forEach(([id, name, preis]) => {
@@ -60,10 +60,13 @@
       return f[Math.floor(zufall() * f.length)];
     };
     const benutzt = new Set(), pick = (liste, z) => { const i = nimm(liste, z, benutzt); benutzt.add(i.key); return i; };
-    const spezialPool = items.filter(i => i.kat === 'skin' && (i.art === 'gems' || i.wert >= 900));
+    // Specials: epische und legendäre Skins. Täglich: zwei Skins, eine Animation oder ein Intro, ein Hintergrund.
+    const klasse = i => (Figur.skinInfo(i.id) || {}).klasse;
+    const spezialPool = items.filter(i => i.kat === 'skin' && ['episch', 'legendaer', 'spezial'].includes(klasse(i)));
     const specials = [pick(spezialPool, r), pick(spezialPool, r), pick(spezialPool, r)];
-    const taeglich = [pick(pool('skin'), r), pick(pool('kopf', 'extra'), r), pick(pool('emote', 'intro'), r), pick(pool('hg'), r)];
-    const woche = [pick(pool('kopf', 'extra', 'skin'), rw), pick(pool('emote', 'intro', 'hg'), rw)];
+    const einfach = items.filter(i => i.kat === 'skin' && ['ungewoehnlich', 'selten'].includes(klasse(i)));
+    const taeglich = [pick(einfach, r), pick(einfach, r), pick(pool('emote', 'intro'), r), pick(pool('hg'), r)];
+    const woche = [pick(pool('skin'), rw), pick(pool('emote', 'intro', 'hg'), rw)];
     return { highlight: specials[0], specials, taeglich, woche, items };
   }
 
@@ -99,6 +102,7 @@
       const b = await buehne(), T = WF3D.T;
       b.r.setPixelRatio(gross ? 4 : 2); b.groesse();
       const look = lookFuer(it);
+      await Figur.vorladen(look);                     // Skin-Datei erst laden, sonst wäre das Foto leer
       const g = new T.Group(), f = Figur.bauen(look, { boese: it.kat === 'intro' });
       f.rotation.y = 0.35; g.add(f);
       let bg = null;
@@ -165,8 +169,13 @@
   tab.innerHTML = '<div id="shWurzel"></div>';
   document.querySelector('main').appendChild(tab);
 
-  const seltenheit = it => it.art === 'gems' ? 'legendaer' : it.wert >= 1500 ? 'legendaer' : it.wert >= 700 ? 'episch' : it.wert >= 300 ? 'selten' : 'gewoehnlich';
-  const SELTEN_NAME = { gewoehnlich: 'Gewöhnlich', selten: 'Selten', episch: 'Episch', legendaer: 'Legendär' };
+  // Skins haben eine feste Klasse, der Rest richtet sich nach dem Preis
+  const seltenheit = it => {
+    const s = it.kat === 'skin' && Figur.skinInfo(it.id);
+    if (s) return s.klasse === 'ungewoehnlich' ? 'gewoehnlich' : s.klasse;
+    return it.art === 'gems' ? 'legendaer' : it.wert >= 1500 ? 'legendaer' : it.wert >= 700 ? 'episch' : it.wert >= 300 ? 'selten' : 'gewoehnlich';
+  };
+  const SELTEN_NAME = { gewoehnlich: 'Ungewöhnlich', selten: 'Selten', episch: 'Episch', legendaer: 'Legendär', spezial: 'Spezial' };
   const preis = it => it.art === 'gems' ? `${gem}${it.wert}` : `${A.coin}${it.wert}`;
   const kategorieName = it => (KATS.find(x => x[0] === it.kat) || [0, ''])[1];
   const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''} sel-${seltenheit(it)}" data-sh="anprobe" data-key="${e(it.key)}">
@@ -187,7 +196,7 @@
      Oben ein großes "Rad des Tages" (wechselt um Mitternacht, bevorzugt Räder mit Skins, die du noch nicht hast),
      daneben das Glücksrad mit dem Gratis-Dreh und die anderen Räder. Darunter steht ehrlich, wie weit deine
      Coins reichen. Chancen kommen vom Server (wf_spin_status), nichts ist erfunden. */
-  const RAEDER = ['klassisch', 'ninja', 'eisbaer', 'astronaut', 'dino', 'skifahrer'];
+  const RAEDER = ['klassisch', 'herakles', 'medusa', 'minotauros', 'nike', 'zyklop'];   // muss zu wf_spin_status passen
   const skinName = id => (Figur.KATALOG.skin.find(x => x[0] === id) || [0, id])[1];
   const radPreis = id => { const r = rad && rad.raeder.find(x => x.id === id); return r ? r.preis : id === 'klassisch' ? 250 : 400; };
   function radDesTages() {
