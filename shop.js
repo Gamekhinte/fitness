@@ -118,12 +118,8 @@
         b.r.render(b.szene, k);
         return b.r.domElement.toDataURL('image/png');
       };
-      let ergebnis;
-      if (bewegt(it)) {
-        const p = Figur.PERIODE[it.id] || 1.5, n = 10, bilder = [];
-        for (let i = 0; i < n; i++) bilder.push(knipsen(p * i / n));
-        ergebnis = { bilder, dauer: Math.max(70, p * 1000 / n) };
-      } else ergebnis = knipsen(0.3);
+      // Animationen werden nicht als Bilderfolge gespeichert, sondern live gerendert (siehe unten)
+      const ergebnis = bewegt(it) ? { live: true, it, look } : knipsen(0.3);
       b.szene.remove(g);
       if (gross) { b.r.setPixelRatio(2); b.groesse(); }
       cache.set(schluessel, ergebnis);
@@ -131,24 +127,54 @@
     }).catch(() => null);
     return kette;
   }
-  // Animierte Karten: ein einziger Takt wechselt die Bilder, nur was im Bild ist
-  const laeufer = new Set();
+
+  /* ---------- Animierte Karten live mit 30 Bildern pro Sekunde ----------
+     Ein eigener kleiner Renderer zeichnet jede sichtbare Animations-Karte reihum auf ihre Leinwand.
+     Karten außerhalb des Bildschirms kosten nichts. */
+  const live = new Set();
+  let L = null, liveZuletzt = 0;
+  async function liveBuehne() {
+    if (L) return L;
+    await WF3D.laden();
+    const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-9999px;top:0;width:180px;height:220px;pointer-events:none';
+    document.body.appendChild(host);
+    L = WF3D.buehne(host, { fov: 28 }); L.pausiert = true; L.r.setPixelRatio(2); L.groesse();
+    return L;
+  }
   function zeigen(img, erg) {
     if (!erg) return;
     if (typeof erg === 'string') { img.src = erg; img.classList.add('da'); return; }
-    img.src = erg.bilder[0]; img.classList.add('da');
-    laeufer.add({ img, bilder: erg.bilder, dauer: erg.dauer, i: 0, next: 0 });
-  }
-  setInterval(() => {
-    if (!laeufer.size || document.hidden) return;
-    const jetzt = performance.now(), hoehe = window.innerHeight;
-    laeufer.forEach(p => {
-      if (!p.img.isConnected) { laeufer.delete(p); return; }
-      if (jetzt < p.next) return;
-      const r = p.img.getBoundingClientRect(); if (r.bottom < 0 || r.top > hoehe) return;
-      p.i = (p.i + 1) % p.bilder.length; p.img.src = p.bilder[p.i]; p.next = jetzt + p.dauer;
+    if (!erg.live) return;
+    liveBuehne().then(() => {
+      if (!img.isConnected) return;
+      const c = document.createElement('canvas'); c.width = 360; c.height = 440;
+      c.className = img.className + ' da'; c.style.cssText = 'width:100%;height:100%;display:block;object-fit:contain';
+      if (img.dataset.foto) c.dataset.foto = img.dataset.foto;
+      img.replaceWith(c);
+      const g = new WF3D.T.Group(), f = Figur.bauen(erg.look, { boese: erg.it.kat === 'intro' });
+      f.rotation.y = 0.35; g.add(f);
+      live.add({ c, ctx: c.getContext('2d'), g, f, it: erg.it, start: performance.now() / 1000 });
+      if (live.size === 1) requestAnimationFrame(liveSchleife);
     });
-  }, 40);
+  }
+  function liveSchleife(jetzt) {
+    if (!live.size) return;
+    requestAnimationFrame(liveSchleife);
+    if (document.hidden || jetzt - liveZuletzt < 31) return;      // höchstens ca. 30 Bilder pro Sekunde
+    liveZuletzt = jetzt;
+    const hoehe = window.innerHeight, k = L.kamera;
+    live.forEach(p => {
+      if (!p.c.isConnected) { live.delete(p); return; }
+      const r = p.c.getBoundingClientRect(); if (r.bottom < 0 || r.top > hoehe || !r.width) return;
+      k.position.set(0, 1.5, p.it.kat === 'emote' ? 8.8 : 7.6); k.lookAt(0, 1.05, 0);
+      L.szene.add(p.g);
+      Figur.haltung(p.f, p.it.id, jetzt / 1000 - p.start);
+      L.r.render(L.szene, k);
+      L.szene.remove(p.g);
+      p.ctx.clearRect(0, 0, p.c.width, p.c.height);
+      p.ctx.drawImage(L.r.domElement, 0, 0, p.c.width, p.c.height);
+    });
+  }
   const beobachter = 'IntersectionObserver' in window ? new IntersectionObserver(eintraege => eintraege.forEach(x => {
     if (!x.isIntersecting) return;
     const img = x.target; beobachter.unobserve(img);
@@ -221,7 +247,7 @@
         <b>${e(skinName(id))}-Rad</b><span class="sh-preis">${A.coin}${radPreis(id)}</span></button>`;
     };
     // Wie weit reichen die Coins? Max. so viele Drehungen, wie heute noch erlaubt sind
-    const p = radPreis(fokus), n = Math.min(Math.floor(F.coins / p), rad ? rad.extra_rest : 8);
+    const p = radPreis(fokus), n = Math.floor(F.coins / p);
     const ziel = n >= 1
       ? `<div class="sh-ziel voll">${A.coin}<span><b>Reicht für ${n} ${n === 1 ? 'Dreh' : 'Drehs'}</b><small>am ${e(skinName(fokus))}-Rad</small></span></div>`
       : `<div class="sh-ziel">${A.coin}<span><b>Noch ${p - F.coins} Coins bis zum nächsten Dreh</b><i class="sh-qbalken"><u style="width:${Math.min(100, F.coins / p * 100)}%"></u></i><small>Coins gibt es für Training, Aufgaben und Rennen</small></span></div>`;
@@ -407,11 +433,11 @@
   function radAktion() {
     const box = document.getElementById('shRadAktion'); if (!box || !rad) return;
     const d = radDaten(), coins = A.F().coins, frei = radId === 'klassisch' && rad.bereit;
-    if (!frei && rad.extra_rest <= 0) { box.innerHTML = '<p class="ar-hand">Heute ist alles gedreht. Morgen geht es weiter.</p>'; return; }
-    const max = frei ? 1 : Math.max(1, Math.min(5, rad.extra_rest, Math.floor(coins / d.preis)));
+    // Bezahlte Drehungen haben kein Tageslimit mehr, nur die Coins begrenzen (höchstens 10 auf einmal)
+    const max = frei ? 1 : Math.max(1, Math.min(10, Math.floor(coins / d.preis)));
     box.innerHTML = `${frei ? '' : `<div class="ar-regler"><span>Menge</span><input type="range" id="shMenge" min="1" max="${max}" step="1" value="1" style="--w:0%" ${max < 2 ? 'disabled' : ''}><b id="shMengeZahl">x1</b></div>`}
       <button class="ar-knopf breit${frei || coins >= d.preis ? ' gold' : ' leise2'}" data-sh="${frei ? 'radDrehen' : 'radExtra'}" id="shRadGo">${frei ? 'Gratis drehen' : `Drehen · <span id="shRadSumme">${d.preis}</span> ${A.coin}`}</button>
-      ${frei ? '<p class="ar-hand klein">Dein Gratis-Dreh für heute.</p>' : `<p class="ar-hand klein">Noch ${rad.extra_rest} bezahlte Drehungen heute</p>`}`;
+      ${frei ? '<p class="ar-hand klein">Dein Gratis-Dreh für heute.</p>' : `<p class="ar-hand klein">Reicht für ${Math.floor(coins / d.preis)} ${Math.floor(coins / d.preis) === 1 ? 'Dreh' : 'Drehs'}</p>`}`;
   }
   function radMalen(bleiben) {
     const d = radDaten(), summe = d.preise.reduce((a, p) => a + p.gewicht, 0), thema = radId !== 'klassisch';

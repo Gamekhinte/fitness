@@ -31,18 +31,13 @@
   };
   const SELT_NAME = { legendaer: 'Legendär', episch: 'Episch', selten: 'Selten' };
 
-  /* ---------- Pass-Knopf neben BATTLE ---------- */
+  /* ---------- Pass-Knopf oben rechts unter der Kopfleiste (wie in Clash Royale), BATTLE bleibt allein in der Mitte ---------- */
   function chip() {
-    const battle = el('arBattle'); if (!battle) return;
+    const kopf = document.querySelector('#tab-arena .ar-kopf'); if (!kopf) return;
     let c = el('arPass');
     if (!c) {
-      let reihe = battle.parentNode;
-      if (!reihe.classList.contains('ar-aktion')) {
-        reihe = document.createElement('div'); reihe.className = 'ar-aktion';
-        battle.parentNode.insertBefore(reihe, battle); reihe.appendChild(battle);
-      }
-      c = document.createElement('button'); c.className = 'ar-passknopf'; c.id = 'arPass'; c.setAttribute('aria-label', 'Winterpass öffnen');
-      reihe.appendChild(c);
+      c = document.createElement('button'); c.className = 'ar-passknopf'; c.id = 'arPass'; c.setAttribute('aria-label', 'Pass öffnen');
+      kopf.appendChild(c);
       c.onclick = () => sheet();
     }
     const n = bereit(), lv = P && P.aktiv ? P.stufe : 0, anteil = P && P.aktiv ? (P.stufe >= P.stufen ? 100 : (P.xp % P.xp_pro_stufe) / P.xp_pro_stufe * 100) : 0;
