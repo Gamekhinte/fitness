@@ -313,7 +313,7 @@
       h.matte(g, -1.0, 1.8, 0.9, 2.2, F.blau, Math.PI / 2);
       return info([-1.0, 1.8], 0.2);
     } },
-    { name: 'Crossfit-Box', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {  // Kreidestaub
+    { name: 'Kraft-Box', form: 'quadrat', kruemel: '#F5F0E4', bau(g, H) {  // Kreidestaub
       const h = mk(H);
       const hoch = h.raum(g, { boden: F.gummi, wand: '#8E8A84', wand2: '#5F5B55', leiste: F.gold, hoehe: 3.6 });
       for (let i = -5; i <= 5; i++) h.box(g, 0.02, 0.01, 10, '#4A4440', i, 0.205, 0, 0);
@@ -360,7 +360,7 @@
       h.matte(g, 1.0, 0.6, 0.9, 2.2, F.lila, Math.PI / 2);
       return info([1.0, 0.6], 0.2);
     } },
-    { name: 'Olympia-Halle', form: 'quadrat', kruemel: '#F2C14E', bau(g, H) {   // Goldregen
+    { name: 'Halle des Olymp', form: 'quadrat', kruemel: '#F2C14E', bau(g, H) {   // Goldregen
       const h = mk(H);
       const hoch = h.raum(g, { boden: '#2F4A7A', wand: '#1F3358', wand2: '#2A3F66', leiste: F.gold, hoehe: 4.0 });
       // Wettkampfplattform: Holz in der Mitte, Gummi außen

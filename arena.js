@@ -23,7 +23,7 @@
   let pokale = store.get('wf-pokale', 0);
   let kraftPokale = store.get('wf-kpokale', 0), kraftDaten = null;
   let MODUS = store.get('wf-modus', 'lauf');
-  const NAMEN_KRAFT = ['Schlafzimmer', 'Homegym', 'Fitnessstudio', 'Outdoor-Gym', 'Boxhalle', 'Turnhalle', 'Muscle Beach', 'Crossfit-Box', 'Dach-Gym', 'Olympia-Halle'];
+  const NAMEN_KRAFT = ['Schlafzimmer', 'Homegym', 'Fitnessstudio', 'Outdoor-Gym', 'Boxhalle', 'Turnhalle', 'Muscle Beach', 'Kraft-Box', 'Dach-Gym', 'Halle des Olymp'];
   const aktPokale = () => MODUS === 'kraft' ? kraftPokale : pokale;
   const arenaName = k => MODUS === 'kraft' ? NAMEN_KRAFT[k] : ARENEN[k].name;
   let profilDaten = null;

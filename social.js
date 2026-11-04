@@ -20,9 +20,11 @@
   let C = null, B = null;                         // Clan-Editor, Banner-Editor
 
   /* ---------- Farben, Banner, Avatar, Emblem ---------- */
+  // Die ersten 12 Farben nutzt auch das Clan-Emblem. Ab 12 nur Banner: Terrakotta, Marmor, Ägäis, Olive, Nachtblau, Bronze.
   const FARBEN = ['#D9643A', '#F2C14E', '#7CD4FF', '#3E7A55', '#3FA9E6', '#E86AA6', '#2B2826', '#FAF6EB', '#F08A3A', '#3CBFB0', '#9C7448', '#1F3A5F'];
+  const BANNER_FARBEN = FARBEN.concat(['#C4683A', '#E9E2D2', '#2F6FA8', '#7A8C4A', '#1F2D4A', '#B5803A']);
   const ganz = (v, max, std) => { v = Number(v); return Number.isInteger(v) ? Math.max(0, Math.min(max, v)) : std; };
-  const bannerOk = b => ({ farbe: ganz(b && b.farbe, 11, 0), muster: ganz(b && b.muster, 5, 0) });
+  const bannerOk = b => ({ farbe: ganz(b && b.farbe, 17, 0), muster: ganz(b && b.muster, 11, 0) });
   const emblemOk = m => ({ form: ganz(m && m.form, 3, 0), symbol: ganz(m && m.symbol, 15, 0), c1: ganz(m && m.c1, 11, 0), c2: ganz(m && m.c2, 11, 1) });
 
   const MUSTER = [
@@ -31,18 +33,37 @@
     '<circle cx="6" cy="6" r="3" fill="#FAF6EB" fill-opacity=".35"/><circle cx="18" cy="18" r="3" fill="#FAF6EB" fill-opacity=".35"/>',
     '<path d="M0 12l6-6 6 6 6-6 6 6" fill="none" stroke="#FAF6EB" stroke-opacity=".35" stroke-width="3"/>',
     '<path d="M0 12q6-8 12 0t12 0" fill="none" stroke="#FAF6EB" stroke-opacity=".35" stroke-width="3"/>',
-    '<rect width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/><rect x="12" y="12" width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/>'
+    '<rect width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/><rect x="12" y="12" width="12" height="12" fill="#FAF6EB" fill-opacity=".25"/>',
+    // griechisch
+    '<path d="M0 21.5H24M0 2.5H24M18 21.5V6H6v11h9V10H10v4" fill="none" stroke="#FAF6EB" stroke-opacity=".45" stroke-width="2.4"/>',
+    '<path d="M3 0v24M9 0v24M15 0v24M21 0v24" stroke="#FAF6EB" stroke-opacity=".22" stroke-width="3.5"/><path d="M6 0v24M18 0v24" stroke="#2B2826" stroke-opacity=".12" stroke-width="1.5"/>',
+    '<g fill="#FAF6EB" fill-opacity=".4"><ellipse cx="7" cy="7" rx="5" ry="2.2" transform="rotate(-35 7 7)"/><ellipse cx="17" cy="17" rx="5" ry="2.2" transform="rotate(35 17 17)"/><ellipse cx="17" cy="5" rx="3" ry="1.4" transform="rotate(40 17 5)"/><ellipse cx="6" cy="18" rx="3" ry="1.4" transform="rotate(-40 6 18)"/></g>',
+    '<path d="M0 19H24M0 19c4 0 5-10 10-10 3 0 4 4 1 5M12 19c4 0 5-10 10-10" fill="none" stroke="#FAF6EB" stroke-opacity=".45" stroke-width="2.2" stroke-linecap="round"/>',
+    '<g stroke="#FAF6EB" stroke-opacity=".4" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2 2M16.4 16.4l2 2M5.6 18.4l2-2M16.4 7.6l2-2"/></g><circle cx="12" cy="12" r="3.4" fill="#FAF6EB" fill-opacity=".4"/>',
+    '<path d="M12 4l1.9 4.6 4.9.3-3.8 3.1 1.2 4.8L12 14.2l-4.2 2.6 1.2-4.8-3.8-3.1 4.9-.3z" fill="#FAF6EB" fill-opacity=".42"/><circle cx="3" cy="21" r="1.2" fill="#FAF6EB" fill-opacity=".5"/><circle cx="21" cy="20" r="0.9" fill="#FAF6EB" fill-opacity=".5"/>'
   ];
-  const MUSTER_NAMEN = ['Schlicht', 'Streifen', 'Punkte', 'Zickzack', 'Wellen', 'Karo'];
+  const MUSTER_NAMEN = ['Schlicht', 'Streifen', 'Punkte', 'Zickzack', 'Wellen', 'Karo', 'Mäander', 'Säulen', 'Lorbeer', 'Wellenband', 'Sonne', 'Sterne'];
   function bannerBg(b) {
     b = bannerOk(b);
     const m = MUSTER[b.muster];
     const bild = m ? ` url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">${m}</svg>`).replace(/'/g, '%27')}')` : '';
-    return FARBEN[b.farbe] + bild;
+    return BANNER_FARBEN[b.farbe] + bild;
+  }
+  // Banner im Profil: Muster als Hintergrund der 3D-Fläche, darauf ein Schild mit Name und Titel
+  function bannerZeigen(b, name, titel, seltenheit) {
+    const flaeche = $('arB3d'); if (!flaeche) return;
+    flaeche.style.background = bannerBg(b);
+    let s = flaeche.querySelector('.so-bschild');
+    if (!s) { s = document.createElement('div'); flaeche.appendChild(s); }
+    s.className = 'so-bschild ' + (seltenheit || 'normal');
+    s.innerHTML = `<b>${e(name || '')}</b>${titel ? `<i>${e(titel)}</i>` : ''}`;
   }
 
   // Kleines Gesicht für Listen (die 3D-Figur wäre dafür zu schwer): Haut, Haar und Oberteil aus dem Aussehen
   function avatar(look, banner, px) {
+    // Skin-Bild, auf Kopf und Schultern zugeschnitten
+    const skin = window.Figur && Figur.pruefen(look || {}).skin;
+    if (skin && Figur.skinInfo(skin)) return `<span class="so-av" style="width:${px}px;height:${px}px;background:${bannerBg(banner)};overflow:hidden"><img src="${Figur.bild(skin)}" alt="" loading="lazy" style="display:block;width:180%;max-width:none;margin:-4% 0 0 -40%"></span>`;
     const a = look || {}, haut = a.haut || '#EBC199', haar = a.haarfarbe || '#5A3A22', top = a.oberteil || '#3FA9E6';
     return `<span class="so-av" style="width:${px}px;height:${px}px;background:${bannerBg(banner)}"><svg viewBox="0 0 48 48" aria-hidden="true">
       <path d="M7 48c0-9 7-14 17-14s17 5 17 14z" fill="${top}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
@@ -205,6 +226,7 @@
     if (!info) return toast('Spieler nicht gefunden');
     lauf = lauf || {}; kraft = kraft || {}; serie = serie && serie[0];
     const ich_ = !!ich() && id === ich().id, l = S.liste || { freunde: [], anfragen: [], gesendet: [] };
+    if (ich_) S.ichInfo = info;
     const freund = l.freunde.some(f => f.id === id), angefragt = l.gesendet.some(f => f.id === id), anfrageDa = l.anfragen.some(f => f.id === id);
     const c = info.clan;
     const look = Object.assign({}, info.aussehen && Object.keys(info.aussehen).length ? info.aussehen : A.F().aussehen, { hg: 'leer' });
@@ -237,7 +259,7 @@
       ${ich_ || !ich() ? '' : `<div class="so-reihe so-sicher">
         <button class="ar-knopf leise2" data-so="melden" data-art="spieler" data-wer="${id}" data-name="${e(info.name)}">Melden</button>
         ${S.blockiert.some(x => x.id === id) ? `<button class="ar-knopf leise2" data-so="entblocken" data-id="${id}">Entblocken</button>` : `<button class="ar-knopf leise2" data-so="blockieren" data-id="${id}" data-name="${e(info.name)}">Blockieren</button>`}</div>`}`, 'profil', { aussehen: look }, bleiben);
-    $('arB3d').style.background = bannerBg(info.banner);
+    bannerZeigen(info.banner, info.name, info.titel, info.titel_seltenheit);
   }
 
   function verwaltung(info) {
@@ -259,11 +281,13 @@
     A.zeigeBlatt(`${zu}<h2 class="ar-titel">Dein Banner</h2>
       <p class="ar-hand">So sehen dich die anderen in deinem Profil und in der Freundesliste.</p>
       <h3 class="ar-h">Farbe</h3>
-      <div class="ar-farben">${FARBEN.map((c, i) => `<button data-so="bFarbe" data-wert="${i}" class="${B.farbe === i ? 'an' : ''}" style="background:${c}" aria-label="Farbe ${i + 1}"></button>`).join('')}</div>
+      <div class="ar-farben">${BANNER_FARBEN.map((c, i) => `<button data-so="bFarbe" data-wert="${i}" class="${B.farbe === i ? 'an' : ''}" style="background:${c}" aria-label="Farbe ${i + 1}"></button>`).join('')}</div>
       <h3 class="ar-h">Muster</h3>
       <div class="ar-wahl">${MUSTER_NAMEN.map((n, i) => `<button data-so="bMuster" data-wert="${i}" class="${B.muster === i ? 'an' : ''}">${n}</button>`).join('')}</div>
+      <button class="ar-knopf breit leise2" data-so="titel">Titel ändern</button>
       <button class="ar-knopf breit" data-so="bannerSpeichern">Speichern</button>`, 'profil', { aussehen: look }, bleiben);
-    $('arB3d').style.background = bannerBg(B);
+    const m = S.ichInfo || {};
+    bannerZeigen(B, (ich() && ich().name) || m.name, m.titel, m.titel_seltenheit);
   }
 
   /* ---------- Freunde hinzufügen ---------- */

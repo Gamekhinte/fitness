@@ -99,7 +99,7 @@
       <div class="ps-hero legendaer"><span>Winterpass Premium</span><b>Eis-Zeus und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
       <ul class="ps-vorteile">
         <li><b>Coach</b>Dein KI-Trainer baut dir Pläne und beantwortet Fragen.</li>
-        <li><b>${items} Kosmetik-Teile</b>Eis-Zeus, Chione, Nike und mehr, nur in der Premium-Spur.</li>
+        <li><b>${items} Kosmetik-Teile</b>Eis-Zeus, Chione, Siegesgöttin und mehr, nur in der Premium-Spur.</li>
         <li><b>${gems} ${gem}</b>Extra Gems für besondere Outfits.</li>
         <li><b>Fair</b>Keine Vorteile im Rennen, Pokale gibt es nie zu kaufen.</li>
       </ul>
