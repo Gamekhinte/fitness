@@ -22,10 +22,7 @@ body:not(.papier) .top{background:var(--maeander) left bottom/16px 12px repeat-x
 .ar-blatt-in.mit3d .ar-b3d{border-bottom:0}
 .ar-blatt-in.mit3d .ar-b3d::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;z-index:2;background:var(--maeander) left top/16px 12px repeat-x;border-top:3px solid var(--graphit);pointer-events:none}
 
-/* Lorbeer an Überschriften */
-.ar-h::before,.sh-abschnitt h3::before,.sh-spezial-kopf h3::before,.card>.label::before,.sh-kopf h2::before{
-  content:"";display:inline-block;width:.95em;height:.95em;margin-right:6px;vertical-align:-.1em;background:var(--lorbeer) center/contain no-repeat}
-.sh-kopf h2::after{content:"";display:inline-block;width:.95em;height:.95em;margin-left:6px;vertical-align:-.1em;background:var(--lorbeer) center/contain no-repeat;transform:scaleX(-1)}
+/* Lorbeer nur noch an BATTLE und im Arena-Schild, Überschriften bleiben schlicht */
 
 /* BATTLE zwischen zwei goldenen Lorbeerzweigen */
 .ar-battle::before,.ar-battle::after{content:"";position:absolute;top:50%;width:44px;height:58px;margin-top:-30px;background:var(--lorbeer-gold) center/contain no-repeat;z-index:1;pointer-events:none}

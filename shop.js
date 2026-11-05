@@ -204,8 +204,11 @@
   const SELTEN_NAME = { gewoehnlich: 'Ungewöhnlich', selten: 'Selten', episch: 'Episch', legendaer: 'Legendär', spezial: 'Spezial' };
   const preis = it => it.art === 'gems' ? `${gem}${it.wert}` : `${A.coin}${it.wert}`;
   const kategorieName = it => (KATS.find(x => x[0] === it.kat) || [0, ''])[1];
+  // Neu dazugekommene Posen, Intros und Hintergründe bekommen ein NEU-Schild
+  const NEU = new Set(['emote:verbeugen', 'emote:kniebeuge', 'emote:kranich', 'emote:liegestuetz', 'emote:diskus', 'emote:sirtaki',
+    'intro:kopfschuetteln', 'intro:nacken', 'intro:blitz', 'hg:olivenhain', 'hg:aegaeis', 'hg:tempel', 'hg:mosaik', 'hg:stadion', 'hg:gewitter', 'hg:unterwelt', 'hg:olympwolken']);
   const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''} sel-${seltenheit(it)}" data-sh="anprobe" data-key="${e(it.key)}">
-      <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span><i class="sh-sel">${SELTEN_NAME[seltenheit(it)]}</i>
+      <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span><i class="sh-sel">${SELTEN_NAME[seltenheit(it)]}</i>${NEU.has(it.key) && !hat(it) ? '<i class="sh-neu">NEU</i>' : ''}
       <b>${e(it.name)}</b>
       <span class="sh-preis">${hat(it) ? 'Gekauft' : preis(it)}</span></button>`;
   const highlight = (it, klein) => `<button class="sh-hl ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''}" data-sh="anprobe" data-key="${e(it.key)}">
@@ -309,6 +312,9 @@
     }
   }
 
+  // Neue zuerst, dann was du noch nicht hast, dann nach Preis (Gems zählen wie 15 Coins)
+  const sortiert = l => l.slice().sort((x, y) => (NEU.has(y.key) && !hat(y)) - (NEU.has(x.key) && !hat(x)) || hat(x) - hat(y)
+    || (x.art === 'gems' ? x.wert * 15 : x.wert) - (y.art === 'gems' ? y.wert * 15 : y.wert));
   let zuletztTag = heuteSeed();
   function zeichnen() {
     const w = el('shWurzel'); if (!w) return;
@@ -328,6 +334,10 @@
       <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
       <div class="sh-woche">${a.woche.map(i => highlight(i, true)).join('')}</div>
+      <div class="sh-abschnitt"><h3>Posen & Intros</h3><small>Immer im Shop</small></div>
+      <div class="sh-raster vier sh-kosmetik">${sortiert(a.items.filter(i => i.kat === 'emote' || i.kat === 'intro')).map(i => karte(i, true)).join('')}</div>
+      <div class="sh-abschnitt"><h3>Hintergründe</h3><small>Immer im Shop</small></div>
+      <div class="sh-raster drei sh-kosmetik">${sortiert(a.items.filter(i => i.kat === 'hg')).map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diamanten-Outfits</h3><small>Immer im Shop</small></div>
       <div class="sh-raster drei">${a.items.filter(i => i.art === 'gems').sort((x, y) => x.wert - y.wert).map(i => karte(i, true)).join('')}</div>
       <div class="sh-unten">

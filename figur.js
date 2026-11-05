@@ -16,14 +16,19 @@
     skin: SKINS.map(s => [s.id, s.name, s.preis]),
     kopf: [['nichts', 'Nichts', 0]], extra: [['nichts', 'Nichts', 0]],
     emote: [['winken', 'Winken', 0], ['jubeln', 'Jubeln', 0], ['hampelmann', 'Hampelmann', 200], ['flex', 'Muskeln', 300],
-      ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900]],
+      ['tanzen', 'Tanzen', 400], ['pose', 'Heldenpose', 500], ['robot', 'Roboter', 600], ['salto', 'Salto', 900],
+      ['verbeugen', 'Verbeugung', 250], ['kniebeuge', 'Kniebeugen', 350], ['kranich', 'Kranich', 400], ['liegestuetz', 'Liegestütze', 450],
+      ['diskus', 'Diskuswurf', 550], ['sirtaki', 'Sirtaki', 650]],
     // Intro: läuft in der Cutscene vor jedem Duell, mit bösem Blick
     intro: [['starren', 'Böse starren', 0], ['zeigen', 'Auf dich zeigen', 0], ['faust', 'Faust ballen', 300], ['muskeln', 'Muskeln zeigen', 350],
-      ['trommeln', 'Brust trommeln', 400], ['lachen', 'Auslachen', 450], ['gaehnen', 'Gelangweilt gähnen', 500]],
+      ['trommeln', 'Brust trommeln', 400], ['lachen', 'Auslachen', 450], ['gaehnen', 'Gelangweilt gähnen', 500],
+      ['kopfschuetteln', 'Kopf schütteln', 300], ['nacken', 'Nacken knacken', 400], ['blitz', 'Blitz schleudern', 600]],
     // Hintergrund: hinter deiner Figur in Cutscene, Duell, Profil und Ergebnis
     hg: [['eis', 'Eis', 0], ['papier', 'Papier', 0], ['schnee', 'Schneefall', 300], ['sterne', 'Sternennacht', 400], ['sonnenuntergang', 'Sonnenuntergang', 500],
       ['graffiti', 'Graffiti', 600], ['flammen', 'Flammen', 700], ['gold', 'Goldrausch', 1200],
-      ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80']]
+      ['eiskristall', 'Eiskristall', 'pass'], ['polarlicht', 'Polarlicht', 'pass'], ['galaxie', 'Galaxie', 'g80'], ['lavafluss', 'Lavafluss', 'g80'],
+      ['olivenhain', 'Olivenhain', 350], ['aegaeis', 'Ägäis', 450], ['tempel', 'Tempel im Mondlicht', 550], ['mosaik', 'Mosaik', 600],
+      ['stadion', 'Stadion', 750], ['gewitter', 'Zeus\' Gewitter', 900], ['unterwelt', 'Unterwelt', 'g80'], ['olympwolken', 'Wolken des Olymp', 'g120']]
   };
   const STANDARD = { typ: 'mann', skin: 'olympionike', kopf: 'nichts', extra: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
@@ -239,6 +244,13 @@
         r.kopf.rotation.x = -0.55;
         break;
       }
+      case 'verbeugen': { const p = Math.max(0, s(t * 2.2)); r.rumpf.rotation.x = p * 0.9; r.kopf.rotation.x = p * 0.3; r.armR.rotation.set(-p * 0.9, 0, -0.3 * p); r.armL.rotation.set(0, 0, -0.9 - p * 0.4); break; }
+      case 'kranich': { const w = s(t * 1.6) * 0.06; r.beinL.rotation.x = -1.3; r.knieL.rotation.x = 1.9; r.armL.rotation.z = -2.0 + w; r.armR.rotation.z = 2.0 - w; r.rumpf.rotation.z = w; r.huefte.position.y = 0.85; r.kopf.rotation.x = -0.1; break; }
+      case 'diskus': { const z = t % 2.2; r.wurzel.rotation.y = z < 1.3 ? z * Math.PI * 2 / 1.3 : 0; r.armR.rotation.set(0, 0, z < 1.3 ? 1.5 : 1.5 - (z - 1.3) * 1.4); r.armL.rotation.set(0, 0, -1.2); r.rumpf.rotation.x = 0.2; r.beinL.rotation.x = -0.2; r.knieL.rotation.x = 0.3; r.huefte.position.y = 0.82; break; }
+      case 'sirtaki': { const w = t * 5; r.armL.rotation.z = -1.5; r.armR.rotation.z = 1.5; r.wurzel.position.x = s(w * 0.5) * 0.3; r.beinL.rotation.x = Math.max(0, s(w)) * -0.9; r.beinR.rotation.x = Math.max(0, -s(w)) * -0.9; r.huefte.position.y = 0.85 + Math.abs(s(w)) * 0.05; r.kopf.rotation.z = s(w * 0.5) * 0.1; break; }
+      case 'kopfschuetteln': r.kopf.rotation.y = s(t * 10) * 0.45; r.armL.rotation.set(0, 0, -0.3); r.armR.rotation.set(0, 0, 0.3); r.rumpf.rotation.x = 0.1; break;
+      case 'nacken': { const z = t % 3.2, p = z < 1 ? s(z * Math.PI) : 0, q = z > 1.6 && z < 2.6 ? s((z - 1.6) * Math.PI) : 0; r.kopf.rotation.z = (p - q) * 0.5; r.armR.rotation.set(-1.2 * p, 0, 0.8 * p + 0.2); r.armL.rotation.set(-1.2 * q, 0, -0.8 * q - 0.2); r.rumpf.rotation.x = 0.1; break; }
+      case 'blitz': { const z = t % 1.8, auf = Math.min(1, z / 0.9), wurf = z > 0.9 ? Math.min(1, (z - 0.9) / 0.25) : 0; r.armR.rotation.set(-wurf * 1.4, 0, 2.7 * auf - wurf * 1.6); r.armL.rotation.set(-0.6, 0, -0.5); r.rumpf.rotation.x = -0.15 * auf + wurf * 0.35; r.kopf.rotation.x = -0.25; r.beinL.rotation.x = -0.35 * wurf; break; }
       // Intros für die Cutscene
       case 'starren': r.rumpf.rotation.x = 0.22 + s(t * 2) * 0.03; r.kopf.rotation.x = -0.25; r.armL.rotation.set(0.2, 0, -0.35); r.armR.rotation.set(0.2, 0, 0.35); r.beinL.rotation.z = -0.12; r.beinR.rotation.z = 0.12; break;
       case 'zeigen': r.armR.rotation.set(-1.45 + s(t * 6) * 0.08, 0, 0.1); r.rumpf.rotation.x = 0.12; r.kopf.rotation.x = -0.15; r.armL.rotation.set(0, 0, -0.35); break;
@@ -257,7 +269,7 @@
 
   /* ---------- Hintergründe (hinter der Figur in Cutscene, Duell, Profil, Ergebnis) ---------- */
   function hintergrund(id) {
-    const W = WF3D, T = W.T, g = new T.Group(), ticks = [];
+    const W = WF3D, T = W.T, g = new T.Group(), ticks = [], s = Math.sin;
     const flach = (w, h, f, x, y, z = 0) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ color: f })); m.position.set(x, y, z); g.add(m); return m; };
     const kreis = (r, f, x, y, z = 0.01, n = 24) => { const m = new T.Mesh(new T.CircleGeometry(r, n), new T.MeshBasicMaterial({ color: f })); m.position.set(x, y, z); g.add(m); return m; };
     let k = 7; const zufall = () => (k = (k * 9301 + 49297) % 233280) / 233280;
@@ -312,6 +324,80 @@
         ticks.push(t => { gluten.forEach(([m, v], i) => { m.position.y = -2 + ((t * v + i * 0.41) % 7); }); strom.forEach((m, i) => { m.position.x = Math.sin(t * 0.6 + i * 1.7) * 0.5; m.scale.y = 0.85 + 0.3 * Math.abs(Math.sin(t + i)); }); });
         break;
       }
+      case 'olivenhain': {
+        ['#BFE3F2', '#D9EEF5'].forEach((f, i) => flach(16, 5, f, 0, 4.5 - i * 4, 0.001 * i));
+        kreis(0.9, '#FFE38A', 3.4, 4.3, 0.01, 32);
+        kreis(6, '#A9C47A', -3, -5.2, 0.02, 40); kreis(7, '#8FB061', 4, -6.4, 0.025, 40);
+        const baum = (x, y, sc) => { flach(0.18 * sc, 1.2 * sc, '#6B4A2E', x, y, 0.03); [[0, 0.8], [-0.45, 0.55], [0.45, 0.6], [-0.2, 1.1], [0.25, 1.05]].forEach(([dx, dy]) => kreis(0.42 * sc, '#5E7A3A', x + dx * sc, y + dy * sc, 0.031, 12)); };
+        baum(-4.2, 0.2, 1.2); baum(-1.6, -0.3, 0.9); baum(2.6, -0.1, 1.1); baum(4.8, 0.6, 0.8);
+        const v = []; for (let i = 0; i < 4; i++) v.push(flach(0.25, 0.05, '#2B2826', -5 + i * 2.5, 4 + zufall(), 0.04));
+        ticks.push(t => v.forEach((m, i) => { m.position.x = ((t * 0.6 + i * 3) % 14) - 7; m.rotation.z = s(t * 8 + i) * 0.4; }));
+        break;
+      }
+      case 'aegaeis': {
+        flach(16, 6, '#7CD4FF', 0, 5); kreis(1.1, '#FFE38A', -3.5, 4.4, 0.01, 32);
+        const wellen = []; ['#3D8FD1', '#2F7BC0', '#256AAA'].forEach((f, i) => wellen.push(flach(18, 1.5, f, 0, 1.4 - i * 1.1, 0.02 + i * 0.001)));
+        const haus = (x, y, b) => { flach(b, b * 0.8, '#FAF6EB', x, y, 0.04); kreis(b * 0.42, '#2F6FC0', x, y + b * 0.4, 0.039, 20); flach(b * 0.18, b * 0.3, '#2F6FC0', x, y - b * 0.25, 0.041); };
+        haus(3.2, 2.4, 1.1); haus(4.6, 2.2, 0.9); haus(2.1, 2.0, 0.8);
+        flach(4.5, 0.6, '#E8DCC0', 3.4, 1.7, 0.035);
+        const boot = flach(0.9, 0.18, '#D9643A', -2, 1.1, 0.05);
+        ticks.push(t => { wellen.forEach((m, i) => { m.position.x = s(t * 0.8 + i) * 0.4; }); boot.position.x = -2 + s(t * 0.3) * 1.5; boot.position.y = 1.1 + s(t * 2) * 0.06; });
+        break;
+      }
+      case 'tempel': {
+        flach(16, 10, '#1F2D4A', 0, 2); kreis(0.9, '#F7EFC8', -3.2, 4.4, 0.01, 32);
+        const st = []; for (let i = 0; i < 30; i++) st.push(kreis(0.02 + zufall() * 0.03, '#F5F0E4', zufall() * 14 - 7, zufall() * 5 + 1.5, 0.015, 6));
+        flach(8, 0.5, '#D9D2C0', 1, -0.8, 0.02); flach(8.6, 0.35, '#C9C0AA', 1, -1.2, 0.021);
+        for (let i = 0; i < 6; i++) { flach(0.45, 3.4, '#E8E1CF', -2.2 + i * 1.3, 1.1, 0.022); flach(0.65, 0.2, '#D9D2C0', -2.2 + i * 1.3, 2.9, 0.023); }
+        flach(8, 0.45, '#D9D2C0', 1, 3.2, 0.024);
+        const giebel = new T.Mesh(new T.CircleGeometry(4.3, 3), new T.MeshBasicMaterial({ color: '#E8E1CF' })); giebel.rotation.z = Math.PI / 2; giebel.scale.set(0.32, 1, 1); giebel.position.set(1, 3.75, 0.022); g.add(giebel);
+        flach(16, 2.4, '#141E33', 0, -2.4, 0.03);
+        ticks.push(t => st.forEach((m, i) => m.scale.setScalar(0.6 + 0.4 * Math.abs(s(t * 1.3 + i)))));
+        break;
+      }
+      case 'mosaik': {
+        flach(16, 10, '#E8DCC0', 0, 2);
+        for (let r2 = 0; r2 < 12; r2++) for (let c2 = 0; c2 < 18; c2++) if ((r2 + c2) % 2) flach(0.86, 0.86, '#DCCDA8', -7.6 + c2 * 0.9, -2.5 + r2 * 0.9, 0.01);
+        for (let r2 = 0; r2 < 4; r2++) for (let c2 = 0; c2 < 6; c2++) { const m = flach(0.5, 0.5, (r2 + c2) % 2 ? '#2F6FC0' : '#D9643A', -6.75 + c2 * 2.7, -1.6 + r2 * 2.7, 0.015); m.rotation.z = Math.PI / 4; }
+        flach(16, 1.1, '#2B2826', 0, 5.2, 0.02); for (let i = 0; i < 18; i++) flach(0.4, 0.4, '#F2C14E', -7.65 + i * 0.9, 5.2, 0.025);
+        flach(16, 1.1, '#2B2826', 0, -2.2, 0.02); for (let i = 0; i < 18; i++) flach(0.4, 0.4, '#F2C14E', -7.2 + i * 0.9, -2.2, 0.025);
+        break;
+      }
+      case 'stadion': {
+        flach(16, 10, '#9FD4F0', 0, 4);
+        ['#C9B28A', '#B59C72', '#A0875E', '#8C744E'].forEach((f, i) => flach(16, 0.7, f, 0, 3.0 - i * 0.7, 0.01 + i * 0.001));
+        const fans = []; for (let i = 0; i < 40; i++) fans.push(kreis(0.12, ['#D9643A', '#2F6FC0', '#F2C14E', '#3CBFB0', '#E86AA6'][i % 5], -7 + (i % 20) * 0.72, 3.1 - Math.floor(i / 20) * 0.7, 0.02, 10));
+        flach(16, 3.2, '#E3B67A', 0, -1.4, 0.02); for (let i = 0; i < 4; i++) flach(16, 0.05, '#FAF6EB', 0, -0.2 - i * 0.6, 0.025);
+        ticks.push(t => fans.forEach((m, i) => { m.position.y = 3.1 - Math.floor(i / 20) * 0.7 + Math.max(0, s(t * 6 + i * 0.7)) * 0.12; }));
+        break;
+      }
+      case 'gewitter': {
+        flach(16, 10, '#2A2F45', 0, 2);
+        const blitz = flach(16, 10, '#F5F0E4', 0, 2, 0.005); blitz.material.transparent = true; blitz.material.opacity = 0;
+        const wolken = []; for (let i = 0; i < 9; i++) wolken.push([kreis(0.9 + zufall() * 0.8, i % 2 ? '#454B66' : '#3A3F58', -7 + i * 1.8, 4.2 + zufall() * 0.8, 0.02, 20), zufall()]);
+        const zack = new T.Group(); zack.position.set(2.5, 2.5, 0.03); g.add(zack);
+        [[0, 0, -0.5], [0.35, -0.9, 0.6], [0.05, -1.8, -0.5]].forEach(([x, y, r]) => { const m = new T.Mesh(new T.PlaneGeometry(0.22, 1.1), new T.MeshBasicMaterial({ color: '#F2C14E', transparent: true })); m.position.set(x, y, 0); m.rotation.z = r; zack.add(m); });
+        flach(16, 2.2, '#1B1F2E', 0, -2.4, 0.04);
+        ticks.push(t => { const z = t % 3.1, an = z < 0.12 || (z > 0.22 && z < 0.3); blitz.material.opacity = an ? 0.35 : 0; zack.visible = an; wolken.forEach(([m, v], i) => { m.position.x = -7 + i * 1.8 + s(t * 0.3 + v * 6) * 0.3; }); });
+        break;
+      }
+      case 'unterwelt': {
+        flach(16, 10, '#1A0F26', 0, 2);
+        flach(16, 1.6, '#2E1A40', 0, -1.6, 0.01); flach(16, 0.6, '#3CBFB0', 0, -0.9, 0.012);
+        const seelen = []; for (let i = 0; i < 18; i++) seelen.push([kreis(0.06 + zufall() * 0.1, i % 3 ? '#8AF0D8' : '#C9A8FF', zufall() * 12 - 6, zufall() * 6, 0.02, 10), 0.2 + zufall() * 0.4, zufall() * 6]);
+        for (let i = 0; i < 7; i++) kreis(0.6 + zufall() * 0.6, '#0E0816', -6.5 + i * 2.2, -1.3, 0.03, 3).rotation.z = Math.PI / 2;
+        ticks.push(t => seelen.forEach(([m, v, p]) => { m.position.y = -1 + ((t * v + p) % 7); m.position.x += s(t * 2 + p) * 0.004; m.scale.setScalar(0.7 + 0.3 * Math.abs(s(t * 2 + p))); }));
+        break;
+      }
+      case 'olympwolken': {
+        ['#FBE6A8', '#FFE9C2', '#FFF6E3'].forEach((f, i) => flach(16, 3.4, f, 0, 5.4 - i * 3, 0.001 * i));
+        const strahl = new T.Group(); strahl.position.set(0, 3.6, 0.005); g.add(strahl);
+        for (let i = 0; i < 10; i++) { const m = new T.Mesh(new T.CircleGeometry(10, 3, 0, Math.PI / 14), new T.MeshBasicMaterial({ color: '#FFF1C4' })); m.rotation.z = i * Math.PI / 5; strahl.add(m); }
+        const wolken = []; for (let i = 0; i < 12; i++) wolken.push([kreis(0.7 + zufall() * 0.9, '#FFFFFF', -8 + i * 1.5, -0.9 + zufall() * 0.6 + (i % 3 === 0 ? 2.6 : 0), 0.02 + i * 0.0005, 20), 0.15 + zufall() * 0.2]);
+        for (let i = 0; i < 4; i++) { flach(0.4, 2.6, '#F2C14E', -5 + i * 0.9, 0.3, 0.015); }
+        ticks.push(t => { strahl.rotation.z = t * 0.15; wolken.forEach(([m, v], i) => { m.position.x = ((-8 + i * 1.5 + t * v + 9) % 18) - 9; }); });
+        break;
+      }
       case 'leer': break;                // nichts dahinter (Profil zeigt dort das Banner)
       case 'graffiti':
         flach(16, 10, '#B5654A', 0, 2);
@@ -343,7 +429,8 @@
     return g;
   }
 
-  const PERIODE = { winken: 0.79, jubeln: 0.63, hampelmann: 0.9, flex: 2.1, tanzen: 1.05, pose: 1.6, robot: 1.6, salto: 2.4, starren: 3.14, zeigen: 1.05, faust: 0.9, muskeln: 1.26, trommeln: 0.52, lachen: 0.39, gaehnen: 3.93 };
+  const PERIODE = { winken: 0.79, jubeln: 0.63, hampelmann: 0.9, flex: 2.1, tanzen: 1.05, pose: 1.6, robot: 1.6, salto: 2.4, starren: 3.14, zeigen: 1.05, faust: 0.9, muskeln: 1.26, trommeln: 0.52, lachen: 0.39, gaehnen: 3.93,
+    verbeugen: 2.86, kniebeuge: 2.42, kranich: 3.93, liegestuetz: 2.09, diskus: 2.2, sirtaki: 2.51, kopfschuetteln: 0.63, nacken: 3.2, blitz: 1.8 };
   const vorladen = look => holen(pruefen(typeof look === 'string' ? { skin: look } : look).skin).then(() => true).catch(() => false);
   window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund, vorladen,
     SKINS, KLASSEN, skinInfo: id => INFO[id] || null, bild: id => ORDNER + 'bilder/' + id + '.webp' };

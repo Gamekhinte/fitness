@@ -80,7 +80,7 @@
         <div class="ar-weg"><i id="arWeg"></i></div>
         <small id="arWegText"></small>
       </div>
-      <button class="ar-battle" id="arBattle" aria-label="Battle starten">${rahmen(260, 72, 18, 9, 'var(--marker)')}<span>BATTLE</span></button>
+      <button class="ar-battle" id="arBattle" aria-label="Battle starten">${rahmen(260, 72, 18, 9, 'var(--marker)')}<i class="ar-glanz" aria-hidden="true"></i><span>BATTLE</span></button>
     </div>`;
   document.querySelector('main').appendChild(tab);
 
