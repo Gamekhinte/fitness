@@ -7,7 +7,7 @@
    Oben im Fenster steht der Hauptpreis in 3D, jede Kosmetik lässt sich antippen und anschauen.
    Alles rechnet der Server (wf_pass_*), dieser Teil zeigt nur an und fragt zum Abholen.
 
-   Läuft nach arena.js. Der Pass-Knopf sitzt auf dem Startbildschirm neben BATTLE. */
+   Läuft nach arena.js. Der Pass-Knopf hängt als Fahne oben rechts am Startbildschirm. */
 (function () {
   if (!window.ArenaUI || !window.WF) return;
   const A = window.ArenaUI, W = () => window.WF, ich = () => W().ich();
@@ -129,18 +129,37 @@
   }
 
   /* ---------- Pass-Fenster ---------- */
+  const SCHLOSS = '<i class="ps-schloss" aria-hidden="true"></i>';
   function box(r) {
     const hat = geholt(r.stufe, r.spur), erreicht = r.stufe <= P.stufe, offen = r.spur === 'frei' || P.premium;
     const zustand = hat ? 'geholt' : erreicht && offen ? 'bereit' : erreicht ? 'premium' : 'zu';
     let inhalt, art = '', aktion = 'abholen', klick = zustand === 'bereit';
-    if (r.art === 'coins') inhalt = `${A.coin}<b>${r.wert}</b>`;
-    else if (r.art === 'gems') { inhalt = `${gem}<b>${r.wert}</b>`; art = ' gems'; }
+    if (r.art === 'coins') { inhalt = `<span class="ps-symbol">${A.coin}</span><b>${r.wert}</b>`; art = ' coins'; }
+    else if (r.art === 'gems') { inhalt = `<span class="ps-symbol">${gem}</span><b>${r.wert}</b>`; art = ' gems'; }
     else {
-      const [k, n] = itemName(r.wert);
-      inhalt = `<small>${e(k)}</small><b>${e(n)}</b>`; art = ' item ' + seltenheit(r.wert);
+      const [k, n] = itemName(r.wert), [kat, id] = String(r.wert).split(':');
+      const bild = kat === 'skin' && window.Figur && Figur.bild && Figur.skinInfo(id) ? `<img class="ps-skin" src="${Figur.bild(id)}" alt="" loading="lazy" decoding="async">` : '';
+      inhalt = `${bild}<small>${e(k)}</small><b>${e(n)}</b>`; art = ' item ' + seltenheit(r.wert) + (bild ? ' mitbild' : '');
       if (zustand !== 'bereit') { aktion = 'vorschau'; klick = true; }
     }
-    return `<button class="ps-box ${zustand}${art}${r.spur === 'premium' ? ' prem' : ''}${r.art === 'item' && VORSCHAU === r.wert ? ' gewaehlt' : ''}" data-pass="${aktion}" data-stufe="${r.stufe}" data-spur="${r.spur}" data-item="${r.art === 'item' ? e(r.wert) : ''}"${klick ? '' : ' disabled'}>${inhalt}${hat ? '<i class="ps-haken"></i>' : ''}</button>`;
+    const marke = zustand === 'bereit' ? '<em class="ps-hol">Abholen</em>' : hat ? '<i class="ps-haken"></i>' : (zustand === 'premium' || (r.spur === 'premium' && !P.premium)) ? SCHLOSS : '';
+    return `<button class="ps-box ${zustand}${art}${r.spur === 'premium' ? ' prem' : ''}${r.art === 'item' && VORSCHAU === r.wert ? ' gewaehlt' : ''}" data-pass="${aktion}" data-stufe="${r.stufe}" data-spur="${r.spur}" data-item="${r.art === 'item' ? e(r.wert) : ''}"${klick ? '' : ' disabled'}>${inhalt}${marke}</button>`;
+  }
+  // kleine Ansicht einer Belohnung (nächste Stufe, Bilanz)
+  function mini(r) {
+    if (!r) return '<span class="ps-mini leer">–</span>';
+    const zu = r.spur === 'premium' && !P.premium;
+    if (r.art === 'coins') return `<span class="ps-mini${zu ? ' zu' : ''}">${A.coin}<b>${r.wert}</b></span>`;
+    if (r.art === 'gems') return `<span class="ps-mini${zu ? ' zu' : ''}">${gem}<b>${r.wert}</b></span>`;
+    const [, id] = String(r.wert).split(':');
+    const bild = window.Figur && Figur.skinInfo && Figur.skinInfo(id) ? `<img src="${Figur.bild(id)}" alt="">` : '';
+    return `<span class="ps-mini item ${seltenheit(r.wert)}${zu ? ' zu' : ''}">${bild}<b>${e(itemName(r.wert)[1])}</b></span>`;
+  }
+  // Restzeit der Saison: Tage, am letzten Tag Stunden bis Mitternacht
+  function restzeit() {
+    if (P.tage_rest > 1) return `${P.tage_rest} Tage`;
+    const m = new Date(); m.setHours(24, 0, 0, 0);
+    return `${Math.max(1, Math.ceil((m - Date.now()) / 3600000))} Std`;
   }
 
   // 3D-Look für die Vorschau: dein Charakter mit dem angeschauten Teil
@@ -154,35 +173,64 @@
   function sheet(bleiben, nachOben) {
     if (!ich()) { toast('Erst einen Spitznamen eintragen'); return; }
     const zu = '<button class="ar-zu" data-zu aria-label="Schließen">×</button>';
-    if (!P || !P.aktiv) { A.zeigeBlatt(`${zu}<h2 class="ar-titel">Winterpass</h2><p class="ar-hand">Gerade läuft keine Saison. Die nächste kommt bald.</p>`); return; }
+    if (!P || !P.aktiv) { A.zeigeBlatt(`${zu}<div class="ps-pause"><span class="ps-pause-gem">${gem}</span><h2 class="ar-titel">Winterpass</h2><p class="ar-hand">Gerade läuft keine Saison. Die nächste kommt bald. Training zählt trotzdem für deine Bestwerte.</p></div>`); return; }
     const imStufe = P.xp % P.xp_pro_stufe, max = P.stufe >= P.stufen, n = bereit();
+    const anteil = max ? 100 : imStufe / P.xp_pro_stufe * 100;
     const prem = P.belohnungen.filter(r => r.spur === 'premium');
     const premGems = prem.filter(r => r.art === 'gems').reduce((s, r) => s + (+r.wert), 0);
-    const premItems = prem.filter(r => r.art === 'item').map(r => itemName(r.wert)[1]);
-    const freiGems = P.belohnungen.filter(r => r.spur === 'frei' && r.art === 'gems').reduce((s, r) => s + (+r.wert), 0);
+    const premItems = prem.filter(r => r.art === 'item');
+    // Bilanz: was schon abgeholt ist, und was Premium bis jetzt gebracht hätte
+    const abg = P.belohnungen.filter(r => geholt(r.stufe, r.spur));
+    const sum = art => abg.filter(r => r.art === art).reduce((s, r) => s + (+r.wert), 0);
+    const verpasst = P.premium ? [] : prem.filter(r => r.stufe <= P.stufe);
+    const nextF = P.belohnungen.find(r => r.stufe === P.stufe + 1 && r.spur === 'frei'), nextP = P.belohnungen.find(r => r.stufe === P.stufe + 1 && r.spur === 'premium');
+    // nächster großer Preis (Kosmetik) über der aktuellen Stufe
+    const ziel = P.belohnungen.filter(r => r.art === 'item' && r.stufe > P.stufe && (r.spur === 'frei' || P.premium)).sort((x, y) => x.stufe - y.stufe)[0];
     const reihen = [];
     for (let st = 1; st <= P.stufen; st++) {
       const f = P.belohnungen.find(r => r.stufe === st && r.spur === 'frei'), p = P.belohnungen.find(r => r.stufe === st && r.spur === 'premium');
-      reihen.push(`<div class="ps-reihe${st === P.stufe ? ' jetzt' : ''}${st <= P.stufe ? ' erreicht' : ''}${st % 10 === 0 ? ' gross' : ''}"${st === Math.max(1, P.stufe) ? ' id="psJetzt"' : ''}>${f ? box(f) : '<span></span>'}<span class="ps-nr">${st}</span>${p ? box(p) : '<span></span>'}</div>`);
+      const meilen = st % 5 === 0;
+      reihen.push(`<div class="ps-reihe${st === Math.max(1, P.stufe) ? ' jetzt' : ''}${st <= P.stufe ? ' erreicht' : ''}${st === P.stufe + 1 ? ' naechste' : ''}${meilen ? ' meilen' : ''}${st % 10 === 0 ? ' gross' : ''}"${st === Math.max(1, P.stufe) ? ' id="psJetzt"' : ''}>${f ? box(f) : '<span></span>'}<span class="ps-nr"><b>${st}</b></span>${p ? box(p) : '<span></span>'}</div>`);
     }
     const vn = itemName(VORSCHAU), sel = seltenheit(VORSCHAU);
     const vorBelohnung = P.belohnungen.find(r => r.art === 'item' && r.wert === VORSCHAU);
     A.zeigeBlatt(`${zu}
       <div class="ps-hero ${sel}"><span>${SELT_NAME[sel]}</span><b>${e(vn[1])}</b><small>${vorBelohnung ? `Stufe ${vorBelohnung.stufe}${vorBelohnung.spur === 'premium' ? ' · Premium' : ' · Frei'}` : e(vn[0])}</small></div>
-      <h2 class="ar-titel">${e(P.name)}</h2>
-      <p class="ar-hand">Noch ${P.tage_rest} ${P.tage_rest === 1 ? 'Tag' : 'Tage'}</p>
-      <div class="ps-konto"><span>${A.coin}<b>${A.F().coins}</b></span><span>${gem}<b>${A.F().gems || 0}</b></span></div>
-      ${P.premium ? '<p class="ps-prem">Premium-Spur aktiv</p>'
-        : `<div class="ps-werbung"><b>Premium-Spur</b><span>${e(premItems.slice(-3).reverse().join(', '))} und ${premGems} ${gem}</span></div>`}
-      <div class="ps-kopf"><b>Stufe ${P.stufe}${max ? ' (Maximum)' : ''}</b><span>${max ? 'Alles geschafft' : `${imStufe} von ${P.xp_pro_stufe} XP`}</span></div>
-      <div class="ar-weg ps-balken"><i style="width:${max ? 100 : imStufe / P.xp_pro_stufe * 100}%"></i></div>
-      <p class="ar-hand klein">XP gibt es fürs Training (Wiederholungen, Kilometer, Trainingstage) und für jedes gewertete Rennen und Duell.</p>
-      ${n ? `<button class="ar-knopf breit gold" data-pass="alle">Alle abholen (${n})</button>` : ''}
-      <p class="ar-hand klein">Tippe auf ein Outfit oder eine Kosmetik, um sie oben anzuschauen.</p>
-      <div class="ps-kopfzeile"><span>Frei</span><span></span><span>Premium</span></div>
-      <div class="ps-liste">${reihen.join('')}</div>
-      ${P.premium ? '' : `<div class="ar-fuss"><button class="ar-knopf breit gold" data-pass="premium">Premium-Spur freischalten · ${P.premium_preis} ${A.coin}</button></div>`}`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
-    $('arB3d').style.background = '#1F3A5F';
+      <div class="ps-saison">
+        <div class="ps-saison-name"><small>Saison</small><b>${e(P.name)}</b></div>
+        <span class="ps-uhr"><i aria-hidden="true"></i>${restzeit()}</span>
+      </div>
+      <div class="ps-stand">
+        <div class="ps-medaille" style="--p:${anteil}"><span><small>Stufe</small><b>${P.stufe}</b></span></div>
+        <div class="ps-stand-text">
+          <b>${max ? 'Maximum erreicht' : `${imStufe} / ${P.xp_pro_stufe} XP`}</b>
+          <div class="ps-xpbalken"><u style="width:${anteil}%"></u></div>
+          <small>${max ? 'Alle Stufen geschafft, stark!' : `Noch ${P.xp_pro_stufe - imStufe} XP bis Stufe ${P.stufe + 1}`}</small>
+        </div>
+      </div>
+      ${max ? '' : `<div class="ps-next"><span class="ps-next-titel">Stufe ${P.stufe + 1} bringt</span><div class="ps-next-reihe">${mini(nextF)}<i class="ps-plus">+</i>${mini(nextP)}</div>
+        ${ziel ? `<p class="ps-ziel">Nächster großer Preis: <b>${e(itemName(ziel.wert)[1])}</b> in ${ziel.stufe - P.stufe} ${ziel.stufe - P.stufe === 1 ? 'Stufe' : 'Stufen'}</p>` : ''}</div>`}
+      ${n ? `<button class="ar-knopf breit gold ps-alle" data-pass="alle"><span>Alle abholen</span><em>${n}</em></button>` : ''}
+      <div class="ps-wege">
+        <span><i class="w-hantel"></i><b>Training</b><small>Wdh. und Tage</small></span>
+        <span><i class="w-lauf"></i><b>Laufen</b><small>jeder Kilometer</small></span>
+        <span><i class="w-schwert"></i><b>Battles</b><small>Rennen, Duelle</small></span>
+      </div>
+      <div class="ps-bilanz">
+        <span>${A.coin}<b>${sum('coins')}</b></span><span>${gem}<b>${sum('gems')}</b></span><span><i class="ps-kiste"></i><b>${abg.filter(r => r.art === 'item').length}</b></span>
+        <small>schon diese Saison geholt</small>
+      </div>
+      ${P.premium ? '<div class="ps-prem-an"><b>Premium aktiv</b><small>Beide Spuren gehören dir</small></div>'
+        : `<button class="ps-werbung" data-pass="premium">
+            <span class="ps-werbung-bild">${premItems.slice(-1).map(r => { const id = String(r.wert).split(':')[1]; return window.Figur && Figur.skinInfo(id) ? `<img src="${Figur.bild(id)}" alt="">` : ''; }).join('')}</span>
+            <span class="ps-werbung-text"><small>Premium-Spur</small><b>${premItems.length} Kosmetik + ${premGems} ${gem}</b>
+            ${verpasst.length ? `<em>${verpasst.length} Belohnungen warten schon auf dich</em>` : `<em>${e(premItems.slice(-2).reverse().map(r => itemName(r.wert)[1]).join(', '))}</em>`}</span>
+          </button>`}
+      <p class="ar-hand klein ps-tipp">Tippe auf ein Outfit, um es oben anzuschauen.</p>
+      <div class="ps-kopfzeile"><span>Frei</span><span></span><span class="${P.premium ? '' : 'zu'}">Premium</span></div>
+      <div class="ps-liste" style="--fort:${Math.min(P.stufe, P.stufen) / P.stufen}">${reihen.join('')}</div>
+      ${P.premium ? '' : `<div class="ar-fuss"><button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${P.premium_preis} ${A.coin}</button></div>`}`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
+    $('arB3d').style.background = 'radial-gradient(circle at 50% 70%,#3B6EA5 0,#1F3A5F 70%)';
     if (!bleiben && P.stufe >= 4) setTimeout(() => { const j = el('psJetzt'); if (j && j.scrollIntoView) j.scrollIntoView({ block: 'center' }); }, 60);   // ab Stufe 4 zur aktuellen Stufe, sonst oben beim Hauptpreis
     if (nachOben) { const b = document.querySelector('.ar-blatt'); if (b) b.scrollTop = 0; }
   }
