@@ -41,7 +41,9 @@
       c.onclick = () => sheet();
     }
     const n = bereit(), lv = P && P.aktiv ? P.stufe : 0, anteil = P && P.aktiv ? (P.stufe >= P.stufen ? 100 : (P.xp % P.xp_pro_stufe) / P.xp_pro_stufe * 100) : 0;
-    c.innerHTML = `<span class="pk-gem">${gem}</span><b>Pass ${lv}</b><i class="pk-balken"><u style="width:${anteil}%"></u></i>${n > 0 ? `<em class="pk-punkt">${n}</em>` : ''}`;
+    c.innerHTML = `<svg class="pk-fahne" viewBox="0 0 80 112" preserveAspectRatio="none" aria-hidden="true"><path class="pk-schatten" d="M3 0H77V98L40 86L3 98Z" transform="translate(0 4)"/><path class="pk-tuch" d="M3 0H77V98L40 86L3 98Z"/><path class="pk-saum" d="M3 9H77"/></svg>`
+      + `<span class="pk-glanz" aria-hidden="true"></span><span class="pk-gem"><i class="pk-strahl" aria-hidden="true"></i>${gem}</span><b>PASS</b><span class="pk-stufe">${lv}</span><i class="pk-balken"><u style="width:${anteil}%"></u></i>${n > 0 ? `<em class="pk-punkt">${n}</em>` : ''}`;
+    c.setAttribute('aria-label', `Pass öffnen, Stufe ${lv}${n > 0 ? `, ${n} Belohnungen bereit` : ''}`);
     c.classList.toggle('ps-neu', n > 0);
   }
   const geholt = (st, sp) => P.abgeholt.some(a => a.stufe === st && a.spur === sp);

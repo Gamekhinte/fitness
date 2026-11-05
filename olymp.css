@@ -46,8 +46,38 @@ body:not(.papier) .top{background:var(--maeander) left bottom/16px 12px repeat-x
 .so-bschild.legendaer{background:#FBE6A8}
 
 /* ---------- Startseite: Pass schwebt oben rechts, BATTLE allein in der Mitte, Arena-Schild ---------- */
-.ar-kopf .ar-passknopf{position:absolute!important;right:12px;top:calc(100% + 14px);z-index:4;width:70px!important;height:80px;padding:6px 2px}
-.ar-kopf .ar-passknopf .pk-gem img{width:32px}
+/* Pass als goldene Fahne, die an der Kopfleiste hängt und leicht schwingt */
+.ar-kopf .ar-passknopf{position:absolute!important;right:14px;top:calc(100% - 1px);z-index:4;width:76px!important;height:106px;padding:12px 0 20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;background:none!important;border:0!important;box-shadow:none!important;border-radius:0;
+  font-family:var(--dick);color:var(--graphit);transform-origin:50% 0;animation:pkSchwing 4.5s ease-in-out infinite;-webkit-tap-highlight-color:transparent}
+.ar-kopf .ar-passknopf:active{transform:scale(.94)!important;box-shadow:none!important;animation:none}
+.ar-passknopf .pk-fahne{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:-1}
+.ar-passknopf .pk-schatten{fill:var(--graphit)}
+.ar-passknopf .pk-tuch{fill:var(--gold);stroke:var(--graphit);stroke-width:3;stroke-linejoin:round}
+.ar-passknopf .pk-saum{stroke:var(--graphit);stroke-width:2.5;stroke-dasharray:5 3}
+.ar-passknopf .pk-glanz{position:absolute;inset:3px 3px 14px;overflow:hidden;clip-path:polygon(0 0,100% 0,100% 100%,50% 88%,0 100%);pointer-events:none}
+.ar-passknopf .pk-glanz::after{content:"";position:absolute;top:-20%;bottom:-20%;width:22px;left:-40px;background:rgba(255,255,255,.55);transform:skewX(-18deg);animation:pkGlanz 3.8s ease-in-out infinite}
+.ar-passknopf .pk-gem{position:relative;display:grid;place-items:center;width:44px;height:40px;margin-top:2px}
+.ar-kopf .ar-passknopf .pk-gem img{position:relative;width:36px;display:block;filter:drop-shadow(0 2px 0 var(--graphit));animation:pkSchweb 2.4s ease-in-out infinite}
+.ar-passknopf .pk-strahl{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,255,255,.75) 0 12deg,transparent 12deg 30deg);
+  -webkit-mask:radial-gradient(circle,#000 25%,transparent 68%);mask:radial-gradient(circle,#000 25%,transparent 68%);animation:pkDreh 9s linear infinite}
+.ar-kopf .ar-passknopf b{position:relative;font-weight:400;font-size:15px;line-height:1;letter-spacing:1px;margin-top:1px;color:#FAF6EB;
+  -webkit-text-stroke:3px var(--graphit);paint-order:stroke fill;text-shadow:0 2px 0 var(--graphit)}
+.ar-passknopf .pk-stufe{position:absolute;left:-9px;top:6px;min-width:26px;height:26px;padding:0 4px;box-sizing:border-box;display:grid;place-items:center;
+  font-size:15px;line-height:1;background:var(--marker);border:2.5px solid var(--graphit);border-radius:50%;box-shadow:0 2px 0 var(--graphit);transform:rotate(-8deg)}
+.ar-kopf .ar-passknopf .pk-balken{position:relative;width:52px;height:9px;margin-top:5px;background:#FAF6EB;border:2px solid var(--graphit);border-radius:5px;overflow:hidden}
+.ar-kopf .ar-passknopf .pk-balken u{background:linear-gradient(90deg,#3CBFB0,#7CE3D6)}
+.ar-kopf .ar-passknopf .pk-punkt{top:auto;bottom:4px;right:-8px;animation:pkHuepf 1.2s ease-in-out infinite}
+.ar-kopf .ar-passknopf.ps-neu{animation:pkSchwing 4.5s ease-in-out infinite}
+.ar-kopf .ar-passknopf.ps-neu .pk-tuch{fill:#F7CF5E}
+.ar-kopf .ar-passknopf.ps-neu .pk-strahl{animation-duration:4s}
+@keyframes pkSchwing{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+@keyframes pkSchweb{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes pkDreh{to{transform:rotate(360deg)}}
+@keyframes pkGlanz{0%,62%{left:-40px}100%{left:110px}}
+@keyframes pkHuepf{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.ar-kopf .ar-passknopf,.ar-passknopf .pk-gem img,.ar-passknopf .pk-strahl,.ar-passknopf .pk-glanz::after,.ar-passknopf .pk-punkt{animation:none!important}}
 .ar-buehne .ar-battle{width:66%;margin:12px auto 6px}
 .ar-unten{align-self:center;margin-top:-6px;padding:8px 18px 10px;background:var(--maeander) left top/16px 12px repeat-x,#FAF6EB;border:3px solid var(--graphit);border-radius:16px;box-shadow:0 4px 0 var(--graphit);padding-top:18px;min-width:250px}
 .ar-unten .ar-name{margin:0 auto 6px;font-size:21px}
