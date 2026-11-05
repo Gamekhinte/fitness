@@ -30,8 +30,8 @@
   };
 
   /* ---------- Katalog ---------- */
-  const KATS = [['skin', 'Skins'], ['emote', 'Animationen'], ['intro', 'Intros'], ['hg', 'Hintergründe']];
-  const REITER = { skin: 'skins', emote: 'emotes', intro: 'intro', hg: 'hg' };
+  const KATS = [['skin', 'Skins'], ['aura', 'Auras'], ['emote', 'Animationen'], ['intro', 'Intros'], ['hg', 'Hintergründe']];
+  const REITER = { skin: 'skins', aura: 'aura', emote: 'emotes', intro: 'intro', hg: 'hg' };
   function alle() {
     const l = [];
     KATS.forEach(([k]) => (K[k] || []).forEach(([id, name, preis]) => {
@@ -66,7 +66,7 @@
     const specials = [pick(spezialPool, r), pick(spezialPool, r), pick(spezialPool, r)];
     const einfach = items.filter(i => i.kat === 'skin' && ['ungewoehnlich', 'selten'].includes(klasse(i)));
     const taeglich = [pick(einfach, r), pick(einfach, r), pick(pool('emote', 'intro'), r), pick(pool('hg'), r)];
-    const woche = [pick(pool('skin'), rw), pick(pool('emote', 'intro', 'hg'), rw)];
+    const woche = [pick(pool('skin'), rw), pick(pool('aura', 'emote', 'intro', 'hg'), rw)];
     return { highlight: specials[0], specials, taeglich, woche, items };
   }
 
@@ -87,12 +87,13 @@
     if (it.kat === 'kopf' || it.kat === 'extra') look.skin = 'nichts';
     if (it.kat === 'emote') look.emote = 'idle';
     if (it.kat === 'hg') look.hg = it.id;
+    if (it.kat !== 'aura') look.aura = 'keine';
     look[it.kat] = it.id;
     return look;
   }
   const kurz = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
   const ck = it => it.key + '#' + kurz(JSON.stringify(lookFuer(it)));
-  const bewegt = it => it.kat === 'emote' || it.kat === 'intro';
+  const bewegt = it => it.kat === 'emote' || it.kat === 'intro' || it.kat === 'aura';
   // gross: doppelte Auflösung für Bilder, die fast bildschirmgroß gezeigt werden (Rad-Zoom, "Du erhältst")
   function foto(it, gross) {
     const schluessel = ck(it) + (gross ? '#gross' : '');
@@ -205,7 +206,7 @@
   const preis = it => it.art === 'gems' ? `${gem}${it.wert}` : `${A.coin}${it.wert}`;
   const kategorieName = it => (KATS.find(x => x[0] === it.kat) || [0, ''])[1];
   // Neu dazugekommene Posen, Intros und Hintergründe bekommen ein NEU-Schild
-  const NEU = new Set(['emote:verbeugen', 'emote:kniebeuge', 'emote:kranich', 'emote:liegestuetz', 'emote:diskus', 'emote:sirtaki',
+  const NEU = new Set(['aura:funken', 'aura:frost', 'aura:wellen', 'aura:feuer', 'aura:blitz', 'aura:schatten', 'aura:sonne', 'emote:verbeugen', 'emote:kniebeuge', 'emote:kranich', 'emote:liegestuetz', 'emote:diskus', 'emote:sirtaki',
     'intro:kopfschuetteln', 'intro:nacken', 'intro:blitz', 'hg:olivenhain', 'hg:aegaeis', 'hg:tempel', 'hg:mosaik', 'hg:stadion', 'hg:gewitter', 'hg:unterwelt', 'hg:olympwolken']);
   const karte = (it, klein) => `<button class="sh-karte ${it.art}${hat(it) ? ' hat' : ''}${klein ? ' klein' : ''} sel-${seltenheit(it)}" data-sh="anprobe" data-key="${e(it.key)}">
       <span class="sh-bild"><img alt="" data-foto="${e(it.key)}"></span><i class="sh-sel">${SELTEN_NAME[seltenheit(it)]}</i>${NEU.has(it.key) && !hat(it) ? '<i class="sh-neu">NEU</i>' : ''}
@@ -334,6 +335,8 @@
       <div class="sh-raster vier">${a.taeglich.map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Diese Woche</h3></div>
       <div class="sh-woche">${a.woche.map(i => highlight(i, true)).join('')}</div>
+      <div class="sh-abschnitt"><h3>Auras</h3><small>Sieht auch dein Gegner</small></div>
+      <div class="sh-raster drei sh-kosmetik">${sortiert(a.items.filter(i => i.kat === 'aura')).map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Posen & Intros</h3><small>Immer im Shop</small></div>
       <div class="sh-raster vier sh-kosmetik">${sortiert(a.items.filter(i => i.kat === 'emote' || i.kat === 'intro')).map(i => karte(i, true)).join('')}</div>
       <div class="sh-abschnitt"><h3>Hintergründe</h3><small>Immer im Shop</small></div>

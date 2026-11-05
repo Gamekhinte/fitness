@@ -394,11 +394,11 @@
   $('arGems').onclick = () => editor('skins');
 
   /* ---------- Charakter-Editor und Shop ---------- */
-  const REITER = [['skins', 'Skins'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
+  const REITER = [['skins', 'Skins'], ['aura', 'Aura'], ['emotes', 'Animationen'], ['intro', 'Intro'], ['hg', 'Hintergrund']];
   let E = null;
   const besitzt = (kat, id) => !Figur.preis(kat, id) || F.besitz.includes(kat + ':' + id);
   function gesperrt(a) {
-    return ['kopf', 'extra', 'skin', 'emote', 'intro', 'hg'].filter(k => !besitzt(k, a[k]))
+    return ['kopf', 'extra', 'skin', 'emote', 'intro', 'hg', 'aura'].filter(k => a[k] && !besitzt(k, a[k]))
       .map(k => ({ kat: k, id: a[k], name: (Figur.KATALOG[k].find(x => x[0] === a[k]) || [])[1], preis: Figur.preis(k, a[k]) }));
   }
   function editor(reiter) {
@@ -424,6 +424,7 @@
     }).join('');
     const inhalt = {
       skins: () => '<p class="ar-hand">Jeder Skin ist eine eigene Figur aus der griechischen Sagenwelt.</p>' + skins(),
+      aura: () => '<p class="ar-hand">Leuchtet um deine Figur. Dein Gegner sieht sie im Duell, bei jeder Wiederholung flammt sie auf.</p>' + wahl('aura', K.aura, 'Aura'),
       emotes: () => '<p class="ar-hand">Deine Figur zeigt sie auf der Insel und nach jedem Sieg.</p>' + wahl('emote', K.emote, 'Animationen'),
       intro: () => '<p class="ar-hand">Läuft in der Cutscene vor jedem Duell. Dein Gegner sieht es.</p>' + wahl('intro', K.intro, 'Intro'),
       hg: () => '<p class="ar-hand">Hinter deiner Figur in Cutscene, Duell und Ergebnis.</p>' + wahl('hg', K.hg, 'Hintergrund')

@@ -465,7 +465,7 @@
       if (PIP.q < 0 && PIP.gezeigt < PIP.ziel) PIP.q = 0;
       if (PIP.q >= 0) {
         PIP.q += dt / Math.max(0.35, 0.7 - (PIP.ziel - PIP.gezeigt) * 0.08);
-        if (PIP.q >= 1) { PIP.q = -1; PIP.gezeigt++; }
+        if (PIP.q >= 1) { PIP.q = -1; PIP.gezeigt++; Figur.auraPuls(PIP.f); }
       }
       if (PIP.q < 0) Figur.haltung(PIP.f, PIP.fertig ? 'idle' : anim, 0);
       else Figur.haltung(PIP.f, anim, PIP.q * Math.PI * 2 / (anim === 'kniebeuge' ? 2.6 : 3));

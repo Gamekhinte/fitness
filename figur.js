@@ -30,7 +30,10 @@
       ['olivenhain', 'Olivenhain', 350], ['aegaeis', 'Ägäis', 450], ['tempel', 'Tempel im Mondlicht', 550], ['mosaik', 'Mosaik', 600],
       ['stadion', 'Stadion', 750], ['gewitter', 'Zeus\' Gewitter', 900], ['unterwelt', 'Unterwelt', 'g80'], ['olympwolken', 'Wolken des Olymp', 'g120']]
   };
-  const STANDARD = { typ: 'mann', skin: 'olympionike', kopf: 'nichts', extra: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis' };
+  // Aura: leuchtet um deine Figur, auch beim Gegner im Duell. Bei jeder Wiederholung flammt sie auf.
+  K.aura = [['keine', 'Keine', 0], ['funken', 'Goldfunken', 800], ['frost', 'Frosthauch', 1000], ['wellen', 'Poseidons Strömung', 1200],
+    ['feuer', 'Feuer des Prometheus', 1500], ['blitz', 'Zeus\' Blitze', 'g100'], ['schatten', 'Hades\' Schatten', 'g100'], ['sonne', 'Apollons Sonne', 'g150']];
+  const STANDARD = { typ: 'mann', skin: 'olympionike', kopf: 'nichts', extra: 'nichts', emote: 'winken', intro: 'starren', hg: 'eis', aura: 'keine' };
   const preis = (kat, id) => { const e = (K[kat] || []).find(x => x[0] === id); return e && e[2] ? e[2] : 0; };
   const startSkin = typ => typ === 'frau' ? 'olympionikin' : 'olympionike';
 
@@ -42,6 +45,7 @@
     if (!INFO[r.skin]) r.skin = startSkin(r.typ);
     if (INFO[r.skin]) r.typ = INFO[r.skin].g === 'w' ? 'frau' : 'mann';
     r.kopf = 'nichts'; r.extra = 'nichts';
+    if (!K.aura.some(x => x[0] === r.aura)) r.aura = 'keine';
     return r;
   }
 
@@ -133,6 +137,7 @@
     });
     ['L', 'R'].forEach(s => { const k = new T.Group(); k.position.y = -0.42; rig['bein' + s].add(k); rig['knie' + s] = k; });
     aussen.userData.rig = rig;
+    if (a.aura && a.aura !== 'keine') { rig.aura = auraBauen(a.aura); wurzel.add(rig.aura); }
     const d = fertig.get(a.skin);
     if (d) einsetzen(rig, d, opt); else holen(a.skin).then(d2 => einsetzen(rig, d2, opt)).catch(() => {});
     return aussen;
@@ -142,6 +147,7 @@
     const glbW = inst.getObjectByName('wurzel') || inst;
     rig.wurzel.clear();
     [...glbW.children].forEach(c => rig.wurzel.add(c));
+    if (rig.aura) rig.wurzel.add(rig.aura);
     const n = name => rig.wurzel.getObjectByName(name);
     ['huefte', 'rumpf', 'kopf', 'beinL', 'beinR', 'knieL', 'knieR'].forEach(k => { rig[k] = n(k) || rig[k]; });
     // Arme: die A-Pose steckt im Mesh, die Animationen setzen sie selbst. Darum innen zurückdrehen, außen animieren.
@@ -265,7 +271,78 @@
     }
     if (name !== 'flex' && name !== 'muskeln' && name !== 'idle' && name !== undefined) r.rumpf.scale.set(1, 1, 1);
     bewegen(r, name, t);
+    if (r.aura) r.aura.userData.tick(t);
   }
+
+
+  /* ---------- Auras: Leuchten um die Figur. Hängt an der Wurzel, folgt also jeder Bewegung (auch Liegestütze). ---------- */
+  function auraBauen(id) {
+    const T = WF3D.T, g = new T.Group(), teile = [];
+    const mat = (f, o = 0.8) => new T.MeshBasicMaterial({ color: f, transparent: true, opacity: o, depthWrite: false });
+    const add = (geo, f, o, x = 0, y = 0, z = 0) => { const m = new T.Mesh(geo, mat(f, o)); m.position.set(x, y, z); m.userData.o = o; g.add(m); teile.push(m); return m; };
+    let k = 11; const zufall = () => (k = (k * 9301 + 49297) % 233280) / 233280;
+    const s = Math.sin, PI = Math.PI;
+    let puls = 0, letzt = null, tick = () => {};
+    const ring = (r, f, o, y, dicke = 0.025) => { const m = add(new T.TorusGeometry(r, dicke, 6, 40), f, o, 0, y, 0); m.rotation.x = PI / 2; return m; };
+    switch (id) {
+      case 'funken': {
+        const fx = []; for (let i = 0; i < 26; i++) { const w = zufall() * PI * 2, r = 0.42 + zufall() * 0.2; fx.push([add(new T.OctahedronGeometry(0.045 + zufall() * 0.03), i % 3 ? '#F2C14E' : '#E0A400', 0.95), w, r, zufall() * 2, 0.4 + zufall() * 0.4]); }
+        const r1 = ring(0.5, '#F2C14E', 0.75, 0.05, 0.035);
+        tick = (t, p) => { fx.forEach(([m, w, r, ph, v]) => { const y = (t * v + ph) % 2; m.position.set(Math.cos(w + t * 0.6) * r * (1 + p * 0.3), y, Math.sin(w + t * 0.6) * r * (1 + p * 0.3)); m.rotation.y = t * 3; m.scale.setScalar(1 - y / 2.4 + p); }); r1.scale.setScalar(1 + p * 0.5); r1.material.opacity = 0.4 + p * 0.5; };
+        break;
+      }
+      case 'frost': {
+        const a = ring(0.55, '#4FA3E0', 0.9, 0.6, 0.04), b = ring(0.5, '#9ED9FF', 0.9, 1.2, 0.03);
+        const kr = []; for (let i = 0; i < 12; i++) kr.push([add(new T.OctahedronGeometry(0.07), i % 2 ? '#7CD4FF' : '#4FA3E0', 0.95), i / 12 * PI * 2, 0.3 + (i % 4) * 0.45]);
+        tick = (t, p) => { a.rotation.z = t * 0.8; a.rotation.y = s(t) * 0.3; b.rotation.z = -t * 0.6; b.rotation.y = s(t + 1) * 0.3; a.scale.setScalar(1 + p * 0.6); b.scale.setScalar(1 + p * 0.4);
+          kr.forEach(([m, w, y]) => { m.position.set(Math.cos(w + t * 0.9) * (0.6 + p * 0.3), y + s(t * 2 + w) * 0.06, Math.sin(w + t * 0.9) * (0.6 + p * 0.3)); m.rotation.set(t, t * 1.3, 0); m.scale.set(0.6 + p, 1.4 + p, 0.6 + p); }); };
+        break;
+      }
+      case 'wellen': {
+        const rs = [0, 1, 2].map(i => ring(0.45, i % 2 ? '#2BA89A' : '#2F8FD8', 0.85, 0, 0.045));
+        const tropfen = []; for (let i = 0; i < 10; i++) tropfen.push([add(new T.SphereGeometry(0.045, 6, 6), '#3CBFB0', 0.9), zufall() * PI * 2, zufall() * 1.6]);
+        tick = (t, p) => { rs.forEach((m, i) => { const z = (t * 0.6 + i / 3) % 1; m.position.y = z * 1.8; m.scale.setScalar(0.8 + z * 0.5 + p * 0.5); m.material.opacity = (1 - z) * 0.75 + p * 0.2; });
+          tropfen.forEach(([m, w, ph]) => { const y = (t * 0.9 + ph) % 1.8; m.position.set(Math.cos(w + t) * 0.55, y, Math.sin(w + t) * 0.55); }); };
+        break;
+      }
+      case 'feuer': {
+        const fl = []; for (let i = 0; i < 12; i++) { const w = i / 12 * PI * 2, m = add(new T.ConeGeometry(0.09, 0.5, 5), i % 2 ? '#FF7A2E' : '#F2C14E', 0.85, Math.cos(w) * 0.48, 0.2, Math.sin(w) * 0.48); fl.push([m, i]); }
+        const glut = []; for (let i = 0; i < 16; i++) glut.push([add(new T.SphereGeometry(0.025, 5, 5), i % 2 ? '#FF7A2E' : '#FFE38A', 0.95), zufall() * PI * 2, zufall() * 2, 0.5 + zufall() * 0.5]);
+        tick = (t, p) => { fl.forEach(([m, i]) => { m.scale.y = 0.7 + 0.6 * Math.abs(s(t * 7 + i * 1.7)) + p * 1.4; m.position.y = 0.12 + m.scale.y * 0.25; });
+          glut.forEach(([m, w, ph, v]) => { const y = (t * v + ph) % 2; m.position.set(Math.cos(w) * (0.3 + y * 0.12), y, Math.sin(w) * (0.3 + y * 0.12)); m.material.opacity = 1 - y / 2; }); };
+        break;
+      }
+      case 'blitz': {
+        const r1 = ring(0.55, '#2F8FD8', 0.85, 0.05, 0.04);
+        const zacken = []; for (let i = 0; i < 4; i++) { const z = new T.Group(); g.add(z); const w = i / 4 * PI * 2; z.position.set(Math.cos(w) * 0.55, 0.9, Math.sin(w) * 0.55);
+          [[0, 0.3, -0.5], [0.08, 0, 0.6], [0, -0.3, -0.5]].forEach(([x, y, r]) => { const m = new T.Mesh(new T.BoxGeometry(0.06, 0.36, 0.06), mat('#2F8FD8', 0.95)); m.position.set(x, y, 0); m.rotation.z = r; z.add(m); });
+          zacken.push([z, i]); }
+        const kern = add(new T.SphereGeometry(0.75, 16, 12), '#7CD4FF', 0.0, 0, 0.95, 0); kern.scale.set(0.8, 1.35, 0.8);
+        tick = (t, p) => { r1.rotation.z = t * 2; r1.scale.setScalar(1 + p * 0.6); zacken.forEach(([z, i]) => { z.visible = p > 0.2 || ((t * 9 + i * 7.3) % 5) < 1.1; z.rotation.y = t * 3 + i; z.scale.setScalar(1 + p); }); kern.material.opacity = 0.08 + p * 0.3; };
+        break;
+      }
+      case 'schatten': {
+        const boden = add(new T.CircleGeometry(0.62, 32), '#2E1A40', 0.55, 0, 0.02, 0); boden.rotation.x = -PI / 2;
+        const geister = []; for (let i = 0; i < 9; i++) geister.push([add(new T.SphereGeometry(0.06 + (i % 3) * 0.02, 8, 8), i % 3 ? '#6B3FA0' : '#3CBFB0', 0.8), i / 9 * PI * 2, i * 0.2]);
+        tick = (t, p) => { boden.scale.setScalar(1 + p * 0.4); geister.forEach(([m, w, y0]) => { const y = (y0 + t * 0.35) % 1.8; m.position.set(Math.cos(w + t * 1.2 + y * 2) * (0.5 + p * 0.3), y, Math.sin(w + t * 1.2 + y * 2) * (0.5 + p * 0.3)); m.scale.set(1 + p, 1.6 + p, 1 + p); m.material.opacity = 0.85 * (1 - y / 2.2); }); };
+        break;
+      }
+      case 'sonne': {
+        const kranz = new T.Group(); kranz.position.set(0, 1.62, -0.3); g.add(kranz);
+        for (let i = 0; i < 14; i++) { const m = new T.Mesh(new T.PlaneGeometry(0.06, 0.38), mat('#F2C14E', 0.85)); const w = i / 14 * PI * 2; m.position.set(Math.cos(w) * 0.5, Math.sin(w) * 0.5, 0); m.rotation.z = w - PI / 2; kranz.add(m); }
+        const halo = new T.Mesh(new T.TorusGeometry(0.34, 0.03, 6, 40), mat('#FFE38A', 0.95)); kranz.add(halo);
+        const scheibe = new T.Mesh(new T.CircleGeometry(0.32, 32), mat('#FFF1C4', 0.35)); scheibe.position.z = -0.01; kranz.add(scheibe);
+        const r1 = ring(0.5, '#F2C14E', 0.5, 0.05);
+        tick = (t, p) => { kranz.rotation.z = t * 0.4; kranz.scale.setScalar(1 + 0.04 * s(t * 3) + p * 0.5); r1.scale.setScalar(1 + p * 0.5); };
+        break;
+      }
+    }
+    g.userData.tick = t => { const dt = letzt === null ? 0 : Math.max(0, Math.min(0.1, t - letzt)); letzt = t; puls = Math.max(0, puls - dt * 2.2); tick(t, puls); };
+    g.userData.puls = () => { puls = 1; };
+    return g;
+  }
+  // Bei jeder Wiederholung kurz aufflammen lassen (Kraft-Duell)
+  const auraPuls = fig => { const r = fig && fig.userData.rig; if (r && r.aura) r.aura.userData.puls(); };
 
   /* ---------- Hintergründe (hinter der Figur in Cutscene, Duell, Profil, Ergebnis) ---------- */
   function hintergrund(id) {
@@ -432,7 +509,7 @@
   const PERIODE = { winken: 0.79, jubeln: 0.63, hampelmann: 0.9, flex: 2.1, tanzen: 1.05, pose: 1.6, robot: 1.6, salto: 2.4, starren: 3.14, zeigen: 1.05, faust: 0.9, muskeln: 1.26, trommeln: 0.52, lachen: 0.39, gaehnen: 3.93,
     verbeugen: 2.86, kniebeuge: 2.42, kranich: 3.93, liegestuetz: 2.09, diskus: 2.2, sirtaki: 2.51, kopfschuetteln: 0.63, nacken: 3.2, blitz: 1.8 };
   const vorladen = look => holen(pruefen(typeof look === 'string' ? { skin: look } : look).skin).then(() => true).catch(() => false);
-  window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund, vorladen,
+  window.Figur = { PERIODE, KATALOG: K, STANDARD, preis, pruefen, bauen, haltung, hintergrund, vorladen, auraPuls,
     SKINS, KLASSEN, skinInfo: id => INFO[id] || null, bild: id => ORDNER + 'bilder/' + id + '.webp' };
 
 })();
