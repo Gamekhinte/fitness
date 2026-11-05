@@ -1,0 +1,74 @@
+/* ================= Training-Tab: Heute, Woche, Aufgaben, Übungsliste ================= */
+
+/* ---------- Woche ---------- */
+#tab-catalog .week{gap:5px;margin:12px 0 10px}
+#tab-catalog .wd{padding:6px 0 7px;gap:3px;font-family:var(--dick);font-weight:400;font-size:14px}
+#tab-catalog .wd-mark{display:grid;place-items:center;width:24px;height:24px;font-style:normal;font-family:var(--dick);font-size:14px;line-height:1;border-radius:50%;border:2px solid var(--graphit);background:#FAF6EB;color:var(--graphit)}
+#tab-catalog .wd-mark .chk{width:15px;height:15px;margin:0}
+#tab-catalog .wd.ok{background:#C9F2EC}
+#tab-catalog .wd.ok .wd-mark{background:#3CBFB0;color:#FAF6EB}
+#tab-catalog .wd.miss .wd-mark{background:#F7C9B5;color:var(--rot);font-size:18px}
+#tab-catalog .wd.rest{opacity:.65}
+#tab-catalog .wd.rest .wd-mark{border-style:dashed;font-size:12px;color:var(--mut)}
+#tab-catalog .wd.now{transform:translateY(-3px);box-shadow:0 5px 0 var(--graphit)}
+#tab-catalog .wd.now .wd-mark{background:var(--gold)}
+
+/* Hinweise als Notizzettel statt blauem Fließtext */
+#todayFocus,#todayHint,#paceTip{margin:10px 0 0;padding:8px 12px;font-family:var(--hand);font-weight:400;font-size:17px;line-height:1.25;color:var(--graphit);
+  background:#FFF6D6;border:2px solid var(--graphit);border-radius:12px;border-left-width:6px;border-left-color:var(--gold)}
+#todayFocus:empty,#todayHint:empty,#paceTip:empty{display:none}
+#todayHint{background:#E3F6F3;border-left-color:#3CBFB0}
+
+/* ---------- Tagesfortschritt ---------- */
+.hf{display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:10px 12px;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.hf:empty{display:none}
+.hf-ring{flex:none;position:relative;width:54px;height:54px;border-radius:50%;border:2.5px solid var(--graphit);background:conic-gradient(#3CBFB0 calc(var(--p) * 1%),#E6DEC9 0)}
+.hf-ring b{position:absolute;inset:6px;display:grid;place-items:center;border-radius:50%;background:#FAF6EB;border:2px solid var(--graphit);font-family:var(--dick);font-weight:400;font-size:16px}
+.hf-text b{display:block;font-family:var(--dick);font-weight:400;font-size:20px;line-height:1.1}
+.hf-text small{font-family:var(--hand);font-size:16px;color:var(--mut)}
+.hf.fertig{background:linear-gradient(135deg,#FFE9A8,var(--gold))}
+.hf.fertig .hf-ring b{background:#C9F2EC}
+
+/* ---------- Aufgaben-Karten ---------- */
+.aufg{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.ak{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit);transition:background .2s}
+.ak-ring{flex:none;position:relative;width:46px;height:46px;border-radius:50%;border:2.5px solid var(--graphit);background:conic-gradient(var(--ring,#7CD4FF) calc(var(--p) * 1%),#E6DEC9 0)}
+.ak-ring svg{position:absolute;left:5px;top:5px;width:calc(100% - 10px)!important;height:calc(100% - 10px)!important;padding:6px;box-sizing:border-box;border-radius:50%;background:#FAF6EB;border:2px solid var(--graphit);color:var(--graphit)}
+.ak-run{--ring:#3CBFB0}.ak-steps{--ring:var(--gold)}
+.ak-text{flex:1;min-width:0;cursor:default}
+.ak-text.go{cursor:pointer}
+.ak-text b{display:block;font-family:var(--dick);font-weight:400;font-size:18px;line-height:1.15}
+.ak-pfeil{margin-left:4px;font-style:normal;color:var(--marker);-webkit-text-stroke:1px var(--graphit);font-size:20px;line-height:1}
+.ak-meta{display:block;font-family:var(--hand);font-size:16px;line-height:1.2;color:var(--mut)}
+.ak-meta em{font-style:normal;font-family:var(--dick);font-size:15px;color:var(--graphit)}
+.ak-balken{display:block;height:7px;margin:5px 0 0;background:#E6DEC9;border:1.5px solid var(--graphit);border-radius:4px;overflow:hidden}
+.ak-balken u{display:block;height:100%;width:calc(var(--p) * 1%);background:var(--ring,#7CD4FF);text-decoration:none;transition:width .4s}
+.ak .exinfo{margin:7px 0 0;padding:3px 10px;font-size:13px;box-shadow:0 2px 0 var(--graphit);border-width:2px}
+.ak .tick{flex:none;margin:0;padding:0;width:42px;height:42px;display:grid;place-items:center;background:#FAF6EB;border:2.5px solid var(--graphit);border-radius:12px;box-shadow:0 3px 0 var(--graphit);color:var(--mut)}
+.ak .tick:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.ak .tick .chk{width:24px;height:24px;margin:0}
+.ak.done{background:#E3F6F3;--ring:#3CBFB0}
+.ak.done .ak-ring{--ring:#3CBFB0}
+.ak.done .ak-ring svg{background:#3CBFB0;color:#FAF6EB}
+.ak.done .ak-text b{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(43,40,38,.45)}
+.ak.done .tick{background:#3CBFB0;color:#FAF6EB}
+.ak.info{border-style:dashed;box-shadow:none}
+
+/* ---------- Lauf-Karte ---------- */
+#tab-catalog #runKm{font-size:52px}
+#tab-catalog #runInfo{font-family:var(--dick);font-size:16px;color:var(--mut)}
+
+/* ---------- Übungsliste ---------- */
+#catalogList .acc summary{padding:16px 0}
+#catalogList .acc summary em{min-width:26px;padding:2px 8px;text-align:center;font-family:var(--dick);font-size:14px;color:var(--graphit);background:var(--marker);border:2px solid var(--graphit);border-radius:10px}
+#catalogList .acc:nth-child(2) summary em{background:var(--gold)}
+#catalogList .acc:nth-child(3) summary em{background:#3CBFB0}
+#catalogList .ex{align-items:flex-start;padding:12px 0}
+#catalogList .ex b{font-family:var(--dick);font-weight:400;font-size:18px;line-height:1.15}
+#catalogList .ex span:not(.tip){display:inline-block;margin-top:4px;padding:1px 8px;font-family:var(--dick);font-size:13px;color:var(--graphit);background:#FFF6D6;border:2px solid var(--graphit);border-radius:8px}
+#catalogList .ex .tip{margin-top:5px;font-family:var(--hand);font-size:16px;line-height:1.25;color:var(--mut)}
+#catalogList .exbtns{flex:none;display:flex;flex-direction:column;gap:7px}
+#catalogList .launch,#catalogList .explain{display:flex;align-items:center;justify-content:center;gap:5px;min-width:96px;padding:7px 10px;font-family:var(--dick);font-weight:400;font-size:14px;border-width:2.5px;box-shadow:0 3px 0 var(--graphit)}
+#catalogList .launch{background:var(--marker)}
+#catalogList .launch::before{content:"";width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232B2826' stroke-width='2.6' stroke-linejoin='round'%3E%3Cpath d='M3 8h4l2-3h6l2 3h4v11H3z'/%3E%3Ccircle cx='12' cy='13' r='3.5'/%3E%3C/svg%3E") center/contain no-repeat}
+#catalogList .explain::before{content:"?";display:grid;place-items:center;width:16px;height:16px;font-size:11px;border:2px solid var(--graphit);border-radius:50%;line-height:1}

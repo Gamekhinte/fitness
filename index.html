@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="social.css?v=29">
 <link rel="stylesheet" href="olymp.css?v=4">
 <link rel="stylesheet" href="pass.css?v=1">
+<link rel="stylesheet" href="training.css?v=1">
 <style>
 .tick,.pchk{background:transparent;padding:8px;margin:-8px -8px -8px auto;display:block;color:var(--mut)}
 .pchk{margin:0 8px 0 -6px;flex:none}
@@ -109,7 +110,8 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
       <div class="row between"><span class="label">Heute</span><span class="label" id="todayDate"></span></div>
       <div class="week" id="weekStrip"></div>
       <p class="kmline" id="todayFocus"></p>
-      <table class="tbl"><thead><tr><th>Aufgabe</th><th>Ziel</th><th>Stand</th><th></th></tr></thead><tbody id="todayRows"></tbody></table>
+      <div class="hf" id="todayProg"></div>
+      <div class="aufg" id="todayRows"></div>
       <p class="kmline" id="todayHint"></p>
     </div>
     <div class="card">
@@ -1191,7 +1193,18 @@ addEventListener('keydown',e=>{if(e.key==='Escape')closeExplain()});
 function renderToday(){
   const tasks=todayTasks(),req=tasks.filter(t=>!t.info),open=req.filter(t=>!isDone(t)),all=req.length>0&&!open.length;
   $('todayDate').textContent=new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
-  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t);return `<tr class="${d?'done':''}${t.info?' info':''}"><td${goAttrs(t)}><b>${esc(t.name)}</b>${t.detail?`<span>${esc(t.detail)}</span>`:''}${exBtn(t)}</td><td>${goalTxt(t)}</td><td>${standTxt(t)}</td><td>${t.info?`<svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg>`:`<button class="tick" data-id="${esc(t.id)}" aria-label="Abhaken"><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></button>`}</td></tr>`}).join('');
+  // Aufgaben als Karten: Ring zeigt den Fortschritt, rechts der Haken
+  $('todayRows').innerHTML=tasks.map(t=>{const d=isDone(t),anteil=d?100:Math.max(0,Math.min(100,standOf(t)/t.goal*100));
+    const ico=t.type==='ex'?'i-dumb':t.type==='run'?'i-pin':'i-wind';
+    return `<div class="ak ak-${t.type}${d?' done':''}${t.info?' info':''}" style="--p:${anteil}">
+      <span class="ak-ring"><svg><use href="#${d?'i-check':ico}"/></svg></span>
+      <div class="ak-text"${goAttrs(t)}><b>${esc(t.name)}${t.type==='ex'||t.type==='run'?'<i class="ak-pfeil">›</i>':''}</b>
+        <span class="ak-meta"><em>${standTxt(t)}${t.type==='ex'?'':' / '+goalTxt(t)}</em>${t.type==='ex'?` von ${goalTxt(t)}`:''}${t.detail?` · ${esc(t.detail)}`:''}</span>
+        <span class="ak-balken"><u></u></span>${exBtn(t)}</div>
+      ${t.info?'':`<button class="tick" data-id="${esc(t.id)}" aria-label="${d?'Wieder öffnen':'Abhaken'}"><svg class="chk"><use href="#${d?'i-check':'i-circle'}"/></svg></button>`}</div>`}).join('');
+  const fertig=req.length-open.length,pz=req.length?Math.round(fertig/req.length*100):0;
+  $('todayProg').innerHTML=`<span class="hf-ring" style="--p:${pz}"><b>${fertig}/${req.length}</b></span><span class="hf-text"><b>${all?'Tag geschafft!':pz>50?'Mehr als die Hälfte!':pz===50?'Halbzeit!':fertig?'Guter Start':'Los geht\'s'}</b><small>${all?'Alles erledigt, stark.':`Noch ${open.length} ${open.length===1?'Aufgabe':'Aufgaben'} heute`}</small></span>`;
+  $('todayProg').classList.toggle('fertig',all);
   $('todayFocus').textContent=todayFocus();
   $('todayHint').textContent=all?'Alles erledigt für heute. Stark!':open.length?`Noch offen: ${openText(open)}`:'';
   const wl=store.get('weeklog',{});wl[isoDate(new Date())]=all;store.set('weeklog',wl);
@@ -1203,7 +1216,7 @@ function renderWeek(wl){
     const d=new Date(mon);d.setDate(mon.getDate()+i);const k=isoDate(d),today=k===isoDate(now);
     const rest=a&&a.plan.days.some(x=>x.day===dn&&x.rest);
     const st=wl[k]?'ok':rest?'rest':today?'today':d<now?'miss':'';
-    return `<div class="wd ${st}${today?' now':''}"><span>${dn.slice(0,2)}</span><svg class="chk"><use href="#${st==='ok'?'i-check':'i-circle'}"/></svg></div>`;
+    return `<div class="wd ${st}${today?' now':''}"><span>${dn.slice(0,2)}</span><i class="wd-mark">${st==='ok'?'<svg class="chk"><use href="#i-check"/></svg>':st==='miss'?'×':st==='rest'?'z':d.getDate()}</i></div>`;
   }).join('');
 }
 function toast(t){
