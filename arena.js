@@ -73,6 +73,9 @@
         <button class="ar-zahn" id="arZahn" aria-label="Einstellungen">${rahmen(60, 60, 14, 5, '#FAF6EB')}<img src="arena/zahnrad.svg" alt=""></button>
       </div>
       <div class="ar-modus" role="tablist"><button data-modus="lauf">Laufen</button><button data-modus="kraft">Kraft</button></div>
+      <button class="ar-figurknopf" id="arFigur" aria-label="Figur bearbeiten: Skin, Aura, Animation, Hintergrund">
+        <svg class="pk-fahne" viewBox="0 0 80 112" preserveAspectRatio="none" aria-hidden="true"><path class="pk-schatten" d="M3 0H77V98L40 86L3 98Z" transform="translate(0 4)"/><path class="fk-tuch" d="M3 0H77V98L40 86L3 98Z"/><path class="pk-saum" d="M3 9H77"/></svg>
+        <span class="fk-bild"><img id="arFigurBild" alt=""></span><b>FIGUR</b><i class="fk-stift" aria-hidden="true"></i></button>
       </div>
       <div class="ar-3d" id="ar3d"><img id="arBild" src="arena/arena_schulhof.svg" alt=""></div>
       <div class="ar-unten">
@@ -155,6 +158,8 @@
     const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
     $('arPokale').textContent = pk;
     $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
+    const fb = $('arFigurBild'), skinBild = Figur.skinInfo(F.aussehen.skin) ? Figur.bild(F.aussehen.skin) : '';
+    if (fb && fb.getAttribute('src') !== skinBild) fb.src = skinBild;
     $('arName').textContent = `Arena ${i + 1} · ${arenaName(i)}`;
     tab.querySelectorAll('[data-modus]').forEach(b => b.classList.toggle('an', b.dataset.modus === MODUS));
     $('arBattle').querySelector('span').textContent = 'BATTLE';
@@ -200,6 +205,8 @@
       store.set('wf-figur', F);
       if (leer) wf().rpc('wf_figur_speichern', mit({ p_aussehen: F.aussehen })).catch(() => {});
       $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
+    const fb = $('arFigurBild'), skinBild = Figur.skinInfo(F.aussehen.skin) ? Figur.bild(F.aussehen.skin) : '';
+    if (fb && fb.getAttribute('src') !== skinBild) fb.src = skinBild;
       // Figur auf der Insel nur neu bauen, wenn sich der Look geändert hat (das Neubauen ruckelt auf dem Handy)
       if (window.Arena3D && (JSON.stringify(F.aussehen) !== vorher || !figurGesetzt)) { Arena3D.figur(F.aussehen); figurGesetzt = true; }
     } catch (err) { /* offline */ }
@@ -390,6 +397,7 @@
     $('arEinstFigur').onclick = () => editor();
     $('arEinstKoerper').onclick = () => { schliessen(); openProfile(); };
   }
+  $('arFigur').onclick = () => editor('skins');
   $('arCoins').onclick = () => editor('skins');
   $('arGems').onclick = () => editor('skins');
 
@@ -585,7 +593,7 @@
   }
 
   const gegnerMeter = s => s.aufzeichnung ? (s.geist_m || 0) : (R.seite === 'a' ? s.b_m : s.a_m);
-  const gegnerName = (s, seite = R && R.seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Pace-Läufer' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
+  const gegnerName = (s, seite = R && R.seite) => s.aufzeichnung ? s.geist_name : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerPokale = s => s.aufzeichnung ? s.geist_pokale : (R.seite === 'a' ? s.b_pokale : s.a_pokale);
   const gegnerAuf = s => !s.aufzeichnung && (R.seite === 'a' ? s.b_auf : s.a_auf);
   function aufgegeben(delta) {
@@ -671,6 +679,7 @@
       ${hinweis ? `<p class="ar-hand">${hinweis}</p>` : ''}
       <ul class="ar-liste"><li><span>Deine Zeit</span><b>${meineZeit ? zeit(meineZeit) : 'nicht fertig'}</b></li>
         <li><span>Gegner</span><b>${e(gegnerName(s, seite) || '')}</b></li></ul>
+      ${window.Social && (s.aufzeichnung ? s.geist_id : (seite === 'a' ? s.b : s.a)) ? `<button class="ar-knopf breit leise2" data-so="profil" data-id="${e((s.aufzeichnung ? s.geist_id : (seite === 'a' ? s.b : s.a)))}">Profil von ${e(gegnerName(s, seite) || 'Gegner')}</button>` : ''}
       ${sieg && !ungueltig && !abgelaufen && window.Social && meineZeit ? `<button class="ar-knopf breit leise2" data-so="teilen" data-text="${e(`Ich habe ${(KLASSEN.find(x => x[0] === war.klasse) || [0, ''])[1]} in ${zeit(meineZeit)} gewonnen. Schaffst du das?`)}">Sieg teilen</button>` : ''}
       ${window.Social ? '<button class="ar-knopf breit leise2" data-so="matches">Matchverlauf ansehen</button>' : ''}
       <button class="ar-knopf breit" data-zu>Weiter</button>`, 'ergebnis',

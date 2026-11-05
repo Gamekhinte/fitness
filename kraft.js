@@ -433,7 +433,7 @@
     if (s.status === 'bereit' && s.start_in != null && !D.startAt) D.startAt = Date.now() + s.start_in * 1000;
     if (s.status === 'fertig' || s.status === 'abgebrochen') return ergebnis(s);
   }
-  const gName = (s, seite) => s.aufzeichnung ? (String(s.geist_name).startsWith('Trainingsgeist') ? 'Trainingspartner' + String(s.geist_name).slice(14) : s.geist_name) : (seite === 'a' ? s.b_name : s.a_name);
+  const gName = (s, seite) => s.aufzeichnung ? s.geist_name : (seite === 'a' ? s.b_name : s.a_name);
   const gegnerName = s => gName(s, D.seite);
   const gegnerWert = s => s.aufzeichnung ? (s.geist_wert || 0) : (D.seite === 'a' ? s.b_wert : s.a_wert);
   const PACE = { skin: 'ringer', hg: 'graffiti' };
@@ -560,6 +560,8 @@
       anim = sieg ? F.aussehen.emote : remis ? 'idle' : 'traurig';
       const ich = seite === 'a' ? s.a_wert : s.b_wert, er = s.aufzeichnung ? s.geist_endwert : (seite === 'a' ? s.b_wert : s.a_wert);
       text = `<ul class="ar-liste"><li><span>Du</span><b>${ich} ${u.einheit}</b></li><li><span>${e(gName(s, war.seite) || 'Gegner')}</span><b>${er ?? '–'} ${u.einheit}</b></li></ul>`;
+      const gid = s.aufzeichnung ? s.geist_id : (seite === 'a' ? s.b : s.a);
+      if (gid && window.Social) text += `<button class="ar-knopf breit leise2" data-so="profil" data-id="${e(gid)}">Profil von ${e(gName(s, war.seite) || 'Gegner')}</button>`;
       if (s.ergebnis === 'ungueltig') text = '<p class="ar-hand">Mehr Wiederholungen als ein Mensch schaffen kann. Das Duell zählt nicht.</p>';
     }
     ui.zeigeBlatt(`

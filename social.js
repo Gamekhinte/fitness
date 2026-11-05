@@ -380,19 +380,15 @@
     C = Object.assign(C || {}, { gruppeInfo: g });
   }
 
-  /* ---------- Weltrangliste: echte Spieler und gekennzeichnete Bots (abschaltbar) ---------- */
-  const WELT = { art: 'pokale', zeit: 'woche', bots: store.get('wf-welt-bots', true) !== false };
+  /* ---------- Weltrangliste ---------- */
+  const WELT = { art: 'pokale', zeit: 'woche' };
   const WELT_ARTEN = [['pokale', 'Pokale'], ['wdh', 'Wiederholungen'], ['km', 'Kilometer'], ['siege', 'Siege']];
   const weltWert = (art, w) => art === 'km' ? `${(w / 1000).toFixed(1).replace('.', ',')} km` : art === 'wdh' ? `${w} Wdh.` : art === 'siege' ? `${w} Siege` : `${w}`;
   async function welt() {
     const gesamtNur = WELT.art === 'pokale' || WELT.art === 'siege';
     let r;
-    try { r = await rpc('wf_weltrangliste', { p_art: WELT.art, p_zeitraum: gesamtNur ? 'gesamt' : WELT.zeit, p_spieler: ich() ? ich().id : null, p_bots: WELT.bots }); } catch (err) { return fehler(err); }
-    const zeile = x => x.bot ? `<div class="so-zeile so-rang so-weltzeile so-weltbot">
-        <span class="so-nr m${x.rang <= 3 ? x.rang : 0}">${x.rang}</span>
-        <span class="so-text"><b>${e(x.name)}</b><small>Simulierter Bot</small></span>
-        <span class="so-bot">Bot</span><span class="so-punkte">${e(weltWert(WELT.art, x.wert))}</span></div>`
-      : `<button class="so-zeile so-rang so-weltzeile${ich() && x.id === ich().id ? ' ich' : ''}" data-so="profil" data-id="${x.id}">
+    try { r = await rpc('wf_weltrangliste', { p_art: WELT.art, p_zeitraum: gesamtNur ? 'gesamt' : WELT.zeit, p_spieler: ich() ? ich().id : null }); } catch (err) { return fehler(err); }
+    const zeile = x => `<button class="so-zeile so-rang so-weltzeile${ich() && x.id === ich().id ? ' ich' : ''}" data-so="profil" data-id="${x.id}">
         <span class="so-nr m${x.rang <= 3 ? x.rang : 0}">${x.rang}</span>
         <span class="so-text"><b>${e(x.name)}</b><small>${x.titel ? e(x.titel) : ''}${x.clan ? `${x.titel ? ' · ' : ''}${e(x.clan.name)}` : ''}</small></span>
         <span class="so-punkte">${e(weltWert(WELT.art, x.wert))}</span></button>`;
@@ -403,8 +399,7 @@
       ${r.liste.length ? r.liste.map(zeile).join('') : '<p class="ar-hand">Noch niemand drin. Du kannst der Erste sein.</p>'}
       ${r.ich && !imTop ? `<div class="so-weltich">Du bist auf Platz ${r.ich.rang} mit ${e(weltWert(WELT.art, r.ich.wert))}</div>` : ''}
       ${ich() && !r.ich && !r.versteckt ? '<p class="ar-hand klein">Du hast hier noch keinen Wert. Training und Battles zählen.</p>' : ''}
-      <p class="ar-hand klein">${r.teilnehmer} echte Spieler${WELT.bots ? ` und ${r.bots} Bots (simulierte Werte, mit Bot markiert)` : ''} in dieser Liste.</p>
-      <button class="ar-knopf breit leise2" data-so="weltBots">${WELT.bots ? 'Bots ausblenden' : 'Bots anzeigen'}</button>
+      <p class="ar-hand klein">${r.teilnehmer} Spieler in dieser Liste.</p>
       ${ich() ? `<button class="ar-knopf breit leise2" data-so="weltSichtbar" data-an="${r.versteckt ? '1' : '0'}">${r.versteckt ? 'Wieder in der Rangliste zeigen' : 'Mich in der Rangliste ausblenden'}</button>` : ''}`);
   }
 
@@ -443,8 +438,8 @@
       const art = x.art === 'lauf' ? `${x.klasse / 1000} km` : (ZEIT_UEB[x.uebung] || x.uebung);
       const wert = v => v == null ? '–' : x.art === 'lauf' ? zeit(v) : (x.uebung === 'plank' ? zeit(v) : v + ' Wdh.');
       const ergebnis = x.sieg == null ? 'Remis' : x.sieg ? 'Sieg' : 'Niederlage';
-      const g = x.gegner, name = g ? g.name : (x.bot_name || 'Gegner');
-      const aktion = !g ? '<span class="so-bot">Bot</span>' : freunde.has(g.id) ? '<span class="so-bot">Freund</span>'
+      const g = x.gegner, name = g ? g.name : 'Gegner';
+      const aktion = !g ? '' : freunde.has(g.id) ? '<span class="so-bot">Freund</span>'
         : gesendet.has(g.id) ? '<span class="so-bot">Angefragt</span>' : `<button class="so-mini" data-so="matchFreund" data-tag="${e(g.tag)}">Hinzufügen</button>`;
       return `<div class="so-zeile so-match ${x.sieg == null ? '' : x.sieg ? 'sieg' : 'nied'}">
         <span class="so-erg">${ergebnis}</span>
@@ -673,7 +668,6 @@
     async auftauen(b) { await W().auftauen(b.id); if (S.info && S.info.clan) clanAnsicht(S.info.clan.id); },
     matches: () => matches(),
     welt: () => welt(),
-    weltBots() { WELT.bots = !WELT.bots; store.set('wf-welt-bots', WELT.bots); return welt(); },
     weltArt(b) { WELT.art = b.art; return welt(); },
     weltZeit(b) { WELT.zeit = b.zeit; return welt(); },
     async weltSichtbar(b) { try { await rpc('wf_bestenliste_sichtbar', mit({ p_sichtbar: b.an === '1' })); toast(b.an === '1' ? 'Du bist wieder in der Rangliste' : 'Du bist ausgeblendet'); welt(); } catch (err) { fehler(err); } },

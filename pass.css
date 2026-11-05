@@ -159,3 +159,19 @@
 .sh-neu{position:absolute;top:6px;right:6px;z-index:1;padding:1px 6px;font-style:normal;font-family:var(--dick);font-size:11px;line-height:1.3;letter-spacing:.4px;color:#FAF6EB;background:var(--rot);border:2px solid var(--graphit);border-radius:5px;transform:rotate(4deg)}
 .sh-karte:has(.sh-neu) .sh-sel{display:none}
 .sh-karte .sh-neu{left:6px;right:auto;transform:rotate(-4deg)}
+
+/* ---------- Figur-Knopf: blaue Fahne links oben, Gegenstück zur Pass-Fahne ---------- */
+.ar-kopf .ar-figurknopf{position:absolute;left:10px;top:calc(100% - 1px);z-index:4;width:76px;height:106px;padding:12px 0 20px;display:flex;flex-direction:column;align-items:center;
+  background:none;border:0;box-shadow:none;font-family:var(--dick);color:var(--graphit);transform-origin:50% 0;animation:pkSchwing 4.5s ease-in-out infinite reverse;-webkit-tap-highlight-color:transparent}
+.ar-kopf .ar-figurknopf:active{transform:scale(.94);animation:none}
+.ar-figurknopf .fk-tuch{fill:var(--marker);stroke:var(--graphit);stroke-width:3;stroke-linejoin:round}
+.ar-figurknopf .pk-fahne{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:-1}
+.ar-figurknopf .pk-schatten{fill:var(--graphit)}
+.ar-figurknopf .pk-saum{stroke:var(--graphit);stroke-width:2.5;stroke-dasharray:5 3}
+.fk-bild{width:46px;height:46px;border-radius:50%;overflow:hidden;border:2.5px solid var(--graphit);background:radial-gradient(circle at 50% 60%,#FAF6EB,#CFEAFB);box-shadow:0 2px 0 var(--graphit)}
+.fk-bild img{width:100%;height:100%;object-fit:cover;object-position:50% 8%;transform:scale(1.5);transform-origin:50% 10%;display:block}
+.fk-bild img:not([src]),.fk-bild img[src=""]{visibility:hidden}
+.ar-kopf .ar-figurknopf b{font-weight:400;font-size:14px;line-height:1;letter-spacing:1px;margin-top:5px;color:#FAF6EB;-webkit-text-stroke:3px var(--graphit);paint-order:stroke fill;text-shadow:0 2px 0 var(--graphit)}
+.fk-stift{position:absolute;right:-8px;top:8px;width:26px;height:26px;border-radius:50%;border:2.5px solid var(--graphit);box-shadow:0 2px 0 var(--graphit);
+  background:var(--gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232B2826' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1-4L16 5l3 3L8 19z'/%3E%3C/svg%3E") center/15px no-repeat;transform:rotate(8deg)}
+@media (prefers-reduced-motion:reduce){.ar-kopf .ar-figurknopf{animation:none}}
