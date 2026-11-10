@@ -8,7 +8,7 @@
 <title>Gymlimpix</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <meta name="apple-mobile-web-app-title" content="Gymlimpix">
 <link rel="stylesheet" href="styles.css?v=14">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Patrick+Hand&display=swap">
@@ -71,7 +71,7 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
 </style>
 <div id="lade" role="status" aria-label="Gymlimpix lädt">
   <div class="l-logo">GYM<span>LIMPIX</span></div>
-  <img src="icon-kranz.svg" alt="" width="110" height="112">
+  <img src="icon-kranz.svg?v=2" alt="" width="110" height="106">
   <div class="l-balken"><i></i></div>
 </div>
 <script>window.Lade={weg:function(){var l=document.getElementById("lade");if(!l)return;l.classList.add("weg");setTimeout(function(){l.remove();var s=document.getElementById("ladestil");if(s)s.remove()},300)}};setTimeout(function(){window.Lade.weg()},9000)</script>
@@ -1486,6 +1486,6 @@ setTimeout(moveInd,300);if(document.fonts&&document.fonts.ready)document.fonts.r
 <script src="konto.js?v=2"></script>
 <script src="pass.js?v=11"></script>
 <script src="kraft.js?v=14"></script>
-<script src="statusleiste.js?v=1"></script>
+<script src="statusleiste.js?v=3"></script>
 </body>
 </html>

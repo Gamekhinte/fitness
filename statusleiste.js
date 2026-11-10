@@ -22,7 +22,8 @@
     if (cs.position !== 'fixed' || cs.display === 'none' || cs.visibility === 'hidden' || el.hidden) return false;
     if (parseFloat(cs.opacity) < 0.5) return false;
     const r = el.getBoundingClientRect();
-    return r.top <= 1 && r.left <= 1 && r.width >= window.innerWidth - 2 && r.height >= window.innerHeight * 0.6;
+    const b = document.documentElement.clientWidth || window.innerWidth, h = document.documentElement.clientHeight || window.innerHeight;
+    return r.top <= 1 && r.left <= 1 && r.width >= b - 2 && r.height >= h * 0.6;
   }
 
   function aktualisieren() {
@@ -37,6 +38,12 @@
     }
     const neu = hex(farbe);
     if (meta.getAttribute('content') !== neu) meta.setAttribute('content', neu);
+    // iPhone (Safari ab iOS 26 und App vom Home-Bildschirm) ignoriert theme-color und färbt die Leiste
+    // nach dem Seitenhintergrund. Solange ein deckendes Vollbild-Fenster offen ist, bekommt die Seite dessen Farbe.
+    const deckend = z !== -Infinity && neu !== hex(basisRgb);
+    const html = document.documentElement, body = document.body;
+    if (deckend) { html.style.backgroundColor = neu; body.style.backgroundColor = neu; }
+    else if (html.style.backgroundColor) { html.style.backgroundColor = ''; body.style.backgroundColor = ''; }
   }
 
   // zweimal prüfen: sofort und nach dem Einblenden (Übergänge dauern bis 0,3 s)
