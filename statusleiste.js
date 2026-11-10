@@ -27,14 +27,21 @@
   }
 
   function aktualisieren() {
-    let farbe = basisRgb, z = -Infinity;
+    // vorher umgefärbte Fenster zurücksetzen, damit ihre echte Farbe gelesen wird
+    for (const el of document.querySelectorAll('[data-sb-alt]')) {
+      el.style.backgroundColor = el.dataset.sbAlt === '-' ? '' : el.dataset.sbAlt;
+      delete el.dataset.sbAlt;
+    }
+    let farbe = basisRgb, z = -Infinity, oben = null;
+    const darunter = [];
     for (const el of document.body.children) {
       const cs = getComputedStyle(el);
       if (!deckt(el, cs)) continue;
       const c = rgb(cs.backgroundColor);
       if (!c || c.a < 0.05) continue;
+      darunter.push(el);
       const zi = parseInt(cs.zIndex, 10) || 0;
-      if (zi >= z) { z = zi; farbe = c.a >= 0.99 ? c : mischen(c, basisRgb); }
+      if (zi >= z) { z = zi; oben = el; farbe = c.a >= 0.99 ? c : mischen(c, basisRgb); }
     }
     const neu = hex(farbe);
     if (meta.getAttribute('content') !== neu) meta.setAttribute('content', neu);
@@ -44,6 +51,15 @@
     const html = document.documentElement, body = document.body;
     if (deckend) { html.style.backgroundColor = neu; body.style.backgroundColor = neu; }
     else if (html.style.backgroundColor) { html.style.backgroundColor = ''; body.style.backgroundColor = ''; }
+    // Fenster unter einem deckenden Vollbild-Fenster (z. B. das Shop-Blatt unter dem Rad) bekommen dieselbe Farbe,
+    // sonst nimmt das iPhone oben den grauen Schleier des unteren Fensters. Man sieht sie ja nicht.
+    if (deckend && farbe.a >= 0.99) {
+      for (const el of darunter) {
+        if (el === oben) continue;
+        el.dataset.sbAlt = el.style.backgroundColor || '-';
+        el.style.backgroundColor = neu;
+      }
+    }
   }
 
   // zweimal prüfen: sofort und nach dem Einblenden (Übergänge dauern bis 0,3 s)
