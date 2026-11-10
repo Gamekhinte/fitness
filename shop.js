@@ -162,6 +162,7 @@
     if (!live.size) return;
     requestAnimationFrame(liveSchleife);
     if (document.hidden || jetzt - liveZuletzt < 31) return;      // höchstens ca. 30 Bilder pro Sekunde
+    if (document.querySelector('body > .rs')) return;              // Rad offen: Vorschauen dahinter nicht zeichnen
     liveZuletzt = jetzt;
     const hoehe = window.innerHeight, k = L.kamera;
     live.forEach(p => {

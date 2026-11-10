@@ -101,6 +101,7 @@
     r.setAnimationLoop(() => {
       const dt = Math.min(uhr.getDelta(), 0.05) * (W.zeitlupe || 1);   // zeitlupe nur für Tests
       if (b.pausiert || document.hidden || !b.el.isConnected || !b.el.offsetParent) return;
+      if (!b.el.closest('.rs') && document.querySelector('body > .rs')) return;   // Rad offen: Szenen dahinter ruhen lassen
       if (b.jeBild) b.jeBild(dt, uhr.elapsedTime);
       r.render(szene, kamera);
     });

@@ -316,11 +316,26 @@
     C = neuC(n === 0);
     A.zeigeBlatt(`${zu}<h2 class="ar-titel">Clan</h2>
       <p class="ar-hand">Du bist in keinem Clan. Such dir Leute, mit denen du zusammen Punkte sammelst.</p>
+      <div class="so-entdecken"><div class="so-entdecken-kopf"><h3 class="ar-h">Clans entdecken</h3><button class="so-mini" data-so="clanMischen">Neu laden</button></div>
+        <div id="soClanListe"><p class="ar-hand klein">Lade Clans…</p></div></div>
       <h3 class="ar-h">Mit Code beitreten</h3>
       <div class="ar-zeile"><input id="soCode" maxlength="6" placeholder="Code, z.B. H5AMYQ" autocapitalize="characters" autocomplete="off"><button class="ar-knopf" data-so="clanBeitreten">Los</button></div>
       <h3 class="ar-h">Eigenen Clan gründen</h3>
       <p class="ar-hand">${C.gratis ? 'Dein erster Clan ist gratis.' : `Ein weiterer Clan kostet 1000 ${A.coin}. Du hast ${A.F().coins}.`}</p>
       <button class="ar-knopf breit gold" data-so="clanEditor">Clan gründen</button>`);
+    clansEntdecken();
+  }
+
+  // Zufällige echte Clans mit freiem Platz (Server: wf_clans_vorschlag), wie die Clan-Suche in Clash Royale
+  async function clansEntdecken() {
+    const box = el('soClanListe'); if (!box) return;
+    let liste = [];
+    try { liste = await rpc('wf_clans_vorschlag', mit({})) || []; }
+    catch (err) { const w = box.closest('.so-entdecken'); if (w) w.remove(); return; }   // ohne Server-Funktion einfach weglassen
+    if (!el('soClanListe')) return;
+    box.innerHTML = liste.length ? liste.map(g => `<button class="so-clankarte" data-so="clanAnsicht" data-id="${g.id}">
+        ${emblem(g.emblem, 46)}<span class="so-text"><b>${e(g.name)}</b><small>${g.mitglieder} von 50 · ${g.aktiv} aktiv diese Woche</small></span><i class="so-pfeil" aria-hidden="true"></i></button>`).join('')
+      : '<p class="ar-hand klein">Gerade gibt es keine offenen Clans. Gründe einfach deinen eigenen.</p>';
   }
 
   function clanEditor(bleiben) {
@@ -644,6 +659,7 @@
       C = { modus: 'aendern', gruppe: g.id, gratis: false, name: g.name, beschr: g.beschreibung || '', em: emblemOk(g.emblem), gruppeInfo: g };
       clanEditor();
     },
+    clanMischen() { clansEntdecken(); },
     async clanBeitreten(b) {
       const code = b.code || (el('soCode') && el('soCode').value) || '';
       await W().beitreten(code);

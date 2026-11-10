@@ -1,18 +1,12 @@
 /* ================= GYMLIMPIX STATUSLEISTE =================
    Android: Die Leiste oben nimmt die Farbe aus <meta name="theme-color">. Liegt ein Vollbild-Fenster
    über der App (Rad, Pass, VS-Bildschirm ...), bekommt die Leiste dessen Farbe.
-   iPhone als App vom Home-Bildschirm: Die App reicht bis unter die Statusleiste (black-translucent).
-   Dort liegt im Normalfall ein dunkler Streifen (#statusdeckel), Vollbild-Fenster decken ihn einfach ab.
+   iPhone: liest die Farbe oben ab, wenn ein Fenster erscheint. Deshalb erscheint das Rad sofort deckend
+   (siehe social.css .rs), statt durchsichtig einzublenden.
    Bewusst sparsam: beobachtet nur die direkten Kinder von <body>, damit Animationen nicht ruckeln. */
 (function () {
   'use strict';
   const html = document.documentElement;
-  if (window.navigator.standalone === true) html.classList.add('ios-app');
-  if (!document.getElementById('statusdeckel')) {
-    const d = document.createElement('div');
-    d.id = 'statusdeckel'; d.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(d);
-  }
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) return;
@@ -31,7 +25,7 @@
     const bw = html.clientWidth || window.innerWidth, bh = html.clientHeight || window.innerHeight;
     let farbe = basisRgb, z = -Infinity;
     for (const el of document.body.children) {
-      if (el.hidden || el.id === 'statusdeckel') continue;
+      if (el.hidden) continue;
       const cs = getComputedStyle(el);
       if (cs.position !== 'fixed' || cs.display === 'none' || parseFloat(cs.opacity) < 0.5) continue;
       const c = rgb(cs.backgroundColor);

@@ -446,9 +446,9 @@ body.papier main{padding-top:0}
 .sh-rad-mini i.sel-selten{background:#7CC4F0}.sh-rad-mini i.sel-episch{background:#F0A07A}.sh-rad-mini i.sel-legendaer{background:var(--gold)}
 
 /* Rad-Show: Bogen aus Karten, Zeiger, Zoom und "Du erhältst" */
-.rs{position:fixed;inset:0;z-index:2600;overflow:hidden;background:var(--marker);color:var(--graphit);opacity:0;transition:opacity .25s;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.rs.da{opacity:1}
-.rs-welt{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .7s cubic-bezier(.25,.8,.25,1)}
+.rs{position:fixed;inset:0;z-index:2600;overflow:hidden;background:var(--marker);color:var(--graphit);-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.rs>.rs-welt{opacity:0}.rs.da>.rs-welt{opacity:1}
+.rs-welt{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .7s cubic-bezier(.25,.8,.25,1),opacity .25s}
 .rs-welt.zoom{transform:translate(var(--zx,0),var(--zy,0)) scale(1.3)}
 .rs-titel{align-self:center;margin:calc(env(safe-area-inset-top,0px) + 16px) 0 0;padding:5px 22px 6px;font-family:var(--dick);font-size:28px;white-space:nowrap;background:#FAF6EB;border:3px solid var(--graphit);border-radius:12px;box-shadow:0 4px 0 var(--graphit);transform:rotate(-2deg);position:relative;z-index:3}
 .rs-bogen{position:relative;flex:none;height:calc(var(--oben) + var(--kh) + var(--r) * .16 + 12px);overflow:hidden}
@@ -603,3 +603,13 @@ body.papier main{padding-top:0}
 .sh-ziel small{display:block;font-family:var(--hand);font-size:14px;color:var(--mut)}
 .sh-ziel.voll{background:#C9F2EC}
 @media (prefers-reduced-motion:reduce){.sh-hol,.sh-rk.bereit,.sh-login .sh-tage span.heute{animation:none}}
+
+/* Clans entdecken */
+.so-entdecken{margin:6px 0 14px}
+.so-entdecken-kopf{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.so-clankarte{display:flex;align-items:center;gap:12px;width:100%;margin-top:8px;padding:10px 12px;text-align:left;background:#FAF6EB;color:var(--graphit);border:3px solid var(--graphit);border-radius:14px;box-shadow:0 3px 0 var(--graphit)}
+.so-clankarte:active{transform:translateY(2px);box-shadow:0 1px 0 var(--graphit)}
+.so-clankarte .so-text{flex:1;min-width:0}
+.so-clankarte b{display:block;font-family:var(--dick);font-weight:400;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.so-clankarte small{display:block;font-family:var(--hand);font-size:15px;color:var(--mut)}
+.so-pfeil{width:10px;height:10px;border-right:3px solid var(--graphit);border-top:3px solid var(--graphit);transform:rotate(45deg);flex:none;margin-right:4px}

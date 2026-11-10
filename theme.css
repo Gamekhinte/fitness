@@ -131,12 +131,3 @@ details.plan-box .pfeil{width:12px;height:12px;border-right:3px solid var(--grap
 details.plan-box[open] .pfeil{transform:rotate(225deg);margin-bottom:0}
 details.plan-box[open]>summary{margin-bottom:12px}
 
-/* iPhone-App vom Home-Bildschirm: Die App reicht bis unter die Statusleiste (black-translucent).
-   Oben liegt ein dunkler Streifen, damit die weiße Uhrzeit lesbar ist. Vollbild-Fenster (Rad usw.) liegen darüber.
-   Der body hält den Abstand, deshalb fallen die zusätzlichen Abstände der einzelnen Kopfzeilen weg. */
-#statusdeckel{display:none}
-html.ios-app #statusdeckel{display:block;position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--graphit);z-index:1500;pointer-events:none}
-html.ios-app .ar-kopf{padding-top:10px}
-html.ios-app #tab-shop{padding-top:8px}
-html.ios-app body:not(.papier) .top{margin-top:26px}
-html.ios-app body.papier main{padding-top:0}
