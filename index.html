@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="styles.css?v=14">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Patrick+Hand&display=swap">
 <link rel="stylesheet" href="arena.css?v=15">
-<link rel="stylesheet" href="theme.css?v=2">
+<link rel="stylesheet" href="theme.css?v=3">
 <link rel="stylesheet" href="social.css?v=29">
 <link rel="stylesheet" href="olymp.css?v=5">
 <link rel="stylesheet" href="pass.css?v=3">
@@ -197,37 +197,36 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
 
   <!-- COACH -->
   <section id="tab-coach" class="tab">
-    <div class="card" hidden>
-      <span class="label">Mindset</span>
-      <p class="quote" id="quote"></p>
-      <button class="ghost" id="nextQuote"><svg><use href="#i-refresh"/></svg>Nächstes Zitat</button>
+    <div class="card chat">
+      <span class="label">Coach</span>
+      <div id="chatLog" class="chat-log"></div>
+      <div id="chatChips" class="chips in"></div>
+      <div class="chat-in">
+        <input id="chatInput" type="text" placeholder="Frag deinen Coach…" enterkeyhint="send">
+        <button id="chatSend" class="send" aria-label="Senden"><svg><use href="#i-send"/></svg></button>
+      </div>
     </div>
     <div class="card" id="scanCard">
-      <span class="label">Essen scannen</span>
-      <p class="muted">Foto von deinem Essen machen, die KI schätzt Kalorien und Eiweiß.</p>
+      <div class="essen-kopf"><span class="label">Essen heute</span><span class="muted" id="proteinTotal">0 g Eiweiß</span></div>
+      <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
+      <div class="bar"><i id="kcalBar"></i></div>
+      <div class="bar thin" hidden><i id="protBar"></i></div>
       <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
-      <button class="primary" id="scanBtn">Foto machen</button>
+      <div class="essen-knoepfe">
+        <button class="primary" id="scanBtn">Essen scannen</button>
+        <button class="linkknopf" id="resetFood">Zurücksetzen</button>
+      </div>
       <p class="muted small" id="scanRest"></p>
       <img id="scanImg" class="scan-img" alt="" hidden>
       <div id="scanOut"></div>
     </div>
-    <div class="card">
-      <div class="row between"><span class="label">Kalorien</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
-      <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
-      <div class="bar"><i id="kcalBar"></i></div>
-      <div class="bar thin"><i id="protBar"></i></div>
-      <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
+    <div class="card" id="activeCard" hidden>
+      <span class="label">Aktiver Plan</span>
+      <div id="activePlan"></div>
+      <button class="ghost" id="cancelPlan">Plan beenden</button>
     </div>
-    <div class="card" id="keyCard" hidden>
-      <span class="label">Gemini-Key</span>
-      <p class="muted" id="keyState">Kostenlos bei aistudio.google.com/apikey.</p>
-      <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="primary" id="keySave">Speichern</button>
-      <button class="ghost" id="keyDel" hidden>Key entfernen</button>
-      <p class="muted small" id="keyMsg"></p>
-    </div>
-    <div class="card" id="planCard">
-      <span class="label">Wochenplan</span>
+    <details class="card plan-box" id="planCard">
+      <summary><span class="label">Wochenplan erstellen</span><i class="pfeil" aria-hidden="true"></i></summary>
       <div class="grid2">
         <label>Ziel<select id="pGoal"><option>Muskelaufbau</option><option>Fett verlieren</option><option>Ausdauer</option><option>Kraft</option><option>Allround-Fitness</option></select></label>
         <label>Level<select id="pLevel"><option>Anfänger</option><option>Fortgeschritten</option><option>Profi</option></select></label>
@@ -240,20 +239,19 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
       <button class="primary" id="planBtn">Plan erstellen</button>
       <p class="muted" id="planMsg"></p>
       <div id="planDraft"></div>
+    </details>
+    <div class="card" hidden>
+      <span class="label">Mindset</span>
+      <p class="quote" id="quote"></p>
+      <button class="ghost" id="nextQuote"><svg><use href="#i-refresh"/></svg>Nächstes Zitat</button>
     </div>
-    <div class="card" id="activeCard" hidden>
-      <span class="label">Aktiver Plan</span>
-      <div id="activePlan"></div>
-      <button class="ghost" id="cancelPlan">Plan beenden</button>
-    </div>
-    <div class="card chat">
-      <span class="label">Coach fragen</span>
-      <div id="chatChips" class="chips in"></div>
-      <div id="chatLog" class="chat-log"></div>
-      <div class="chat-in">
-        <input id="chatInput" type="text" placeholder="Frag deinen Coach…" enterkeyhint="send">
-        <button id="chatSend" class="send" aria-label="Senden"><svg><use href="#i-send"/></svg></button>
-      </div>
+    <div class="card" id="keyCard" hidden>
+      <span class="label">Gemini-Key</span>
+      <p class="muted" id="keyState">Kostenlos bei aistudio.google.com/apikey.</p>
+      <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="primary" id="keySave">Speichern</button>
+      <button class="ghost" id="keyDel" hidden>Key entfernen</button>
+      <p class="muted small" id="keyMsg"></p>
     </div>
   </section>
   <!-- HABITS -->
@@ -885,14 +883,14 @@ async function ask(pre){
   $('chatInput').value='';addMsg(q,'me');
   if(/plan/i.test(q)&&/(mach|erstell|bau|schreib|brauch|will|gib|generier)/i.test(q)){
     addMsg('Ich baue dir jetzt einen Wochenplan mit deinen Profil-Daten. Er erscheint im Planbereich oben, dort tippst du auf Plan annehmen.','ai');
-    $('planCard').scrollIntoView({behavior:'smooth'});await createPlan();return;
+    $('planCard').open=true;$('planCard').scrollIntoView({behavior:'smooth'});await createPlan();return;
   }
   const wait=addMsg('…','ai');
   try{wait.textContent=await coachAI(profCtx()+q)}
   catch(e){wait.textContent='Fehler: '+aiErr(e)}
 }
 const CHIPQ=['Was soll ich heute essen?','Wie werde ich schneller beim Laufen?','Was hilft gegen Muskelkater?','Wie viel Eiweiß brauche ich?','Motivier mich jetzt','Wie bleibe ich diszipliniert?','Mach mir einen Wochenplan'];
-$('chatChips').innerHTML=CHIPQ.map(q=>`<button class="chip">${q}</button>`).join('');
+$('chatChips').innerHTML=CHIPQ.slice(0,3).map(q=>`<button class="chip">${q}</button>`).join('');
 $('chatChips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b)ask(b.textContent)});
 $('chatSend').onclick=ask;
 $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});

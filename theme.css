@@ -117,3 +117,16 @@ body:not(.papier) main{padding-top:0}
 .tab.active>.card,.tab.active>.acc,.tab.active>#catalogList{animation:schwingen .8s ease-out both}
 .tab.active>:nth-child(2){animation-delay:.06s}.tab.active>:nth-child(3){animation-delay:.12s}.tab.active>:nth-child(4){animation-delay:.18s}.tab.active>:nth-child(n+5){animation-delay:.24s}
 @media (prefers-reduced-motion:reduce){.tab.active>*{animation:none!important}}
+
+/* Coach schlicht: Chat oben, Essen in einer Karte, Wochenplan eingeklappt */
+#tab-coach .chat-log:empty{display:none}
+#tab-coach .chat .chips{margin:10px 0}
+.essen-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.essen-knoepfe{display:flex;gap:10px;align-items:center;margin-top:14px}
+.essen-knoepfe .primary{flex:1;margin:0}
+.linkknopf{background:none;border:0;box-shadow:none;padding:8px 4px;font:inherit;font-family:var(--hand);font-size:17px;color:var(--graphit);text-decoration:underline;text-underline-offset:3px;opacity:.75}
+details.plan-box>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+details.plan-box>summary::-webkit-details-marker{display:none}
+details.plan-box .pfeil{width:12px;height:12px;border-right:3px solid var(--graphit);border-bottom:3px solid var(--graphit);transform:rotate(45deg);transition:transform .2s;margin:0 6px 6px 0}
+details.plan-box[open] .pfeil{transform:rotate(225deg);margin-bottom:0}
+details.plan-box[open]>summary{margin-bottom:12px}
