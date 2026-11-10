@@ -1,9 +1,10 @@
-/* ================= WINTERFORM PASS =================
+/* ================= GYMLIMPIX PASS =================
    Saison-Pass mit 30 Stufen und zwei Spuren (frei und Premium). Erfahrung gibt es fürs Training
    (Wiederholungen, Kilometer, Trainingstage) und für jedes gewertete Rennen und Duell.
    Zwei Währungen: Coins (Alltag) und Gems (besondere Outfits). Der Pass bringt beides, dazu Kosmetik.
    Belohnungen sind nur Kosmetik und Währung, nie Pokale oder Vorteile im Rennen.
-   Die Premium-Spur kostet Coins aus dem Spiel, es wird kein Echtgeld verlangt.
+   Premium kostet 7,99 Euro und wird nur über Google Play gekauft (Digital Goods API in der Store-App).
+   Den Kauf prüft der Server (Function "kauf"), erst dann wird Premium freigeschaltet.
    Oben im Fenster steht der Hauptpreis in 3D, jede Kosmetik lässt sich antippen und anschauen.
    Alles rechnet der Server (wf_pass_*), dieser Teil zeigt nur an und fragt zum Abholen.
 
@@ -18,6 +19,51 @@
   const gem = '<img class="ar-gem" src="arena/gem.svg" alt="Gems">';
   const HAUPTPREIS = 'skin:eiszeus';
   let P = null, VORSCHAU = HAUPTPREIS;
+
+  /* ---------- Kauf über Google Play ---------- */
+  const PRODUKT = 'premium_pass', PLAY = 'https://play.google.com/billing';
+  let storePreis = '';
+  const preis = () => storePreis || (P && typeof P.premium_preis === 'string' ? P.premium_preis : '7,99 €');
+  const imStore = () => 'getDigitalGoodsService' in window && window.PaymentRequest;
+  async function dienst() { try { return imStore() ? await window.getDigitalGoodsService(PLAY) : null; } catch (err) { return null; } }
+  async function kaufMelden(token) {
+    const r = await fetch(SUPABASE_URL + '/functions/v1/kauf', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+      body: JSON.stringify(mit({ token, produkt: PRODUKT })) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.fehler || 'Der Kauf konnte nicht geprüft werden.');
+    return j;
+  }
+  // Käufe, die bezahlt aber noch nicht gutgeschrieben sind (z. B. App zu früh geschlossen), nachholen
+  async function offeneKaeufe() {
+    const d = await dienst(); if (!d || !ich()) return;
+    try {
+      const det = await d.getDetails([PRODUKT]);
+      if (det && det[0] && det[0].price) storePreis = new Intl.NumberFormat('de-DE', { style: 'currency', currency: det[0].price.currency }).format(+det[0].price.value);
+      const liste = await d.listPurchases();
+      for (const k of liste || []) if (k.itemId === PRODUKT) { await kaufMelden(k.purchaseToken); await nachher('Premium freigeschaltet'); }
+    } catch (err) { /* nächster Start versucht es wieder */ }
+  }
+  async function kaufen() {
+    if (!imStore()) {
+      const zu = '<button class="ar-zu" data-zu aria-label="Schließen">×</button>';
+      A.zeigeBlatt(`${zu}<h2 class="ar-titel">Premium</h2><p class="ar-hand">Premium kostet ${e(preis())} und gilt für die ganze Saison. Kaufen kannst du es in der Gymlimpix-App aus dem Google Play Store.</p>`);
+      return;
+    }
+    const req = new PaymentRequest([{ supportedMethods: PLAY, data: { sku: PRODUKT } }],
+      { total: { label: 'Premium', amount: { currency: 'EUR', value: '0' } } });
+    let antw;
+    try { antw = await req.show(); } catch (err) { return; }   // abgebrochen
+    try {
+      await kaufMelden(antw.details.purchaseToken);
+      await antw.complete('success');
+      await nachher('Premium freigeschaltet');
+    } catch (err) {
+      try { await antw.complete('fail'); } catch (x) {}
+      toast(err.message);
+    }
+  }
+  setTimeout(offeneKaeufe, 4000);
 
   function itemName(wert) {
     const [k, i] = String(wert).split(':'), x = ((window.Figur && Figur.KATALOG[k]) || []).find(y => y[0] === i);
@@ -93,14 +139,15 @@
     const prem = P.belohnungen.filter(r => r.spur === 'premium');
     const gems = prem.filter(r => r.art === 'gems').reduce((s, r) => s + (+r.wert), 0), items = prem.filter(r => r.art === 'item').length;
     A.zeigeBlatt(`${zu}
-      <div class="ps-hero legendaer"><span>Winterpass Premium</span><b>Eis-Zeus und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
+      <div class="ps-hero legendaer"><span>Premium</span><b>Eis-Zeus und mehr</b><small>${P.tage_rest} Tage übrig in dieser Saison</small></div>
       <ul class="ps-vorteile">
         <li><b>Coach</b>Dein KI-Trainer baut dir Pläne und beantwortet Fragen.</li>
+        <li><b>Essensscanner</b>Foto machen, die KI schätzt Kalorien und Eiweiß. 15 Scans am Tag.</li>
         <li><b>${items} Kosmetik-Teile</b>Eis-Zeus, Chione, Siegesgöttin und mehr, nur in der Premium-Spur.</li>
         <li><b>${gems} ${gem}</b>Extra Gems für besondere Outfits.</li>
         <li><b>Fair</b>Keine Vorteile im Rennen, Pokale gibt es nie zu kaufen.</li>
       </ul>
-      <button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${P.premium_preis} ${A.coin}</button>
+      <button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${e(preis())}</button>
       <button class="ar-knopf breit leise2" data-pass="oeffnen">Alle Belohnungen ansehen</button>
       ${manuell ? '' : '<button class="so-spaeter" data-pass="spaeter">Später</button>'}`, 'profil',
       { aussehen: Object.assign({}, A.F().aussehen, { skin: 'eiszeus', hg: 'leer' }) });
@@ -124,7 +171,7 @@
       });
     }
     k.innerHTML = `<h2>Coach</h2>
-      <p>Dein KI-Trainer gehört zu Winterpass Premium. Er kennt dein Profil, baut dir Wochenpläne und beantwortet Trainingsfragen.</p>
+      <p>Der KI-Coach und der Essensscanner gehören zu Premium. Der Coach kennt dein Profil, baut dir Wochenpläne und beantwortet Fragen. Der Scanner schätzt Kalorien und Eiweiß von einem Foto.</p>
       <button class="ar-knopf breit gold" data-coach="1">${ich() ? 'Premium ansehen' : 'Erst Spitznamen eintragen'}</button>`;
   }
 
@@ -229,7 +276,7 @@
       <p class="ar-hand klein ps-tipp">Tippe auf ein Outfit, um es oben anzuschauen.</p>
       <div class="ps-kopfzeile"><span>Frei</span><span></span><span class="${P.premium ? '' : 'zu'}">Premium</span></div>
       <div class="ps-liste" style="--fort:${Math.min(P.stufe, P.stufen) / P.stufen}">${reihen.join('')}</div>
-      ${P.premium ? '' : `<div class="ar-fuss"><button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${P.premium_preis} ${A.coin}</button></div>`}`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
+      ${P.premium ? '' : `<div class="ar-fuss"><button class="ar-knopf breit gold" data-pass="premium">Premium freischalten · ${e(preis())}</button></div>`}`, 'profil', { aussehen: vorschauLook(VORSCHAU) }, bleiben);
     $('arB3d').style.background = 'radial-gradient(circle at 50% 70%,#3B6EA5 0,#1F3A5F 70%)';
     if (!bleiben && P.stufe >= 4) setTimeout(() => { const j = el('psJetzt'); if (j && j.scrollIntoView) j.scrollIntoView({ block: 'center' }); }, 60);   // ab Stufe 4 zur aktuellen Stufe, sonst oben beim Hauptpreis
     if (nachOben) { const b = document.querySelector('.ar-blatt'); if (b) b.scrollTop = 0; }
@@ -283,11 +330,7 @@
       const liste = P.belohnungen.filter(r => r.stufe <= P.stufe && (r.spur === 'frei' || P.premium) && !geholt(r.stufe, r.spur));
       return sofortAbholen(liste, () => W().rpc('wf_pass_alle', mit({})));
     },
-    async premium() {
-      if (!confirm(`Premium-Spur für ${P.premium_preis} Coins freischalten?`)) return;
-      try { await W().rpc('wf_pass_premium', mit({})); await nachher('Premium-Spur freigeschaltet'); }
-      catch (err) { toast(err.message); }
-    }
+    async premium() { await kaufen(); }
   };
   $('arBlatt').addEventListener('click', ev => {
     const b = ev.target.closest('[data-pass]');

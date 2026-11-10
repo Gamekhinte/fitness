@@ -1,4 +1,4 @@
-/* ================= WINTERFORM CREW =================
+/* ================= GYMLIMPIX CREW =================
    Crew (Gruppe mit Code und Wochenrangliste), Serie mit Einfrieren und Auftauen,
    Duell per Link (60 Sekunden, die Kamera zählt), Lauf-Match live, Wochen-Rückblick als Bild.
 
@@ -157,7 +157,7 @@
   const linkMit = (art, wert) => `${location.origin}${location.pathname}?${art}=${encodeURIComponent(wert)}`;
   async function teilen(text, url) {
     try {
-      if (navigator.share) { await navigator.share({ title: 'Winterform', text, url }); return; }
+      if (navigator.share) { await navigator.share({ title: 'Gymlimpix', text, url }); return; }
     } catch (err) { if (err.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(`${text}: ${url}`); toast('Link kopiert'); }
     catch { prompt('Link kopieren:', url); }
@@ -340,7 +340,7 @@
       }
       const bild = rueckblickZeichnen({ wdh, km, tage, serie: s.serie, platz, von: mo, bis: heute });
       const blob = await new Promise(f => bild.toBlob(f, 'image/png'));
-      const datei = new File([blob], 'winterform-woche.png', { type: 'image/png' });
+      const datei = new File([blob], 'gymlimpix-woche.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [datei] })) await navigator.share({ files: [datei], title: 'Meine Woche' });
       else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = datei.name; a.click(); }
     } catch (err) { if (err.name !== 'AbortError') toast(err.message); }

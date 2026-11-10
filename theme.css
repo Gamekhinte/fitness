@@ -1,4 +1,4 @@
-/* Winterform im Arena-Look für die ganze App: Papier, Tinte, dicke Ränder, harte Schatten, Eisblau als Marker.
+/* Gymlimpix im Arena-Look für die ganze App: Papier, Tinte, dicke Ränder, harte Schatten, Eisblau als Marker.
    Überschreibt styles.css, ohne die Struktur anzufassen. */
 :root{--bg:#F3EFE6;--card:#FAF6EB;--line:#2B2826;--volt:#1C6FA6;--txt:#2B2826;--mut:#6B645C;
   --papier:#F3EFE6;--graphit:#2B2826;--marker:#7CD4FF;--gold:#F2C14E;--rot:#D9643A;

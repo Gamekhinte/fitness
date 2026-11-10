@@ -1,4 +1,4 @@
-/* ================= WINTERFORM KRAFT-ARENEN =================
+/* ================= GYMLIMPIX KRAFT-ARENEN =================
    Zehn Arenen für den Kraft-Modus, als kleine Räume auf schwebenden Inseln (Puppenhaus-Ansicht:
    Rückwand und linke Wand stehen, vorne ist offen). Die Figur trainiert auf ihrer Matte.
    Bausteine kommen aus arena3d.js (bau(g, H)). */

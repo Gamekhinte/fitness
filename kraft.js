@@ -1,4 +1,4 @@
-/* ================= WINTERFORM KRAFT-MODUS =================
+/* ================= GYMLIMPIX KRAFT-MODUS =================
    Duelle in Liegestütze, Squats (60 Sekunden, mehr saubere Wiederholungen gewinnt) und Plank (länger halten gewinnt).
    Die Kamera zählt mit MediaPipe Pose Landmarker (Modell "full", 3D-Gelenkpunkte in Metern):
    * nur wenn der ganze Körper sicher erkannt wird,

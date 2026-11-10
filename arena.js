@@ -1,4 +1,4 @@
-/* ================= WINTERFORM ARENA =================
+/* ================= GYMLIMPIX ARENA =================
    Startbildschirm: Insel an Seilen (arena3d.js) mit deiner Figur, Coins, Pokale, Einstellungen, BATTLE.
    Charakter-Editor und Shop (figur.js), Coins und Käufe prüft der Server (wf_figur_*, wf_kaufen).
 

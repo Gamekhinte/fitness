@@ -1,4 +1,4 @@
-/* ================= WINTERFORM ARENA 3D =================
+/* ================= GYMLIMPIX ARENA 3D =================
    Die Arena als schwebende Insel an vier Seilen, mit deiner Figur drauf.
    Physik: runter- oder hochziehen, loslassen. Die Seile ziehen nur (nie drücken), oben werden sie schlaff.
    Wird die Insel schneller nach unten gerissen als etwas fällt, oder fangen die Seile sie hart ab,

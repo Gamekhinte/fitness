@@ -1,4 +1,4 @@
-/* ================= WINTERFORM KLANG =================
+/* ================= GYMLIMPIX KLANG =================
    Alle Sounds und die Arena-Musik werden live mit der Web-Audio-API erzeugt (keine Dateien, keine Stimmen).
    Musik: Menü-Marsch (überall in der App) und ein schnellerer Runden-Track für Rennen und Duelle.
    Effekte: tipp, wdh (wird mit jeder Wiederholung höher), fehler, countdown, los, gefunden, sieg, niederlage,

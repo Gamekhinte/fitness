@@ -1,4 +1,4 @@
-/* ================= WINTERFORM 3D-GRUNDLAGE =================
+/* ================= GYMLIMPIX 3D-GRUNDLAGE =================
    Lädt three.js einmal (erst wenn es gebraucht wird) und stellt gemeinsame Bausteine bereit:
    Comic-Material mit harten Schattenstufen, Teile mit dunklem Tusche-Umriss, flache Formen und
    eine "Bühne" (Renderer + Kamera + Schleife), die man in jedes Element hängen kann. */

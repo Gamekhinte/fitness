@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F3EFE6">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Winterform</title>
+<title>Gymlimpix</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="Winterform">
+<meta name="apple-mobile-web-app-title" content="Gymlimpix">
 <link rel="stylesheet" href="styles.css?v=14">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Patrick+Hand&display=swap">
 <link rel="stylesheet" href="arena.css?v=15">
@@ -61,18 +61,17 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
 #lade.weg{opacity:0;pointer-events:none}
 #lade .l-logo{font:400 38px/1 'Lilita One','Arial Black',sans-serif;letter-spacing:1px;color:#2B2826}
 #lade .l-logo span{background:#7CD4FF;padding:0 6px;border-radius:6px}
-#lade svg{width:84px;height:84px;animation:lDreh 6s linear infinite}
+#lade img{width:110px;height:auto;animation:lPuls 1.6s ease-in-out infinite}
+@keyframes lPuls{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 #lade .l-balken{width:150px;height:14px;border:3px solid #2B2826;border-radius:8px;background:#FAF6EB;overflow:hidden;box-shadow:0 3px 0 #2B2826}
 #lade .l-balken i{display:block;width:40%;height:100%;background:#7CD4FF;animation:lLauf 1.1s ease-in-out infinite}
 @keyframes lDreh{to{transform:rotate(360deg)}}
 @keyframes lLauf{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
-@media (prefers-reduced-motion:reduce){#lade svg,#lade .l-balken i{animation:none}}
+@media (prefers-reduced-motion:reduce){#lade img,#lade .l-balken i{animation:none}}
 </style>
-<div id="lade" role="status" aria-label="Winterform lädt">
-  <div class="l-logo">WINTER<span>FORM</span></div>
-  <svg viewBox="-50 -50 100 100" aria-hidden="true"><g fill="none" stroke="#2B2826" stroke-width="9" stroke-linecap="round">
-    <path d="M0 -38V38M-33 -19L33 19M-33 19L33 -19"/><path d="M0 -24l-9 -9M0 -24l9 -9M0 24l-9 9M0 24l9 9" stroke-width="7"/></g>
-    <g fill="none" stroke="#7CD4FF" stroke-width="4.5" stroke-linecap="round"><path d="M0 -38V38M-33 -19L33 19M-33 19L33 -19"/></g></svg>
+<div id="lade" role="status" aria-label="Gymlimpix lädt">
+  <div class="l-logo">GYM<span>LIMPIX</span></div>
+  <img src="icon-kranz.svg" alt="" width="110" height="112">
   <div class="l-balken"><i></i></div>
 </div>
 <script>window.Lade={weg:function(){var l=document.getElementById("lade");if(!l)return;l.classList.add("weg");setTimeout(function(){l.remove();var s=document.getElementById("ladestil");if(s)s.remove()},300)}};setTimeout(function(){window.Lade.weg()},9000)</script>
@@ -99,7 +98,7 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
 </svg>
 
 <header class="top">
-  <div class="logo">WINTER<span>FORM</span> </div>
+  <div class="logo">GYM<span>LIMPIX</span> </div>
   <button class="pill" id="profileBtn">Profil</button>
 </header>
 
@@ -130,21 +129,6 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
   </section>
 
   <section id="tab-food" class="tab" hidden>
-    <div class="card">
-      <div class="row between"><span class="label">Kalorien</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
-      <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
-      <div class="bar"><i id="kcalBar"></i></div>
-      <div class="bar thin"><i id="protBar"></i></div>
-      <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
-    </div>
-    <div class="card" id="scanCard">
-      <span class="label">Essen scannen</span>
-      <p class="muted">Foto von deinem Essen machen, die KI schätzt Kalorien und Eiweiß.</p>
-      <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
-      <button class="primary" id="scanBtn">Foto machen</button>
-      <img id="scanImg" class="scan-img" alt="" hidden>
-      <div id="scanOut"></div>
-    </div>
     <div id="foodNav" class="chips"></div>
     <div id="foodList"></div>
   </section>
@@ -218,7 +202,23 @@ button{transition:background-color .2s ease,color .2s ease,border-color .2s ease
       <p class="quote" id="quote"></p>
       <button class="ghost" id="nextQuote"><svg><use href="#i-refresh"/></svg>Nächstes Zitat</button>
     </div>
-    <div class="card" id="keyCard">
+    <div class="card" id="scanCard">
+      <span class="label">Essen scannen</span>
+      <p class="muted">Foto von deinem Essen machen, die KI schätzt Kalorien und Eiweiß.</p>
+      <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
+      <button class="primary" id="scanBtn">Foto machen</button>
+      <p class="muted small" id="scanRest"></p>
+      <img id="scanImg" class="scan-img" alt="" hidden>
+      <div id="scanOut"></div>
+    </div>
+    <div class="card">
+      <div class="row between"><span class="label">Kalorien</span><span class="label" id="proteinTotal">0 g Eiweiß</span></div>
+      <div class="big"><span id="kcalTotal">0</span><small> / <span id="kcalGoal">3.200</span> kcal</small></div>
+      <div class="bar"><i id="kcalBar"></i></div>
+      <div class="bar thin"><i id="protBar"></i></div>
+      <button class="ghost" id="resetFood"><svg><use href="#i-refresh"/></svg>Zurücksetzen</button>
+    </div>
+    <div class="card" id="keyCard" hidden>
       <span class="label">Gemini-Key</span>
       <p class="muted" id="keyState">Kostenlos bei aistudio.google.com/apikey.</p>
       <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -872,13 +872,13 @@ const showQuote=()=>$('quote').textContent=QUOTES[qi];
 $('nextQuote').onclick=()=>{qi=(qi+1)%QUOTES.length;showQuote()};
 
 function addMsg(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('chatLog').appendChild(d);$('chatLog').scrollTop=1e6;return d}
-const COACH_SYS='Du bist der Winterform Coach, ein direkter, motivierender Fitness-Coach. Antworte auf Deutsch, kurz (maximal 120 Wörter), konkret und ohne Markdown-Sternchen. Keine Diagnosen; bei Beschwerden zum Arzt raten.';
+const COACH_SYS='Du bist der Gymlimpix Coach, ein direkter, motivierender Fitness-Coach. Antworte auf Deutsch, kurz (maximal 120 Wörter), konkret und ohne Markdown-Sternchen. Keine Diagnosen; bei Beschwerden zum Arzt raten.';
 let chatHist=[];
 async function coachAI(msg){
   const t=await gemini([{text:msg}],{system:COACH_SYS,history:chatHist.slice(-8)});
   chatHist.push({role:'user',parts:[{text:msg}]},{role:'model',parts:[{text:t}]});return t;
 }
-const aiErr=e=>e.message==='NOKEY'?'Trag im Coach-Tab einen funktionierenden Gemini-Key ein.':e.message;
+const aiErr=e=>e.grund==='premium'?'Der Coach gehört zu Premium.':e.message;
 async function ask(pre){
   if(!keyOk()){updLock();return}
   const q=(typeof pre==='string'?pre:$('chatInput').value).trim();if(!q)return;
@@ -900,7 +900,7 @@ $('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')ask()});
 
 /* ---------- GEMINI DIREKT (Key nur auf diesem Gerät) ---------- */
 const getKey=()=>localStorage.getItem('gkey')||localStorage.getItem('scanKey')||'';
-const keyOk=()=>!!getKey()&&localStorage.getItem('gok')==='1';
+const keyOk=()=>true; // Freischaltung prüft jetzt der Server (Premium)
 // Prüft den Key schnell über die Modell-Liste und findet automatisch die aktuellen Flash-Modelle
 async function checkKey(key){
   const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
@@ -917,32 +917,28 @@ async function checkKey(key){
 function updLock(){
   const ok=keyOk();
   $('chatInput').disabled=!ok;$('chatSend').disabled=!ok;$('chatChips').hidden=!ok;$('planBtn').disabled=!ok;$('scanBtn').disabled=!ok;
-  $('chatInput').placeholder=ok?'Frag deinen Coach…':'Erst funktionierenden Gemini-Key eintragen';
+  $('chatInput').placeholder='Frag deinen Coach…';
 }
-async function gemini(parts,{system,json,history}={}){
-  if(!keyOk())throw new Error('NOKEY');
-  const key=getKey(),contents=[...(history||[]),{role:'user',parts}];
-  const body=th=>JSON.stringify({contents,...(system?{systemInstruction:{parts:[{text:system}]}}:{}),generationConfig:{temperature:0.7,...(json?{responseMimeType:'application/json'}:{}),...(th?{thinkingConfig:{thinkingBudget:0}}:{})}});
-  let cached=[];try{cached=JSON.parse(localStorage.getItem('gmodels')||'[]')}catch(e){}
-  const models=(cached.length?cached:['gemini-2.5-flash']).slice(0,3);
-  let err='Unbekannter Fehler';
-  outer:for(const m of models){
-    for(const th of [true,false]){
-      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),30000);
-      try{
-        const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json','x-goog-api-key':key},body:body(th)});
-        const j=await r.json().catch(()=>({}));
-        if(r.ok){const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();if(t)return t;err='Leere Antwort';continue outer}
-        err=j.error?.message||('HTTP '+r.status);
-        if((r.status===400&&/api key/i.test(err))||r.status===403){localStorage.removeItem('gok');updLock();break outer}
-        if(r.status===429)break outer;
-        if(th&&/thinking/i.test(err))continue;
-        continue outer;
-      }catch(e){err=e.name==='AbortError'?'Zeitüberschreitung':e.message;continue outer}
-      finally{clearTimeout(to)}
-    }
-  }
-  throw new Error(err);
+/* KI läuft über den Server (Supabase Function "ki"): Premium-Prüfung und Tageslimit dort, kein Schlüssel in der App */
+const kiRest={scan:null,coach:null};
+function zeigeKiRest(){const el=$('scanRest');if(el)el.textContent=kiRest.scan==null?'':`Heute noch ${kiRest.scan} Scans`}
+async function gemini(parts,{history,art}={}){
+  const W=window.WF,me=W&&W.ich&&W.ich();
+  if(!me)throw new Error('Trag zuerst einen Spitznamen ein.');
+  const bild=parts.find(x=>x.inline_data),text=parts.map(x=>x.text||'').join('\n');
+  const a=art||(bild?'scan':/Wochentrainingsplan als JSON/.test(text)?'plan':'coach');
+  const body={art:a,p_id:me.id,p_geheim:me.geheim};
+  if(a==='scan')body.bild=bild.inline_data.data;else body.text=text;
+  if(a==='coach'&&history)body.history=history;
+  const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
+  try{
+    const r=await fetch(SUPABASE_URL+'/functions/v1/ki',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON,Authorization:'Bearer '+SUPABASE_ANON},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.text){const e=new Error(j.fehler||('HTTP '+r.status));e.grund=j.grund;throw e}
+    if(typeof j.rest==='number'){kiRest[a==='scan'?'scan':'coach']=j.rest;zeigeKiRest()}
+    return j.text;
+  }catch(e){if(e.name==='AbortError')throw new Error('Zeitüberschreitung, versuch es nochmal.');throw e}
+  finally{clearTimeout(to)}
 }
 async function genPlan(i){
   const t=await gemini([{text:`Erstelle einen Wochentrainingsplan als JSON. Daten: Ziel ${i.goal}, Level ${i.level}, ${i.days} Trainingstage, ${i.minutes} Min pro Einheit, Equipment ${i.equipment}, Alter ${i.age||'?'}, Gewicht ${i.weight||'?'} kg, Hinweise: ${i.notes}.
@@ -1004,7 +1000,7 @@ function buildReminders(plan,time){
   return out;
 }
 async function createPlan(){
-  if(!keyOk()){$('planMsg').textContent='Trag zuerst einen funktionierenden Gemini-Key ein.';return}
+  
   const btn=$('planBtn');btn.disabled=true;btn.textContent='Plan wird erstellt…';$('planMsg').textContent='';$('planDraft').innerHTML='';
   const names=' | Nutze bevorzugt diese Übungsnamen: Klassische Liegestütze, Diamond Push-ups, Pike Push-ups, Klassische Squats, Ausfallschritte, Glute Bridges, Klassische Plank, Crunches, Mountain Climbers, Wall Sit';
   const inputs={goal:$('pGoal').value,level:$('pLevel').value,days:+$('pDays').value,minutes:+$('pMin').value,equipment:$('pEquip').value,age:profile?profile.age:'',weight:profile?profile.weight:'',notes:$('pNotes').value.slice(0,100)+names};
@@ -1056,7 +1052,7 @@ $('keySave').onclick=async()=>{
 };
 $('keyDel').onclick=()=>{['gkey','scanKey','gok','gmodels'].forEach(k=>localStorage.removeItem(k));$('keyMsg').textContent='Key gelöscht.';showKey()};
 showKey();
-if(getKey()&&!keyOk())checkKey(getKey()).then(()=>{localStorage.setItem('gok','1');showKey()}).catch(()=>showKey());
+['gkey','scanKey','gok','gmodels'].forEach(k=>localStorage.removeItem(k)); // alte Schlüssel vom Gerät löschen
 
 /* ---------- SCHRITTZÄHLER ---------- */
 let steps=store.get('steps',null);
@@ -1451,8 +1447,7 @@ async function runScan(){
   $('scanOut').innerHTML='<p class="muted">KI analysiert dein Essen…</p>';
   try{showScan(await scanFood(pendingB64))}
   catch(e){
-    if(e.message==='NOKEY'){$('scanOut').innerHTML='<p class="muted">Für den Foto-Scan brauche ich deinen Gemini-Key. Trag ihn im Coach-Tab ein.</p>'}
-    else $('scanOut').innerHTML=`<p class="muted">Fehler: ${esc(e.message)}</p>`;
+    $('scanOut').innerHTML=`<p class="muted">${esc(aiErr(e))}</p>`;
   }
 }
 $('scanBtn').onclick=()=>$('scanFile').click();
@@ -1489,7 +1484,8 @@ setTimeout(moveInd,300);if(document.fonts&&document.fonts.ready)document.fonts.r
 <script src="shop.js?v=19"></script>
 <script src="dev.js?v=2"></script>
 <script src="konto.js?v=2"></script>
-<script src="pass.js?v=10"></script>
+<script src="pass.js?v=11"></script>
 <script src="kraft.js?v=14"></script>
+<script src="statusleiste.js?v=1"></script>
 </body>
 </html>

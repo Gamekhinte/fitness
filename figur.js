@@ -1,4 +1,4 @@
-/* ================= WINTERFORM FIGUR =================
+/* ================= GYMLIMPIX FIGUR =================
    Jede Figur ist ein fertiger Skin aus Blender (modelle/skins/<id>.glb, Liste in skins.js).
    Frei anpassen geht nicht mehr: Skin, Animation, Intro und Hintergrund sind die ganze Auswahl.
    Die .glb hat dieselben Gelenke wie früher (huefte, rumpf, kopf, armL/R, beinL/R, knieL/R),

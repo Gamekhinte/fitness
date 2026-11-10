@@ -1,4 +1,4 @@
-/* ================= WINTERFORM SOCIAL =================
+/* ================= GYMLIMPIX SOCIAL =================
    Clan-Tab wie "Social" in Clash Royale: oben ein Holzschild mit Profil, Clan und Duell,
    darunter die Freundesliste (online zuerst). Jeder Spieler hat eine eigene ID (#ABCD2345).
 
@@ -597,7 +597,7 @@
     clanAnsicht: b => clanAnsicht(b.id),
     duell: () => duellOeffnen(),
     hinzu: () => hinzuSheet(),
-    einladen: () => W().teilen(`${ich().name} auf Winterform: Füg mich als Freund hinzu`, W().linkMit('freund', S.info.tag)),
+    einladen: () => W().teilen(`${ich().name} auf Gymlimpix: Füg mich als Freund hinzu`, W().linkMit('freund', S.info.tag)),
     idkopie: b => kopieren('#' + b.tag, 'ID kopiert'),
     codekopie: b => kopieren(b.code, 'Code kopiert'),
     async hinzuSenden() { const t = el('soTagIn').value; if (await anfragen(t)) A.schliessen(); },
@@ -650,7 +650,7 @@
       await zeichnen();
       if (S.info && S.info.clan) clanAnsicht(S.info.clan.id);
     },
-    clanEinladen() { const c = S.info.clan; W().teilen(`Komm in meinen Winterform-Clan "${c.name}"`, W().linkMit('crew', c.code)); },
+    clanEinladen() { const c = S.info.clan; W().teilen(`Komm in meinen Gymlimpix-Clan "${c.name}"`, W().linkMit('crew', c.code)); },
     async clanVerlassen() {
       const c = S.info && S.info.clan; if (!c) return;
       if (!confirm(`${c.name} wirklich verlassen?`)) return;

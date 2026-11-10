@@ -1,4 +1,4 @@
-/* ================= WINTERFORM KONTO (Login) =================
+/* ================= GYMLIMPIX KONTO (Login) =================
    Bisher ist dein Konto an dieses Gerät gebunden. Hier wird es an deine E-Mail gebunden:
    - Konto sichern: E-Mail bestätigen, danach gehört das Spielerkonto zu dieser Adresse.
    - Anmelden: auf einem neuen Gerät mit der E-Mail ein neues Geräte-Geheimnis für das Konto bekommen (bis 5 Geräte).
