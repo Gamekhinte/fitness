@@ -155,9 +155,9 @@
   setInterval(musikPruefen, 1000);
 
   function zeichnen(ohneLaden) {
-    const pk = aktPokale(), i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
+    const pk = Number(aktPokale()) || 0, i = arenaZu(pk), a = ARENEN[i], n = ARENEN[i + 1];
     $('arPokale').textContent = pk;
-    $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
+    $('arCoinZahl').textContent = F.coins || 0; $('arGemZahl').textContent = F.gems || 0;
     const fb = $('arFigurBild'), skinBild = Figur.skinInfo(F.aussehen.skin) ? Figur.bild(F.aussehen.skin) : '';
     if (fb && fb.getAttribute('src') !== skinBild) fb.src = skinBild;
     $('arName').textContent = `Arena ${i + 1} · ${arenaName(i)}`;
@@ -204,7 +204,7 @@
       F = { aussehen: leer ? F.aussehen : Figur.pruefen(r.aussehen), coins: r.coins, gems: r.gems || 0, besitz: r.besitz || [] };
       store.set('wf-figur', F);
       if (leer) wf().rpc('wf_figur_speichern', mit({ p_aussehen: F.aussehen })).catch(() => {});
-      $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems || 0;
+      $('arCoinZahl').textContent = F.coins || 0; $('arGemZahl').textContent = F.gems || 0;
     const fb = $('arFigurBild'), skinBild = Figur.skinInfo(F.aussehen.skin) ? Figur.bild(F.aussehen.skin) : '';
     if (fb && fb.getAttribute('src') !== skinBild) fb.src = skinBild;
       // Figur auf der Insel nur neu bauen, wenn sich der Look geändert hat (das Neubauen ruckelt auf dem Handy)
@@ -475,7 +475,7 @@
     try {
       const r = await wf().rpc(gems ? 'wf_kaufen_gems' : 'wf_kaufen', mit({ p_item: teil.kat + ':' + teil.id }));
       F.coins = r.coins; F.gems = r.gems || 0; F.besitz = r.besitz || []; store.set('wf-figur', F);
-      $('arCoinZahl').textContent = F.coins; $('arGemZahl').textContent = F.gems;
+      $('arCoinZahl').textContent = F.coins || 0; $('arGemZahl').textContent = F.gems || 0;
       toast(`${teil.name} gehört jetzt dir`); if (window.Klang) Klang.effekt('kauf');
       editorMalen(true);
     } catch (err) { toast(err.message); }

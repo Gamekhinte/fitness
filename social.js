@@ -171,7 +171,9 @@
         <button class="so-spaeter" data-konto="anmelden">Schon ein Konto? Anmelden</button></div>`;
       return;
     }
-    const info = S.info || {}, l = S.liste || { freunde: [], anfragen: [], gesendet: [] };
+    const info = S.info || {}, roh = S.liste || {};
+    // Halbe Antwort vom Server: fehlende Listen als leer behandeln statt den Tab abstürzen zu lassen
+    const l = { ...roh, freunde: Array.isArray(roh.freunde) ? roh.freunde : [], anfragen: Array.isArray(roh.anfragen) ? roh.anfragen : [], gesendet: Array.isArray(roh.gesendet) ? roh.gesendet : [] };
     const clan = info.clan, tag = info.tag || '';
     const on = l.freunde.filter(f => f.online), off = l.freunde.filter(f => !f.online);
     const zeile = f => `<button class="so-zeile${f.online ? '' : ' aus'}" data-so="profil" data-id="${f.id}">

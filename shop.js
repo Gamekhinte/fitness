@@ -183,7 +183,19 @@
     const it = alle().find(i => i.key === img.dataset.foto);
     if (it) foto(it).then(erg => zeigen(img, erg));
   }), { rootMargin: '200px' }) : null;
+  // Lange Namen (Sonnenuntergang, Hampelmann) bleiben ein Wort: Schrift wird so weit kleiner, bis sie in die Karte passt
+  function namenEinpassen(wurzel) {
+    requestAnimationFrame(() => wurzel.querySelectorAll('.sh-karte b, .sh-hl b, .sh-rk b').forEach(n => {
+      n.style.fontSize = '';
+      let gr = parseFloat(getComputedStyle(n).fontSize), min = gr * 0.68;
+      const zuBreit = () => n.scrollWidth > n.clientWidth + 1;
+      while (zuBreit() && gr > min) { gr -= 0.5; n.style.fontSize = gr + 'px'; }
+    }));
+  }
+  let einpassUhr = 0;
+  addEventListener('resize', () => { clearTimeout(einpassUhr); einpassUhr = setTimeout(() => { const w = el('shWurzel'); if (w) namenEinpassen(w); }, 150); });
   function bilderStarten(wurzel) {
+    namenEinpassen(wurzel);
     wurzel.querySelectorAll('img[data-foto]').forEach(img => {
       const it = alle().find(i => i.key === img.dataset.foto);
       if (!it) return;
@@ -266,7 +278,7 @@
       <div class="sh-raeder">${RAEDER.filter(id => id !== fokus).map(karte).join('')}</div>
       ${A.ich() ? ziel : ''}`;
   }
-  function raederMalen() { const b = el('shRaeder'); if (b) { b.innerHTML = raederHtml(); bilderStarten(b); } }
+  function raederMalen() { const b = el('shRaeder'); if (b) { b.innerHTML = sicher(raederHtml); bilderStarten(b); } }
 
   /* ---------- Kontostand: zählt hoch, Münzen fliegen hinein ---------- */
   const anzeige = { coins: null, gems: null };
@@ -317,19 +329,21 @@
   // Neue zuerst, dann was du noch nicht hast, dann nach Preis (Gems zählen wie 15 Coins)
   const sortiert = l => l.slice().sort((x, y) => (NEU.has(y.key) && !hat(y)) - (NEU.has(x.key) && !hat(x)) || hat(x) - hat(y)
     || (x.art === 'gems' ? x.wert * 15 : x.wert) - (y.art === 'gems' ? y.wert * 15 : y.wert));
+  // Ein kaputter Bereich (z. B. halbe Server-Antwort) soll nicht den ganzen Shop leer lassen
+  const sicher = f => { try { return f(); } catch (err) { console.warn('Shop-Bereich übersprungen', err); return ''; } };
   let zuletztTag = heuteSeed();
   function zeichnen() {
     const w = el('shWurzel'); if (!w) return;
     const a = auswahl(), F = A.F();
     zuletztTag = heuteSeed();
-    anzeige.coins = F.coins; anzeige.gems = F.gems || 0;
+    anzeige.coins = F.coins || 0; anzeige.gems = F.gems || 0;
     w.innerHTML = `
       <div class="sh-kopf">
         <h2>Shop</h2>
-        <span class="sh-konto"><span>${A.coin}<b id="shCoins">${F.coins}</b></span><span>${gem}<b id="shGems">${F.gems || 0}</b></span></span>
+        <span class="sh-konto"><span>${A.coin}<b id="shCoins">${F.coins || 0}</b></span><span>${gem}<b id="shGems">${F.gems || 0}</b></span></span>
       </div>
-      <div id="shTag">${tagHtml()}</div>
-      <div id="shRaeder">${raederHtml()}</div>
+      <div id="shTag">${sicher(tagHtml)}</div>
+      <div id="shRaeder">${sicher(raederHtml)}</div>
       <div class="sh-spezial-kopf"><h3>Special</h3><span>Neu in <b id="shUhr">${rest()}</b></span></div>
       <div class="sh-spezial">${a.specials.map(i => karte(i, true).replace('class="sh-karte', 'class="sh-karte spezial')).join('')}</div>
       <div class="sh-abschnitt"><h3>Tagesangebote</h3></div>
@@ -380,11 +394,13 @@
         <div class="sh-quest bonus${q.bonus_bereit ? ' fertig' : ''}"><span class="sh-qtext"><b>Alle drei geschafft</b></span>
           ${q.bonus_geholt ? '<span class="sh-erledigt">Erledigt</span>' : q.bonus_bereit ? `<button class="so-mini sh-hol" data-sh="quest" data-id="bonus">+1 ${gem}</button>` : `<span class="sh-lohn">${gem}1</span>`}</div></div>`;
   }
-  function tagMalen() { const b = el('shTag'); if (b) b.innerHTML = tagHtml(); }
+  function tagMalen() { const b = el('shTag'); if (b) b.innerHTML = sicher(tagHtml); }
   async function tagLaden() {
     if (!A.ich()) { tagDaten = null; tagMalen(); return; }
     let neu;
     try { const [l, q] = await Promise.all([A.wf().rpc('wf_login_status', A.mit({})), A.wf().rpc('wf_quests', A.mit({}))]); neu = { l, q }; } catch (err) { return; }
+    // Unvollständige Antwort (Server hakt, Wartung): Bereich weglassen statt den ganzen Shop leer zu lassen
+    if (!neu.l || !Array.isArray(neu.l.belohnungen) || !neu.q || !Array.isArray(neu.q.quests)) neu = null;
     if (holt) return;                                                 // während des Abholens nicht dazwischenfunken
     const vorher = JSON.stringify(tagDaten);
     tagDaten = neu; abzeichen();

@@ -1,0 +1,33 @@
+/* Feinschliff: Namen passen in jede Karte, Preise stehen auf einer Linie, Tippen fühlt sich direkt an */
+
+/* Alle Knöpfe reagieren sofort, kein Doppeltipp-Zoom */
+button, a, label, [data-sh], .nav button { touch-action: manipulation; }
+
+/* Shop-Karten: Name hat immer Platz für zwei Zeilen, lange Wörter werden getrennt statt abgeschnitten */
+.sh-karte b {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 2.2em; max-width: 100%;
+  overflow-wrap: normal; word-break: normal;
+}
+.sh-karte b { margin-bottom: 6px; }
+.sh-karte .sh-preis { margin-top: auto !important; }
+.sh-raster.drei .sh-karte b { font-size: clamp(13px, 3.9vw, 15px); }
+.sh-raster.vier .sh-karte b { font-size: clamp(11px, 3.25vw, 13px); line-height: 1.08; }
+.sh-raster.vier .sh-preis { font-size: clamp(12px, 3.6vw, 14px); }
+.sh-raster, .sh-spezial { align-items: stretch; }
+.sh-preis { white-space: nowrap; }
+
+/* Seltenheits-Schild auf kleinen Karten nicht über den Rand */
+.sh-raster.vier .sh-sel { max-width: calc(100% - 8px); white-space: nowrap; font-size: clamp(7px, 2.15vw, 9px) !important; padding: 0 3px !important; letter-spacing: -.02em; }
+
+/* Highlights der Woche und Rad-Karten: Text bricht sauber um */
+.sh-hl b, .sh-rk b, .sh-rad-held-text b { overflow-wrap: break-word; }
+
+/* Bilder blenden weich ein, sobald sie fertig gerendert sind */
+.sh-bild img { transition: opacity .35s ease; }
+.sh-bild img:not([src]) { opacity: 0; }
+
+/* Shop-Seite gleitet beim Öffnen rein wie die anderen Tabs */
+#tab-shop.active > #shWurzel { animation: fsRein .45s cubic-bezier(.22,1,.36,1) both; }
+@keyframes fsRein { from { opacity: 0; transform: translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { #tab-shop.active > #shWurzel { animation: none; } }
